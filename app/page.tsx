@@ -34,6 +34,13 @@ export default function HomePage() {
               >
                 Browse Reviews
               </a>
+
+              <a
+                href="/review"
+                className="border border-slate-300 bg-white text-slate-900 px-6 py-3 rounded-xl font-semibold hover:bg-slate-50 transition"
+              >
+                Write Review
+              </a>
             </div>
 
           </div>
@@ -86,6 +93,8 @@ export default function HomePage() {
             </div>
           </a>
 
+
+
           <a
             href="/inter"
             className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-300 transition-all group"
@@ -117,6 +126,8 @@ export default function HomePage() {
               Browse Faculties →
             </div>
           </a>
+
+
 
         </div>
       </section>
