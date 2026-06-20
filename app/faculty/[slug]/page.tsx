@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { getAverageMetric, getOverallRating } from "@/lib/ratings";
-
+import { ratingFields } from "@/lib/rating-config";
 
 
 function RatingBar({ value }: { value: number }) {
@@ -9,7 +9,7 @@ function RatingBar({ value }: { value: number }) {
       <div className="flex-1 bg-slate-100 rounded-full h-2">
         <div
           className="bg-blue-500 h-2 rounded-full"
-          style={{ width: `${(value / 10) * 100}%` }}
+          style={{ width: `${(value / 5) * 100}%` }}
         />
       </div>
       <span className="text-slate-900 font-bold text-sm w-8 text-right">{value}</span>
@@ -66,17 +66,7 @@ export default async function FacultyPage({
       ].includes(field)
   );
 
-  const ratingFields = Object.keys(
-    reviews[0] ?? {}
-  ).filter(
-    (field) =>
-      typeof reviews[0]?.[field] ===
-      "number" &&
-      ![
-        "id",
-        "faculty_id",
-      ].includes(field)
-  );
+  
 
   const formatFieldName = (
     field: string
@@ -205,12 +195,12 @@ export default async function FacultyPage({
               <div className="space-y-4">
                 {ratingFields.map((field) => (
 
-                  <div key={field}>
+                  <div key={field.key}>
 
                     <div className="flex justify-between mb-1.5">
 
                       <span className="text-slate-500 text-sm">
-                        {formatFieldName(field)}
+                        {formatFieldName(field.key)}
                       </span>
 
                     </div>
@@ -218,7 +208,7 @@ export default async function FacultyPage({
                     <RatingBar
                       value={getAverageMetric(
                         reviews,
-                        field
+                        field.key
                       )}
                     />
 

@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { getAverageMetric, getOverallRating } from "@/lib/ratings";
+import { ratingFields } from "@/lib/rating-config";
 
 export default async function CompareResultPage({
   params,
@@ -42,11 +43,7 @@ export default async function CompareResultPage({
       ].includes(field)
   );
 
-  const ratingFields = Object.keys(faculty1Reviews[0] ?? {}).filter(
-    (field) =>
-      typeof faculty1Reviews[0]?.[field] === "number" &&
-      !["id", "faculty_id"].includes(field)
-  );
+
 
   const formatFieldName = (field: string) =>
     field.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -58,7 +55,7 @@ export default async function CompareResultPage({
     return String(val);
   };
 
-  const winner = (v1: number, v2: number) => {
+  const w = (v1: number, v2: number) => {
     if (v1 > v2) return "left";
     if (v2 > v1) return "right";
     return "tie";
@@ -154,12 +151,18 @@ export default async function CompareResultPage({
                 <div className="p-4 bg-slate-50 font-bold text-slate-900 text-center border-b border-l">{faculty2.faculty_name}</div>
 
                 {ratingFields.map((field) => {
-                  const v1 = getAverageMetric(faculty1Reviews, field);
-                  const v2 = getAverageMetric(faculty2Reviews, field);
-                  const w = winner(v1, v2);
+                  const v1 = getAverageMetric(
+                    faculty1Reviews,
+                    field.key
+                  );
+
+                  const v2 = getAverageMetric(
+                    faculty2Reviews,
+                    field.key
+                  );
                   return (
-                    <div key={field} className="contents">
-                      <div className="p-4 border-b text-slate-600 text-sm">{formatFieldName(field)}</div>
+                    <div key={field.key} className="contents">
+                      <div className="p-4 border-b text-slate-600 text-sm">{formatFieldName(field.key)}</div>
                       <div className={`p-4 border-b border-l text-center font-bold text-sm ${w === "left" ? "text-blue-600 bg-blue-50" : "text-slate-900"}`}>
                         {v1}
                         {w === "left" && <span className="ml-1 text-xs">↑</span>}

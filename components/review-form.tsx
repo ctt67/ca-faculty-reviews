@@ -1,57 +1,17 @@
 "use client";
+
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { ratingFields } from "@/lib/rating-config";
+console.log(ratingFields);
+
 export default function ReviewForm({
     faculty,
 }: {
     faculty: any;
 }) {
 
-    const ratingFields = [
-        {
-            key: "understandability",
-            label: "Understandability",
-        },
-        {
-            key: "exam_focus",
-            label: "Exam Focus",
-        },
-        {
-            key: "study_material_quality",
-            label: "Study Material Quality",
-        },
-        {
-            key: "mock_coverage",
-            label: "Mock Coverage",
-        },
-        {
-            key: "doubt_resolution",
-            label: "Doubt Resolution",
-        },
-        {
-            key: "value_for_money",
-            label: "Value For Money",
-        },
-        {
-            key: "notes_quality",
-            label: "Notes Quality",
-        },
-        {
-            key: "revision_support",
-            label: "Revision Support",
-        },
-        {
-            key: "coverage_of_questions",
-            label: "Coverage Of Questions",
-        },
-        {
-            key: "pace_of_teaching",
-            label: "Pace Of Teaching",
-        },
-        {
-            key: "technical_quality",
-            label: "Technical Quality",
-        },
-    ];
+
 
     const [formData, setFormData] = useState({
         attempt: "",
@@ -73,7 +33,78 @@ export default function ReviewForm({
         Record<string, string>
     >({});
 
+    const [submitting, setSubmitting] =
+        useState(false);
 
+    const handleSubmit = async () => {
+
+        setSubmitting(true);
+
+        try {
+
+            const { error } = await supabase
+                .from("reviews")
+                .insert([
+                    {
+                        faculty_slug: faculty.slug,
+
+                        attempt: formData.attempt,
+                        student_type:
+                            formData.student_type,
+                        course_type:
+                            formData.course_type,
+
+                        teacher_style:
+                            formData.teacher_style,
+
+                        best_for:
+                            formData.best_for,
+
+                        would_recommend:
+                            formData.would_recommend ===
+                            "Yes",
+
+                        pros: formData.pros,
+                        cons: formData.cons,
+                        review_text:
+                            formData.review_text,
+
+                        approved: false,
+
+                        rating_reasons:
+                            ratingReasons,
+
+                        ...ratings,
+                    },
+                ]);
+
+            if (error) {
+                console.error(error);
+                alert(
+                    "Failed to submit review"
+                );
+                return;
+            }
+
+            alert(
+                "Review submitted successfully!"
+            );
+
+        } catch (err) {
+
+            console.error(err);
+
+            alert(
+                "Something went wrong"
+            );
+
+        } finally {
+
+            setSubmitting(false);
+
+        }
+
+    };
 
     return (<main className="min-h-screen bg-slate-100">
 
@@ -546,9 +577,13 @@ export default function ReviewForm({
             <div className="mt-8 mb-16">
 
                 <button
-                    className="w-full bg-blue-600 text-white py-4 rounded-2xl font-semibold text-lg hover:bg-blue-700 transition"
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                    className="w-full bg-blue-600 text-white py-4 rounded-2xl font-semibold text-lg hover:bg-blue-700 transition disabled:opacity-50"
                 >
-                    Submit Review
+                    {submitting
+                        ? "Submitting..."
+                        : "Submit Review"}
                 </button>
 
             </div>
