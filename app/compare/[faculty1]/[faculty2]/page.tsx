@@ -26,8 +26,14 @@ export default async function CompareResultPage({
   }
 
   const [{ data: reviews1 }, { data: reviews2 }] = await Promise.all([
-    supabase.from("reviews").select("*").eq("faculty_slug", faculty1Slug),
-    supabase.from("reviews").select("*").eq("faculty_slug", faculty2Slug),
+    supabase.from("reviews")
+      .select("*")
+      .eq("faculty_slug", faculty1Slug)
+      .eq("approved", true),
+    supabase.from("reviews")
+      .select("*")
+      .eq("faculty_slug", faculty2Slug)
+      .eq("approved", true),
   ]);
 
   const faculty1Reviews = reviews1 ?? [];
@@ -103,7 +109,7 @@ export default async function CompareResultPage({
               </div>
               <div className="mt-6">
                 <div className="text-6xl font-extrabold text-blue-600">
-                  {reviews.length > 0 ? rating : "—"}
+                  {reviews.length > 0 ? `★ ${rating}` : "—"}
                 </div>
                 <div className="text-slate-400 text-sm mt-1">Overall Rating</div>
               </div>

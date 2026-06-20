@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { ratingFields } from "@/lib/rating-config";
-console.log(ratingFields);
+
 
 export default function ReviewForm({
     faculty,
@@ -36,7 +37,117 @@ export default function ReviewForm({
     const [submitting, setSubmitting] =
         useState(false);
 
+    const [user, setUser] = useState<any>(null);
+    const [alreadyReviewed, setAlreadyReviewed] =
+        useState(false);
+    const [showErrors, setShowErrors] =
+        useState(false);
+
+    useEffect(() => {
+
+        const checkAuth = async () => {
+
+            const {
+                data: { user },
+            } = await supabase.auth.getUser();
+
+            setUser(user);
+
+            if (!user) return;
+
+            const { data } = await supabase
+                .from("reviews")
+                .select("id")
+                .eq("faculty_slug", faculty.slug)
+                .eq("user_id", user.id)
+                .maybeSingle();
+
+            if (data) {
+                setAlreadyReviewed(true);
+            }
+
+        };
+
+        checkAuth();
+
+    }, [faculty.slug]);
+
+    if (alreadyReviewed) {
+
+        return (
+
+            <main className="min-h-screen bg-slate-100 flex items-center justify-center">
+
+                <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
+
+                    <h2 className="text-2xl font-bold text-slate-900">
+                        Review Already Submitted
+                    </h2>
+
+                    <p className="mt-3 text-slate-600">
+                        You can only submit one review per faculty.
+                        Thank you for contributing.
+                    </p>
+
+                </div>
+
+            </main>
+
+        );
+
+    }
+
+
+
+
     const handleSubmit = async () => {
+
+        if (!user) {
+            alert(
+                "Please sign in with Google before submitting a review."
+            );
+            return;
+        }
+
+        if (
+            !formData.attempt ||
+            !formData.student_type ||
+            !formData.course_type ||
+            !formData.teacher_style ||
+            formData.best_for.length === 0 ||
+            !formData.would_recommend ||
+            !formData.pros.trim() ||
+            !formData.cons.trim() ||
+            !formData.review_text.trim()
+        ) {
+
+            setShowErrors(true);
+
+            alert(
+                "Please complete all required fields."
+            );
+
+            return;
+
+        }
+
+        const missingRating =
+            ratingFields.some(
+                (field) =>
+                    !ratings[field.key]
+            );
+
+        if (missingRating) {
+
+            setShowErrors(true);
+
+            alert(
+                "Please rate all categories."
+            );
+
+            return;
+
+        }
 
         setSubmitting(true);
 
@@ -47,6 +158,7 @@ export default function ReviewForm({
                 .insert([
                     {
                         faculty_slug: faculty.slug,
+                        user_id: user?.id,
 
                         attempt: formData.attempt,
                         student_type:
@@ -79,15 +191,32 @@ export default function ReviewForm({
                 ]);
 
             if (error) {
+
                 console.error(error);
+
+                if (
+                    JSON.stringify(error)
+                        .includes(
+                            "unique_user_faculty_review"
+                        )
+                ) {
+
+                    setAlreadyReviewed(true);
+
+                    return;
+
+                }
+
                 alert(
                     "Failed to submit review"
                 );
+
                 return;
+
             }
 
             alert(
-                "Review submitted successfully!"
+                "Review submitted successfully. It will be reviewed by a moderator before appearing publicly."
             );
 
         } catch (err) {
@@ -126,6 +255,20 @@ export default function ReviewForm({
         </section>
 
         <section className="max-w-4xl mx-auto px-6 py-12">
+
+            <div className="mb-8 bg-amber-50 border border-amber-200 rounded-2xl p-4">
+
+                <h3 className="font-semibold text-amber-900">
+                    Review Guidelines
+                </h3>
+
+                <p className="text-sm text-amber-800 mt-2">
+                    Reviews are manually moderated before publication.
+                    Please share genuine experiences and constructive feedback.
+                    Misleading, abusive, promotional, or spam reviews may be rejected.
+                </p>
+
+            </div>
 
             <div className="bg-white rounded-3xl border border-slate-200 shadow-lg p-6">
 
@@ -166,7 +309,7 @@ export default function ReviewForm({
                     <div>
 
                         <label className="block mb-2 text-sm font-semibold text-slate-700">
-                            Attempt
+                            Attempt <span className="text-red-500">*</span>
                         </label>
 
                         <select
@@ -177,7 +320,10 @@ export default function ReviewForm({
                                     attempt: e.target.value
                                 })
                             }
-                            className="w-full border border-slate-200 rounded-xl p-3.5 text-slate-900 bg-white"
+                            className={`w-full border rounded-xl p-3.5 text-slate-900 bg-white ${showErrors && !formData.attempt
+                                ? "border-red-500"
+                                : "border-slate-200"
+                                }`}
                         >
                             <option value="">
                                 Select Attempt
@@ -192,7 +338,7 @@ export default function ReviewForm({
                     <div>
 
                         <label className="block mb-2 text-sm font-semibold text-slate-700">
-                            Student Type
+                            Student Type <span className="text-red-500">*</span>
                         </label>
 
                         <select
@@ -203,7 +349,10 @@ export default function ReviewForm({
                                     student_type: e.target.value
                                 })
                             }
-                            className="w-full border border-slate-200 rounded-xl p-3.5 text-slate-900 bg-white"
+                            className={`w-full border rounded-xl p-3.5 text-slate-900 bg-white ${showErrors && !formData.student_type
+                                ? "border-red-500"
+                                : "border-slate-200"
+                                }`}
                         >
                             <option value="">
                                 Select Student Type
@@ -218,7 +367,7 @@ export default function ReviewForm({
                     <div>
 
                         <label className="block mb-2 text-sm font-semibold text-slate-700">
-                            Course Type
+                            Course Type <span className="text-red-500">*</span>
                         </label>
 
                         <select
@@ -229,7 +378,10 @@ export default function ReviewForm({
                                     course_type: e.target.value
                                 })
                             }
-                            className="w-full border border-slate-200 rounded-xl p-3.5 text-slate-900 bg-white"
+                            className={`w-full border rounded-xl p-3.5 text-slate-900 bg-white ${showErrors && !formData.course_type
+                                ? "border-red-500"
+                                : "border-slate-200"
+                                }`}
                         >
                             <option value="">
                                 Select Course Type
@@ -255,7 +407,7 @@ export default function ReviewForm({
                     <div>
 
                         <label className="block mb-2 text-sm font-semibold text-slate-700">
-                            Teaching Style
+                            Teaching Style <span className="text-red-500">*</span>
                         </label>
 
                         <select
@@ -266,7 +418,10 @@ export default function ReviewForm({
                                     teacher_style: e.target.value,
                                 })
                             }
-                            className="w-full border border-slate-200 rounded-xl p-3.5 text-slate-900 bg-white"
+                            className={`w-full border rounded-xl p-3.5 text-slate-900 bg-white ${showErrors && !formData.teacher_style
+                                ? "border-red-500"
+                                : "border-slate-200"
+                                }`}
                         >
                             <option value="">
                                 Select Teaching Style
@@ -295,10 +450,17 @@ export default function ReviewForm({
                     <div>
 
                         <label className="block mb-4 text-sm font-semibold text-slate-700">
-                            Best For
+                            Best For <span className="text-red-500">*</span>
                         </label>
 
                         <div className="flex flex-wrap gap-3">
+
+                            {showErrors &&
+                                formData.best_for.length === 0 && (
+                                    <p className="text-red-500 text-sm mb-2">
+                                        Select at least one option
+                                    </p>
+                                )}
 
                             {[
                                 "First Attempt",
@@ -394,7 +556,10 @@ export default function ReviewForm({
                                         [field.key]: Number(e.target.value),
                                     })
                                 }
-                                className="w-full border border-slate-200 rounded-xl p-3 text-slate-900 bg-white"
+                                className={`w-full border rounded-xl p-3 text-slate-900 bg-white ${showErrors && !ratings[field.key]
+                                    ? "border-red-500"
+                                    : "border-slate-200"
+                                    }`}
                             >
                                 <option value="">
                                     Select Rating
@@ -461,7 +626,7 @@ export default function ReviewForm({
                     <div>
 
                         <label className="block mb-3 text-sm font-semibold text-slate-700">
-                            Would You Recommend This Faculty?
+                            Would You Recommend This Faculty? <span className="text-red-500">*</span>
                         </label>
 
                         <div className="flex gap-4">
@@ -509,7 +674,7 @@ export default function ReviewForm({
                     <div>
 
                         <label className="block mb-2 text-sm font-semibold text-slate-700">
-                            Pros
+                            Pros <span className="text-red-500">*</span>
                         </label>
 
                         <textarea
@@ -522,7 +687,10 @@ export default function ReviewForm({
                                 })
                             }
                             placeholder="What did the faculty do well?"
-                            className="w-full border border-slate-200 rounded-xl p-3 text-slate-900 placeholder:text-slate-400"
+                            className={`w-full border rounded-xl p-3 text-slate-900 placeholder:text-slate-400 ${showErrors && !formData.pros.trim()
+                                ? "border-red-500"
+                                : "border-slate-200"
+                                }`}
                         />
 
                     </div>
@@ -530,7 +698,7 @@ export default function ReviewForm({
                     <div>
 
                         <label className="block mb-2 text-sm font-semibold text-slate-700">
-                            Cons
+                            Cons <span className="text-red-500">*</span>
                         </label>
 
                         <textarea
@@ -543,7 +711,10 @@ export default function ReviewForm({
                                 })
                             }
                             placeholder="What could have been improved?"
-                            className="w-full border border-slate-200 rounded-xl p-3 text-slate-900 placeholder:text-slate-400"
+                            className={`w-full border rounded-xl p-3 text-slate-900 placeholder:text-slate-400 ${showErrors && !formData.cons.trim()
+                                ? "border-red-500"
+                                : "border-slate-200"
+                                }`}
                         />
 
                     </div>
@@ -551,7 +722,7 @@ export default function ReviewForm({
                     <div>
 
                         <label className="block mb-2 text-sm font-semibold text-slate-700">
-                            Overall Review
+                            Overall Review <span className="text-red-500">*</span>
                         </label>
 
                         <textarea
@@ -564,7 +735,10 @@ export default function ReviewForm({
                                 })
                             }
                             placeholder="Describe your overall experience with this faculty..."
-                            className="w-full border border-slate-200 rounded-xl p-3 text-slate-900 placeholder:text-slate-400"
+                            className={`w-full border rounded-xl p-3 text-slate-900 placeholder:text-slate-400 ${showErrors && !formData.review_text.trim()
+                                ? "border-red-500"
+                                : "border-slate-200"
+                                }`}
                         />
 
                     </div>
@@ -574,7 +748,14 @@ export default function ReviewForm({
             </div>
 
 
+
+
+            <div className="mb-16"></div>
+
+
             <div className="mt-8 mb-16">
+
+
 
                 <button
                     onClick={handleSubmit}

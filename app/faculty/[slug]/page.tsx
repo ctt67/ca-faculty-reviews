@@ -44,7 +44,8 @@ export default async function FacultyPage({
   const { data: facultyReviews } = await supabase
     .from("reviews")
     .select("*")
-    .eq("faculty_slug", slug);
+    .eq("faculty_slug", slug)
+    .eq("approved", true);
 
   const reviews = facultyReviews ?? [];
   const overallRating = getOverallRating(reviews);
@@ -66,7 +67,7 @@ export default async function FacultyPage({
       ].includes(field)
   );
 
-  
+
 
   const formatFieldName = (
     field: string
@@ -107,7 +108,7 @@ export default async function FacultyPage({
 
             <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 text-center shrink-0">
               <div className="text-6xl font-extrabold text-blue-400">
-                {reviews.length > 0 ? overallRating : "—"}
+                {reviews.length > 0 ? `★ ${overallRating}` : "—"}
               </div>
               <div className="text-slate-400 text-sm mt-1">Overall Rating</div>
             </div>

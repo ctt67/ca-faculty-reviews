@@ -27,7 +27,11 @@ export default async function SubjectPage({
   const slugs = subjectFaculties?.map((f) => f.slug) ?? [];
 
   const { data: allReviews } = slugs.length
-    ? await supabase.from("reviews").select("*").in("faculty_slug", slugs)
+    ? await supabase
+      .from("reviews")
+      .select("*")
+      .in("faculty_slug", slugs)
+      .eq("approved", true)
     : { data: [] };
 
   return (
@@ -105,7 +109,7 @@ export default async function SubjectPage({
 
                     <div className="text-center shrink-0">
                       <div className="text-4xl font-extrabold text-blue-600">
-                        {hasReviews ? overallRating : "—"}
+                        {hasReviews ? `★ ${overallRating}` : "—"}
                       </div>
                       <div className="text-xs text-slate-400 mt-1">Rating</div>
                     </div>
