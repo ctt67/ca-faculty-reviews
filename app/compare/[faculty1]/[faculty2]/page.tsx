@@ -166,16 +166,18 @@ export default async function CompareResultPage({
                     faculty2Reviews,
                     field.key
                   );
+
+                  const winner = w(v1, v2);
                   return (
                     <div key={field.key} className="contents">
                       <div className="p-4 border-b text-slate-600 text-sm">{formatFieldName(field.key)}</div>
-                      <div className={`p-4 border-b border-l text-center font-bold text-sm ${w === "left" ? "text-blue-600 bg-blue-50" : "text-slate-900"}`}>
+                      <div className={`p-4 border-b border-l text-center font-bold text-sm ${winner === "left" ? "text-blue-600 bg-blue-50" : "text-slate-900"}`}>
                         {v1}
-                        {w === "left" && <span className="ml-1 text-xs">↑</span>}
+                        {winner === "left" && <span className="ml-1 text-xs">↑</span>}
                       </div>
-                      <div className={`p-4 border-b border-l text-center font-bold text-sm ${w === "right" ? "text-blue-600 bg-blue-50" : "text-slate-900"}`}>
+                      <div className={`p-4 border-b border-l text-center font-bold text-sm ${winner === "right" ? "text-blue-600 bg-blue-50" : "text-slate-900"}`}>
                         {v2}
-                        {w === "right" && <span className="ml-1 text-xs">↑</span>}
+                        {winner === "right" && <span className="ml-1 text-xs">↑</span>}
                       </div>
                     </div>
                   );
