@@ -128,7 +128,7 @@ export default async function SubjectPage({
                   <div className="grid grid-cols-3 gap-3 mt-7">
                    
                     <div className="bg-slate-50 rounded-xl p-3 text-center">
-                      <div className="font-bold text-slate-900 text-sm">{faculty.regular_hours}h</div>
+                      <div className="font-bold text-slate-900 text-sm">{faculty.advertised_regular_hours}h</div>
                       <div className="text-xs text-slate-400 mt-1">Hours</div>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-3 text-center">
