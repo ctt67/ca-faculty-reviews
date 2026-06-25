@@ -209,6 +209,11 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
 
             <li className="flex gap-2">
               <span>🚫</span>
+              <span>Do not include personal information, phone numbers, email addresses or defamatory content.</span>
+            </li>
+
+            <li className="flex gap-2">
+              <span>🚫</span>
               <span>Promotional, abusive or misleading reviews will not be approved.</span>
             </li>
 
@@ -585,10 +590,6 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
               <li>Your review reflects your genuine experience.</li>
               <li>You are not affiliated with this faculty or a competing faculty.</li>
               <li>Promotional, abusive or misleading reviews may be rejected.</li>
-              <li className="flex gap-2">
-                <span>🚫</span>
-                <span>Do not include personal information, phone numbers, email addresses or defamatory content.</span>
-              </li>
               <li>Reviews may be edited for grammar or formatting without changing their meaning.</li>
             </ul>
 
