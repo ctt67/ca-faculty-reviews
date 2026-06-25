@@ -1,7 +1,11 @@
 import { supabase } from "@/lib/supabase";
-import { getAverageMetric, getOverallRating } from "@/lib/ratings";
-import { ratingFields } from "@/lib/rating-config";
+import { getAverageMetric, getOverallRating, getRatingFields } from "@/lib/ratings";
 import { formatFieldName, formatValue } from "@/lib/format";
+
+const FACULTY_EXCLUDED_FIELDS = new Set([
+  "id", "slug", "faculty_name", "subject", "level",
+  "active", "website", "youtube", "created_at", "updated_at",
+]);
 
 export default async function CompareResultPage({
   params,
@@ -20,21 +24,17 @@ export default async function CompareResultPage({
       <main className="min-h-screen bg-slate-100 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-slate-900">Faculty not found</h1>
-          <a href="/compare" className="mt-4 inline-block text-blue-600 hover:underline">← Back to Compare</a>
+          <a href="/compare" className="mt-4 inline-block text-blue-600 hover:underline">
+            ← Back to Compare
+          </a>
         </div>
       </main>
     );
   }
 
   const [{ data: reviews1 }, { data: reviews2 }] = await Promise.all([
-    supabase.from("reviews")
-      .select("*")
-      .eq("faculty_slug", faculty1Slug)
-      .eq("approved", true),
-    supabase.from("reviews")
-      .select("*")
-      .eq("faculty_slug", faculty2Slug)
-      .eq("approved", true),
+    supabase.from("reviews").select("*").eq("faculty_slug", faculty1Slug).eq("approved", true),
+    supabase.from("reviews").select("*").eq("faculty_slug", faculty2Slug).eq("approved", true),
   ]);
 
   const faculty1Reviews = reviews1 ?? [];
@@ -42,18 +42,20 @@ export default async function CompareResultPage({
   const faculty1Rating = getOverallRating(faculty1Reviews);
   const faculty2Rating = getOverallRating(faculty2Reviews);
 
+  // Faculty detail fields — fully dynamic from DB columns
   const facultyFields = Object.keys(faculty1).filter(
-    (field) =>
-      ![
-        "id", "slug", "faculty_name", "subject", "level",
-        "active", "website", "youtube", "created_at", "updated_at",
-      ].includes(field)
+    (field) => !FACULTY_EXCLUDED_FIELDS.has(field)
   );
 
+  // Rating fields — derived from actual review data from either faculty
+  // Falls back to the other faculty's reviews if one has none
+  const ratingFields = getRatingFields(
+    faculty1Reviews.length > 0 ? faculty1Reviews : faculty2Reviews
+  );
 
+  const hasAnyReviews = faculty1Reviews.length > 0 || faculty2Reviews.length > 0;
 
-
-  const w = (v1: number, v2: number) => {
+  const winner = (v1: number, v2: number) => {
     if (v1 > v2) return "left";
     if (v2 > v1) return "right";
     return "tie";
@@ -65,7 +67,10 @@ export default async function CompareResultPage({
       {/* Hero */}
       <section className="bg-slate-900 text-white">
         <div className="max-w-7xl mx-auto px-6 py-16">
-          <a href="/compare" className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm mb-8 transition">
+          <a
+            href="/compare"
+            className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm mb-8 transition"
+          >
             ← Back to Compare
           </a>
           <h1 className="text-5xl md:text-6xl font-extrabold">
@@ -110,7 +115,7 @@ export default async function CompareResultPage({
           ))}
         </div>
 
-        {/* Faculty Details */}
+        {/* Faculty Details — fully dynamic */}
         <div>
           <h2 className="text-2xl font-bold text-slate-900 mb-4">Faculty Details</h2>
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
@@ -134,10 +139,10 @@ export default async function CompareResultPage({
           </div>
         </div>
 
-        {/* Ratings Comparison */}
+        {/* Ratings Comparison — dynamic from actual review data */}
         <div>
           <h2 className="text-2xl font-bold text-slate-900 mb-4">Ratings Comparison</h2>
-          {ratingFields.length === 0 ? (
+          {!hasAnyReviews || ratingFields.length === 0 ? (
             <div className="bg-white rounded-3xl border border-slate-200 p-10 text-center text-slate-400">
               No ratings available yet for these faculties.
             </div>
@@ -149,27 +154,19 @@ export default async function CompareResultPage({
                 <div className="p-4 bg-slate-50 font-bold text-slate-900 text-center border-b border-l">{faculty2.faculty_name}</div>
 
                 {ratingFields.map((field) => {
-                  const v1 = getAverageMetric(
-                    faculty1Reviews,
-                    field.key
-                  );
-
-                  const v2 = getAverageMetric(
-                    faculty2Reviews,
-                    field.key
-                  );
-
-                  const winner = w(v1, v2);
+                  const v1 = getAverageMetric(faculty1Reviews, field);
+                  const v2 = getAverageMetric(faculty2Reviews, field);
+                  const w = winner(v1, v2);
                   return (
-                    <div key={field.key} className="contents">
-                      <div className="p-4 border-b text-slate-600 text-sm">{formatFieldName(field.key)}</div>
-                      <div className={`p-4 border-b border-l text-center font-bold text-sm ${winner === "left" ? "text-blue-600 bg-blue-50" : "text-slate-900"}`}>
-                        {v1}
-                        {winner === "left" && <span className="ml-1 text-xs">↑</span>}
+                    <div key={field} className="contents">
+                      <div className="p-4 border-b text-slate-600 text-sm">{formatFieldName(field)}</div>
+                      <div className={`p-4 border-b border-l text-center font-bold text-sm ${w === "left" ? "text-blue-600 bg-blue-50" : "text-slate-900"}`}>
+                        {faculty1Reviews.length > 0 ? v1 : "—"}
+                        {w === "left" && <span className="ml-1 text-xs">↑</span>}
                       </div>
-                      <div className={`p-4 border-b border-l text-center font-bold text-sm ${winner === "right" ? "text-blue-600 bg-blue-50" : "text-slate-900"}`}>
-                        {v2}
-                        {winner === "right" && <span className="ml-1 text-xs">↑</span>}
+                      <div className={`p-4 border-b border-l text-center font-bold text-sm ${w === "right" ? "text-blue-600 bg-blue-50" : "text-slate-900"}`}>
+                        {faculty2Reviews.length > 0 ? v2 : "—"}
+                        {w === "right" && <span className="ml-1 text-xs">↑</span>}
                       </div>
                     </div>
                   );

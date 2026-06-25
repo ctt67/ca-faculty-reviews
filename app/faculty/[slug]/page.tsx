@@ -1,7 +1,11 @@
 import { supabase } from "@/lib/supabase";
-import { getAverageMetric, getOverallRating } from "@/lib/ratings";
-import { ratingFields } from "@/lib/rating-config";
+import { getAverageMetric, getOverallRating, getRatingFields } from "@/lib/ratings";
 import { formatFieldName, formatValue } from "@/lib/format";
+
+const FACULTY_EXCLUDED_FIELDS = new Set([
+  "id", "slug", "faculty_name", "subject", "level",
+  "active", "website", "youtube", "created_at", "updated_at",
+]);
 
 function RatingBar({ value }: { value: number }) {
   return (
@@ -9,7 +13,7 @@ function RatingBar({ value }: { value: number }) {
       <div className="flex-1 bg-slate-100 rounded-full h-2">
         <div
           className="bg-blue-500 h-2 rounded-full"
-          style={{ width: `${(value / 5) * 100}%` }}
+          style={{ width: `${Math.min((value / 5) * 100, 100)}%` }}
         />
       </div>
       <span className="text-slate-900 font-bold text-sm w-8 text-right">{value}</span>
@@ -35,7 +39,9 @@ export default async function FacultyPage({
       <main className="min-h-screen bg-slate-100 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-slate-900">Faculty not found</h1>
-          <a href="/" className="mt-4 inline-block text-blue-600 hover:underline">← Back to Home</a>
+          <a href="/" className="mt-4 inline-block text-blue-600 hover:underline">
+            ← Back to Home
+          </a>
         </div>
       </main>
     );
@@ -49,23 +55,14 @@ export default async function FacultyPage({
 
   const reviews = facultyReviews ?? [];
   const overallRating = getOverallRating(reviews);
-  const facultyFields = Object.keys(
-    faculty
-  ).filter(
-    (field) =>
-      ![
-        "id",
-        "slug",
-        "faculty_name",
-        "subject",
-        "level",
-        "active",
-        "website",
-        "youtube",
-        "created_at",
-        "updated_at",
-      ].includes(field)
+
+  // Faculty details: all columns except meta/link fields — auto-updates when DB columns are added
+  const facultyFields = Object.keys(faculty).filter(
+    (field) => !FACULTY_EXCLUDED_FIELDS.has(field)
   );
+
+  // Rating fields: derived from actual review data — auto-updates when new rating columns are added
+  const ratingFields = getRatingFields(reviews);
 
   return (
     <main className="min-h-screen bg-slate-100">
@@ -92,7 +89,9 @@ export default async function FacultyPage({
                 </span>
               </div>
               <h1 className="text-5xl font-extrabold">{faculty.faculty_name}</h1>
-              <p className="text-slate-400 mt-3">{reviews.length} student {reviews.length === 1 ? "review" : "reviews"}</p>
+              <p className="text-slate-400 mt-3">
+                {reviews.length} student {reviews.length === 1 ? "review" : "reviews"}
+              </p>
             </div>
 
             <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 text-center shrink-0">
@@ -108,35 +107,27 @@ export default async function FacultyPage({
 
       <section className="max-w-6xl mx-auto px-6 py-12 grid lg:grid-cols-3 gap-8">
 
-        {/* Left column — details + ratings */}
+        {/* Left column */}
         <div className="lg:col-span-1 space-y-6">
 
-          {/* Faculty Details */}
-          <div className="space-y-4">
-
-            {facultyFields.map((field) => (
-
-              <div
-                key={field}
-                className="flex justify-between items-center gap-4"
-              >
-
-                <span className="text-slate-500 text-sm">
-                  {formatFieldName(field)}
-                </span>
-
-                <span className="font-semibold text-slate-900 text-right">
-
-                  {formatValue(faculty[field])}
-
-                </span>
-
-              </div>
-
-            ))}
-
+          {/* Faculty Details — fully dynamic from DB columns */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <h2 className="text-lg font-bold text-slate-900 mb-5">Faculty Details</h2>
+            <div className="space-y-4">
+              {facultyFields.map((field) => (
+                <div key={field} className="flex justify-between items-start gap-4">
+                  <span className="text-slate-500 text-sm shrink-0">
+                    {formatFieldName(field)}
+                  </span>
+                  <span className="font-semibold text-slate-900 text-right text-sm">
+                    {formatValue(faculty[field])}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
 
+          {/* Action buttons */}
           <a
             href={`/review/${faculty.slug}`}
             className="w-full text-center bg-blue-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 transition block"
@@ -145,7 +136,7 @@ export default async function FacultyPage({
           </a>
 
           {(faculty.website || faculty.youtube) && (
-            <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
               {faculty.website && (
                 <a
                   href={faculty.website}
@@ -169,8 +160,7 @@ export default async function FacultyPage({
             </div>
           )}
 
-
-          {/* Ratings Summary */}
+          {/* Ratings Summary — dynamic from actual review data */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
             <h2 className="text-lg font-bold text-slate-900 mb-5">Ratings</h2>
             {reviews.length === 0 ? (
@@ -178,26 +168,14 @@ export default async function FacultyPage({
             ) : (
               <div className="space-y-4">
                 {ratingFields.map((field) => (
-
-                  <div key={field.key}>
-
+                  <div key={field}>
                     <div className="flex justify-between mb-1.5">
-
                       <span className="text-slate-500 text-sm">
-                        {formatFieldName(field.key)}
+                        {formatFieldName(field)}
                       </span>
-
                     </div>
-
-                    <RatingBar
-                      value={getAverageMetric(
-                        reviews,
-                        field.key
-                      )}
-                    />
-
+                    <RatingBar value={getAverageMetric(reviews, field)} />
                   </div>
-
                 ))}
               </div>
             )}
@@ -255,7 +233,7 @@ export default async function FacultyPage({
                         {review.attempt}
                       </span>
                     )}
-                    {review.would_recommend !== undefined && (
+                    {review.would_recommend !== null && review.would_recommend !== undefined && (
                       <span className={`rounded-full px-3 py-1 text-xs font-medium ${review.would_recommend ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
                         {review.would_recommend ? "✓ Recommended" : "✗ Not Recommended"}
                       </span>
@@ -298,6 +276,6 @@ export default async function FacultyPage({
 
       </section>
 
-    </main >
+    </main>
   );
 }
