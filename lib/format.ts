@@ -21,6 +21,17 @@ export function formatValue(value: any): string {
     return String(value);
 }
 
+export const PUBLIC_FACULTY_FIELDS = new Set([
+    "faculty_name",
+    "subject",
+    "level",
+    "language",
+    "mode",
+    "website",
+    "youtube",
+    "active",
+]);
+
 export function formatFieldName(field: string): string {
     return field
         .replaceAll("_", " ")

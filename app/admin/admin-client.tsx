@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { ratingFields } from "@/lib/rating-config";
-import { formatFieldName } from "@/lib/format";
+
 
 const ADMIN_EMAIL = "cagargrohan953@gmail.com";
 

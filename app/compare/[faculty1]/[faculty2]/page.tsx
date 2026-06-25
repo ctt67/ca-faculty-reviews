@@ -1,11 +1,8 @@
 import { supabase } from "@/lib/supabase";
 import { getAverageMetric, getOverallRating, getRatingFields } from "@/lib/ratings";
-import { formatFieldName, formatValue, getRatingLabel, getRating } from "@/lib/format";
+import { formatFieldName, formatValue, getRatingLabel, getRating, PUBLIC_FACULTY_FIELDS } from "@/lib/format";
 
-const FACULTY_EXCLUDED_FIELDS = new Set([
-  "id", "slug", "faculty_name", "subject", "level",
-  "active", "website", "youtube", "created_at", "updated_at",
-]);
+
 
 export default async function CompareResultPage({
   params,
@@ -44,7 +41,7 @@ export default async function CompareResultPage({
 
   // Faculty detail fields — fully dynamic from DB columns
   const facultyFields = Object.keys(faculty1).filter(
-    (field) => !FACULTY_EXCLUDED_FIELDS.has(field)
+    (field) => PUBLIC_FACULTY_FIELDS.has(field)
   );
 
   // Rating fields — derived from actual review data from either faculty

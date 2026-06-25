@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { getOverallRating } from "@/lib/ratings";
-
+import { FACULTY_SUMMARY_FIELDS } from "@/lib/faculty-config";
 export default async function SubjectPage({
   params,
 }: {
@@ -125,16 +125,35 @@ export default async function SubjectPage({
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3 mt-7">
-                   
-                    <div className="bg-slate-50 rounded-xl p-3 text-center">
-                      <div className="font-bold text-slate-900 text-sm">{faculty.advertised_regular_hours}h</div>
-                      <div className="text-xs text-slate-400 mt-1">Hours</div>
-                    </div>
-                    <div className="bg-slate-50 rounded-xl p-3 text-center">
-                      <div className="font-bold text-slate-900 text-sm">{faculty.mode?.[0] ?? "—"}</div>
-                      <div className="text-xs text-slate-400 mt-1">Mode</div>
-                    </div>
+                  <div className="grid grid-cols-2 gap-3 mt-7">
+                    {FACULTY_SUMMARY_FIELDS.map((field) => {
+
+                      const value = faculty[field.key as keyof typeof faculty];
+
+                      return (
+
+                        <div
+                          key={field.key}
+                          className="bg-slate-50 rounded-xl p-3 text-center"
+                        >
+
+                          <div className="font-bold text-slate-900 text-sm">
+
+                            {Array.isArray(value)
+                              ? value.join(", ")
+                              : value ?? "—"}
+
+                          </div>
+
+                          <div className="text-xs text-slate-400 mt-1">
+                            {field.label}
+                          </div>
+
+                        </div>
+
+                      );
+
+                    })}
                   </div>
 
                   <div className="mt-7 text-blue-600 font-semibold text-sm group-hover:underline">

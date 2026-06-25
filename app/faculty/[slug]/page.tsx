@@ -4,14 +4,12 @@ import {
   formatFieldName,
   formatValue,
   getRatingLabel,
-  getRatingDescription
+  getRatingDescription,
+  PUBLIC_FACULTY_FIELDS,
 } from "@/lib/format";
 
 
-const FACULTY_EXCLUDED_FIELDS = new Set([
-  "id", "slug", "faculty_name", "subject", "level",
-  "active", "website", "youtube", "created_at", "updated_at",
-]);
+
 
 
 
@@ -66,7 +64,7 @@ export default async function FacultyPage({
 
   // Faculty details: all columns except meta/link fields — auto-updates when DB columns are added
   const facultyFields = Object.keys(faculty).filter(
-    (field) => !FACULTY_EXCLUDED_FIELDS.has(field)
+    (field) => PUBLIC_FACULTY_FIELDS.has(field)
   );
 
   // Rating fields: derived from actual review data — auto-updates when new rating columns are added
