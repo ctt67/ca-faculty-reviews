@@ -30,6 +30,9 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
     student_type: "",
     course_type: "",
     teacher_style: "",
+    course_progress: "",
+    class_environment: "",
+    actual_duration_hours: "",
     best_for: [] as string[],
     would_recommend: "",
     pros: "",
@@ -105,6 +108,8 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
       !formData.student_type ||
       !formData.course_type ||
       !formData.teacher_style ||
+      !formData.course_progress ||
+      !formData.class_environment ||
       formData.best_for.length === 0 ||
       !formData.would_recommend ||
       !formData.pros.trim() ||
@@ -126,6 +131,11 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
         student_type: formData.student_type,
         course_type: formData.course_type,
         teacher_style: formData.teacher_style,
+        course_progress: formData.course_progress,
+        class_environment: formData.class_environment,
+        actual_duration_hours: formData.actual_duration_hours
+          ? Number(formData.actual_duration_hours)
+          : null,
         best_for: formData.best_for,
         would_recommend: formData.would_recommend === "Yes",
         pros: formData.pros,
@@ -179,11 +189,41 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
 
         {/* Guideline banner */}
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-          <h3 className="font-semibold text-amber-900">Review Guidelines</h3>
-          <p className="text-sm text-amber-800 mt-1">
-            Reviews are moderated before publication. Share genuine experiences only.
-            Misleading, promotional or abusive reviews will be rejected.
-          </p>
+          <h3 className="font-semibold text-amber-900">Before You Submit</h3>
+          <ul className="space-y-3 text-sm text-slate-700">
+
+            <li className="flex gap-2">
+              <span>✅</span>
+              <span>Share your genuine experience with the complete course.</span>
+            </li>
+
+            <li className="flex gap-2">
+              <span>✅</span>
+              <span>Mention both positives and negatives whenever possible.</span>
+            </li>
+
+            <li className="flex gap-2">
+              <span>✅</span>
+              <span>Specific examples help future students make better decisions.</span>
+            </li>
+
+            <li className="flex gap-2">
+              <span>🚫</span>
+              <span>Promotional, abusive or misleading reviews will not be approved.</span>
+            </li>
+
+          </ul>
+
+          <div className="mt-5 rounded-xl bg-amber-50 border border-amber-200 p-4">
+
+            <p className="text-sm text-amber-800">
+
+              Reviews are manually moderated before being published.
+              This usually takes less than 24 hours.
+
+            </p>
+
+          </div>
         </div>
 
         {/* Faculty header */}
@@ -253,13 +293,22 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
 
         {/* Faculty Fit */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">Faculty Fit</h2>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">
+            Course Experience
+          </h2>
+
+          <p className="text-slate-500 text-sm mb-6">
+            Tell us about your learning experience with this course.
+          </p>
           <div className="space-y-6">
 
             <div>
               <label className="block mb-2 text-sm font-semibold text-slate-700">
                 Teaching Style <span className="text-red-500">*</span>
               </label>
+              <p className="text-sm text-slate-500 mb-3">
+                Which option best describes the faculty's overall teaching approach?
+              </p>
               <select
                 value={formData.teacher_style}
                 onChange={(e) => setFormData({ ...formData, teacher_style: e.target.value })}
@@ -267,9 +316,68 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
               >
                 <option value="">Select Style</option>
                 <option>Conceptual</option>
-                <option>Exam Focused</option>
+                <option>Exam Oriented</option>
                 <option>Balanced</option>
-                <option>Fast Revision</option>
+                <option>Revision Focused</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-semibold text-slate-700">
+                Course Progress <span className="text-red-500">*</span>
+              </label>
+              <p className="text-sm text-slate-500 mb-3">
+                How much of the course did you actually complete?
+              </p>
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
+                Reviews from students who completed more of the course are generally more reliable.
+              </p>
+              <select
+                value={formData.course_progress}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    course_progress: e.target.value,
+                  })
+                }
+                className={`w-full border rounded-xl p-3.5 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${err(
+                  !formData.course_progress
+                )}`}
+              >
+                <option value="">Select Progress</option>
+                <option>Less than 25%</option>
+                <option>25% - 50%</option>
+                <option>50% - 75%</option>
+                <option>More than 75%</option>
+                <option>Completed</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-semibold text-slate-700">
+                Class Environment <span className="text-red-500">*</span>
+              </label>
+              <p className="text-sm text-slate-500 mb-3">
+                How would you describe the overall atmosphere of the classes?
+              </p>
+
+              <select
+                value={formData.class_environment}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    class_environment: e.target.value,
+                  })
+                }
+                className={`w-full border rounded-xl p-3.5 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${err(
+                  !formData.class_environment
+                )}`}
+              >
+                <option value="">Select Environment</option>
+                <option>Strict & Focused</option>
+                <option>Balanced</option>
+                <option>Interactive & Fun</option>
+                <option>Too Much Timepass</option>
               </select>
             </div>
 
@@ -284,11 +392,10 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
                 {BEST_FOR_OPTIONS.map((option) => (
                   <label
                     key={option}
-                    className={`px-4 py-2 border rounded-full cursor-pointer transition font-medium text-sm select-none ${
-                      formData.best_for.includes(option)
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                    }`}
+                    className={`px-4 py-2 border rounded-full cursor-pointer transition font-medium text-sm select-none ${formData.best_for.includes(option)
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                      }`}
                   >
                     <input
                       type="checkbox"
@@ -299,6 +406,33 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
                     {option}
                   </label>
                 ))}
+              </div>
+
+              <div className="mt-6">
+                <label className="block mb-2 text-sm font-semibold text-slate-700">
+                  Actual Duration (Hours)
+                  <span className="text-slate-400 font-normal">
+                    {" "}
+                    (Optional)
+                  </span>
+                </label>
+                <p className="text-sm text-slate-500 mb-3">
+                  Approximate hours you actually watched, excluding skipped lectures and increased playback speed.
+                </p>
+
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.actual_duration_hours}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      actual_duration_hours: e.target.value,
+                    })
+                  }
+                  placeholder="e.g. 240"
+                  className="w-full border border-slate-200 rounded-xl p-3.5 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
             </div>
 
@@ -318,9 +452,13 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
                 key={field.key}
                 className={`border rounded-2xl p-5 ${err(!ratings[field.key])}`}
               >
-                <label className="block text-sm font-semibold text-slate-900 mb-3">
+                <label className="block text-sm font-semibold text-slate-900">
                   {field.label} <span className="text-red-500">*</span>
                 </label>
+
+                <p className="text-xs text-slate-500 mt-1 mb-3">
+                  {field.description}
+                </p>
                 <select
                   value={ratings[field.key] ?? ""}
                   onChange={(e) =>
@@ -362,11 +500,10 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
                 {["Yes", "No"].map((val) => (
                   <label
                     key={val}
-                    className={`flex items-center gap-2 border rounded-xl px-5 py-3 cursor-pointer transition ${
-                      formData.would_recommend === val
-                        ? "bg-blue-50 border-blue-500 text-blue-700"
-                        : "border-slate-200 text-slate-900 hover:bg-slate-50"
-                    }`}
+                    className={`flex items-center gap-2 border rounded-xl px-5 py-3 cursor-pointer transition ${formData.would_recommend === val
+                      ? "bg-blue-50 border-blue-500 text-blue-700"
+                      : "border-slate-200 text-slate-900 hover:bg-slate-50"
+                      }`}
                   >
                     <input
                       type="radio"
@@ -385,11 +522,14 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
               <label className="block mb-2 text-sm font-semibold text-slate-700">
                 Pros <span className="text-red-500">*</span>
               </label>
+              <p className="text-sm text-slate-500 mb-3">
+                What stood out positively? Mention teaching, notes, revision, doubt solving, or anything else that helped.
+              </p>
               <textarea
                 rows={4}
                 value={formData.pros}
                 onChange={(e) => setFormData({ ...formData, pros: e.target.value })}
-                placeholder="What did the faculty do well?"
+                placeholder="Example: Excellent concept clarity, concise notes, covered RTPs thoroughly."
                 className={`w-full border rounded-xl p-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${err(!formData.pros.trim())}`}
               />
             </div>
@@ -398,12 +538,14 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
               <label className="block mb-2 text-sm font-semibold text-slate-700">
                 Cons <span className="text-red-500">*</span>
               </label>
+              <p className="text-sm text-slate-500 mb-3">
+                Mention areas where the course could improve. Honest criticism helps future students.
+              </p>
               <textarea
                 rows={4}
                 value={formData.cons}
                 onChange={(e) => setFormData({ ...formData, cons: e.target.value })}
-                placeholder="What could have been improved?"
-                className={`w-full border rounded-xl p-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${err(!formData.cons.trim())}`}
+                placeholder="Example: Took longer than advertised, weak doubt support, rushed difficult chapters." className={`w-full border rounded-xl p-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${err(!formData.cons.trim())}`}
               />
             </div>
 
@@ -411,11 +553,14 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
               <label className="block mb-2 text-sm font-semibold text-slate-700">
                 Overall Review <span className="text-red-500">*</span>
               </label>
+              <p className="text-sm text-slate-500 mb-3">
+                Summarize your overall experience. Mention who you think this course is best suited for.
+              </p>
               <textarea
                 rows={6}
                 value={formData.review_text}
                 onChange={(e) => setFormData({ ...formData, review_text: e.target.value })}
-                placeholder="Describe your overall experience with this faculty..."
+                placeholder="Example: Great for first-attempt students who prefer conceptual teaching. Revision classes were especially helpful, but the course took longer than expected."
                 className={`w-full border rounded-xl p-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${err(!formData.review_text.trim())}`}
               />
             </div>
@@ -430,12 +575,37 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
         )}
 
         <div className="pb-16">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 mb-6">
+            <h3 className="font-semibold text-slate-900 mb-3">
+              Before submitting your review
+            </h3>
+
+            <ul className="space-y-2 text-sm text-slate-600 list-disc pl-5">
+              <li>You have personally taken this course.</li>
+              <li>Your review reflects your genuine experience.</li>
+              <li>You are not affiliated with this faculty or a competing faculty.</li>
+              <li>Promotional, abusive or misleading reviews may be rejected.</li>
+              <li className="flex gap-2">
+                <span>🚫</span>
+                <span>Do not include personal information, phone numbers, email addresses or defamatory content.</span>
+              </li>
+              <li>Reviews may be edited for grammar or formatting without changing their meaning.</li>
+            </ul>
+
+            <p className="mt-4 text-xs text-slate-500">
+              By submitting this review, you confirm the above statements are true.
+            </p>
+          </div>
+
+          <p className="text-xs text-slate-500 mb-4">
+            Your email address is never shown publicly. Only your review is visible after moderation.
+          </p>
           <button
             onClick={handleSubmit}
             disabled={submitting}
             className="w-full bg-blue-600 text-white py-4 rounded-2xl font-semibold text-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {submitting ? "Submitting…" : "Submit Review"}
+            {submitting ? "Submitting…" : "Submit for Review"}
           </button>
         </div>
 

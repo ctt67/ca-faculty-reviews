@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { getAverageMetric, getOverallRating, getRatingFields } from "@/lib/ratings";
-import { formatFieldName, formatValue } from "@/lib/format";
+import { formatFieldName, formatValue, getRatingLabel, getRating } from "@/lib/format";
 
 const FACULTY_EXCLUDED_FIELDS = new Set([
   "id", "slug", "faculty_name", "subject", "level",
@@ -141,7 +141,13 @@ export default async function CompareResultPage({
 
         {/* Ratings Comparison — dynamic from actual review data */}
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">Ratings Comparison</h2>
+          <h2 className="text-2xl font-bold text-slate-900">
+            Ratings Comparison
+          </h2>
+
+          <p className="mb-4 mt-2 text-sm text-slate-500">
+            Ratings are calculated from approved reviews available at the time of viewing. Differences may also reflect the number of reviews each faculty has received.
+          </p>
           {!hasAnyReviews || ratingFields.length === 0 ? (
             <div className="bg-white rounded-3xl border border-slate-200 p-10 text-center text-slate-400">
               No ratings available yet for these faculties.
@@ -159,7 +165,16 @@ export default async function CompareResultPage({
                   const w = winner(v1, v2);
                   return (
                     <div key={field} className="contents">
-                      <div className="p-4 border-b text-slate-600 text-sm">{formatFieldName(field)}</div>
+                      <div className="p-4 border-b text-slate-600 text-sm">
+
+                        <span
+                          title={getRating(field)?.description}
+                          className="cursor-help border-b border-dotted border-slate-400"
+                        >
+                          {getRating(field)?.label}
+                        </span>
+
+                      </div>
                       <div className={`p-4 border-b border-l text-center font-bold text-sm ${w === "left" ? "text-blue-600 bg-blue-50" : "text-slate-900"}`}>
                         {faculty1Reviews.length > 0 ? v1 : "—"}
                         {w === "left" && <span className="ml-1 text-xs">↑</span>}

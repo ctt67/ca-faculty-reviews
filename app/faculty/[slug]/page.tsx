@@ -1,11 +1,19 @@
 import { supabase } from "@/lib/supabase";
 import { getAverageMetric, getOverallRating, getRatingFields } from "@/lib/ratings";
-import { formatFieldName, formatValue } from "@/lib/format";
+import {
+  formatFieldName,
+  formatValue,
+  getRatingLabel,
+  getRatingDescription
+} from "@/lib/format";
+
 
 const FACULTY_EXCLUDED_FIELDS = new Set([
   "id", "slug", "faculty_name", "subject", "level",
   "active", "website", "youtube", "created_at", "updated_at",
 ]);
+
+
 
 function RatingBar({ value }: { value: number }) {
   return (
@@ -98,6 +106,9 @@ export default async function FacultyPage({
               <div className="text-6xl font-extrabold text-blue-400">
                 {reviews.length > 0 ? `★ ${overallRating}` : "—"}
               </div>
+              <p className="mt-2 text-xs text-slate-500">
+                Ratings are calculated from approved student reviews and update as new reviews are published.
+              </p>
               <div className="text-slate-400 text-sm mt-1">Overall Rating</div>
             </div>
           </div>
@@ -169,10 +180,14 @@ export default async function FacultyPage({
               <div className="space-y-4">
                 {ratingFields.map((field) => (
                   <div key={field}>
-                    <div className="flex justify-between mb-1.5">
-                      <span className="text-slate-500 text-sm">
-                        {formatFieldName(field)}
-                      </span>
+                    <div className="mb-2">
+                      <p className="text-slate-700 text-sm font-medium">
+                        {getRatingLabel(field)}
+                      </p>
+
+                      <p className="text-xs text-slate-500">
+                        {getRatingDescription(field)}
+                      </p>
                     </div>
                     <RatingBar value={getAverageMetric(reviews, field)} />
                   </div>
@@ -204,6 +219,9 @@ export default async function FacultyPage({
             Student Reviews
             <span className="ml-3 text-slate-400 font-normal text-lg">({reviews.length})</span>
           </h2>
+          <p className="mb-6 text-sm text-slate-500">
+            Reviews represent the opinions of individual students and do not necessarily reflect the views of CAFacultyReviews.
+          </p>
 
           {reviews.length === 0 ? (
             <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400">

@@ -46,7 +46,13 @@ export default function RootLayout({
             <p className="text-slate-500 text-sm">
               For CA Students by CA Students
             </p>
-            <nav className="flex gap-6">
+            <p className="text-xs text-slate-500 text-center max-w-xl">
+              CAFacultyReviews is an independent student platform and is not affiliated with ICAI or any coaching institute.
+            </p>
+            <p className="text-slate-500 text-xs mt-2">
+              Contact: cagargrohan953@gmail.com
+            </p>
+            <nav className="flex gap-2">
               <a href="/final" className="text-slate-400 hover:text-white text-sm transition">CA Final</a>
               <a href="/inter" className="text-slate-400 hover:text-white text-sm transition">CA Inter</a>
               <a href="/foundation" className="text-slate-400 hover:text-white text-sm transition">Foundation</a>
