@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { getAverageMetric, getOverallRating } from "@/lib/ratings";
 import { ratingFields } from "@/lib/rating-config";
+import { formatFieldName, formatValue } from "@/lib/format";
 
 export default async function CompareResultPage({
   params,
@@ -51,15 +52,6 @@ export default async function CompareResultPage({
 
 
 
-  const formatFieldName = (field: string) =>
-    field.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
-
-  const formatValue = (val: any) => {
-    if (Array.isArray(val)) return val.join(", ");
-    if (val === null || val === undefined) return "—";
-    if (typeof val === "number" && val > 1000) return `₹${val.toLocaleString("en-IN")}`;
-    return String(val);
-  };
 
   const w = (v1: number, v2: number) => {
     if (v1 > v2) return "left";

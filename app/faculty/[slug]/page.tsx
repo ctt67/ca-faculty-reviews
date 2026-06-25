@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { getAverageMetric, getOverallRating } from "@/lib/ratings";
 import { ratingFields } from "@/lib/rating-config";
-
+import { formatFieldName, formatValue } from "@/lib/format";
 
 function RatingBar({ value }: { value: number }) {
   return (
@@ -67,17 +67,6 @@ export default async function FacultyPage({
       ].includes(field)
   );
 
-
-
-  const formatFieldName = (
-    field: string
-  ) =>
-    field
-      .replaceAll("_", " ")
-      .replace(
-        /\b\w/g,
-        (c) => c.toUpperCase()
-      );
   return (
     <main className="min-h-screen bg-slate-100">
 
@@ -138,13 +127,7 @@ export default async function FacultyPage({
 
                 <span className="font-semibold text-slate-900 text-right">
 
-                  {Array.isArray(
-                    faculty[field]
-                  )
-                    ? faculty[field].join(", ")
-                    : String(
-                      faculty[field] ?? "-"
-                    )}
+                  {formatValue(faculty[field])}
 
                 </span>
 
