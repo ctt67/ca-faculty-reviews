@@ -44,15 +44,24 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
   const [ratingReasons, setRatingReasons] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(undefined);
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      if (!user) return;
+      if (!user) {
+        window.location.href =
+          `/login?next=${encodeURIComponent(
+            window.location.pathname + window.location.search
+          )}`;
+        return;
+      }
+
+      setUser(user);
 
       const { data } = await supabase
         .from("reviews")
@@ -61,11 +70,37 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (data) setAlreadyReviewed(true);
+      setAlreadyReviewed(!!data);
     };
 
     checkAuth();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) {
+        window.location.href =
+          `/login?next=${encodeURIComponent(
+            window.location.pathname + window.location.search
+          )}`;
+        return;
+      }
+
+      setUser(session.user);
+    });
+
+    return () => subscription.unsubscribe();
   }, [faculty.slug]);
+
+  if (user === undefined) {
+    return (
+      <main className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <div className="text-slate-500">
+          Checking authentication...
+        </div>
+      </main>
+    );
+  }
 
   if (alreadyReviewed) {
     return (
@@ -96,10 +131,19 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
   };
 
   const handleSubmit = async () => {
-    if (!user) {
-      alert("Please sign in with Google before submitting a review.");
+
+    const {
+      data: { user: currentUser },
+    } = await supabase.auth.getUser();
+
+    if (!currentUser) {
+      window.location.href =
+        `/login?next=${encodeURIComponent(
+          window.location.pathname + window.location.search
+        )}`;
       return;
     }
+
 
     const allRated = ratingFields.every((f) => ratings[f.key]);
 
@@ -126,7 +170,7 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
     try {
       const { error } = await supabase.from("reviews").insert([{
         faculty_slug: faculty.slug,
-        user_id: user.id,
+        user_id: currentUser.id,
         attempt: formData.attempt,
         student_type: formData.student_type,
         course_type: formData.course_type,

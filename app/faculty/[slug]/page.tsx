@@ -8,7 +8,7 @@ import {
   PUBLIC_FACULTY_FIELDS,
 } from "@/lib/format";
 
-
+import ReviewRatingDetails from "@/components/ReviewRatingDetails";
 
 
 
@@ -176,20 +176,25 @@ export default async function FacultyPage({
               <p className="text-slate-400 text-sm">No ratings yet.</p>
             ) : (
               <div className="space-y-4">
-                {ratingFields.map((field) => (
-                  <div key={field}>
-                    <div className="mb-2">
-                      <p className="text-slate-700 text-sm font-medium">
-                        {getRatingLabel(field)}
-                      </p>
+                {ratingFields.map((field) => {
 
-                      <p className="text-xs text-slate-500">
-                        {getRatingDescription(field)}
-                      </p>
+
+
+                  return (
+                    <div key={field}>
+                      <div className="mb-2">
+                        <p className="text-slate-700 text-sm font-medium">
+                          {getRatingLabel(field)}
+                        </p>
+
+                        <p className="text-xs text-slate-500">
+                          {getRatingDescription(field)}
+                        </p>
+                      </div>
+                      <RatingBar value={getAverageMetric(reviews, field)} />
                     </div>
-                    <RatingBar value={getAverageMetric(reviews, field)} />
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -233,32 +238,75 @@ export default async function FacultyPage({
                   className="bg-white rounded-2xl border border-slate-200 shadow-sm p-7"
                 >
 
-                  <div className="flex flex-wrap gap-2 mb-5">
-                    {review.teacher_style && (
-                      <span className="bg-blue-50 text-blue-700 rounded-full px-3 py-1 text-xs font-medium">
-                        {review.teacher_style}
-                      </span>
+                  <div className="grid grid-cols-2 gap-3 mb-5 text-sm">
+
+                    {review.course_type && (
+                      <div>
+                        <p className="text-xs text-slate-500 uppercase tracking-wide">
+                          Course
+                        </p>
+                        <p className="font-medium text-slate-900">
+                          {review.course_type}
+                        </p>
+                      </div>
                     )}
+
                     {review.student_type && (
-                      <span className="bg-slate-100 text-slate-600 rounded-full px-3 py-1 text-xs font-medium">
-                        {review.student_type}
-                      </span>
+                      <div>
+                        <p className="text-xs text-slate-500 uppercase tracking-wide">
+                          Reviewer
+                        </p>
+                        <p className="font-medium text-slate-900">
+                          {review.student_type}
+                        </p>
+                      </div>
                     )}
+
                     {review.attempt && (
-                      <span className="bg-slate-100 text-slate-600 rounded-full px-3 py-1 text-xs font-medium">
-                        {review.attempt}
-                      </span>
+                      <div>
+                        <p className="text-xs text-slate-500 uppercase tracking-wide">
+                          Attempt
+                        </p>
+                        <p className="font-medium text-slate-900">
+                          {review.attempt}
+                        </p>
+                      </div>
                     )}
-                    {review.would_recommend !== null && review.would_recommend !== undefined && (
-                      <span className={`rounded-full px-3 py-1 text-xs font-medium ${review.would_recommend ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
-                        {review.would_recommend ? "✓ Recommended" : "✗ Not Recommended"}
-                      </span>
+
+                    {review.teacher_style && (
+                      <div>
+                        <p className="text-xs text-slate-500 uppercase tracking-wide">
+                          Teaching Style
+                        </p>
+                        <p className="font-medium text-slate-900">
+                          {review.teacher_style}
+                        </p>
+                      </div>
                     )}
+
                   </div>
 
+                  {review.would_recommend !== null &&
+                    review.would_recommend !== undefined && (
+                      <div className="mb-5">
+                        <span
+                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${review.would_recommend
+                            ? "bg-green-50 text-green-700"
+                            : "bg-red-50 text-red-700"
+                            }`}
+                        >
+                          {review.would_recommend
+                            ? "✓ Reviewer recommends this course"
+                            : "✗ Reviewer does not recommend this course"}
+                        </span>
+                      </div>
+                    )}
+
                   {review.best_for?.length > 0 && (
-                    <p className="text-sm text-slate-600 mb-3">
-                      <span className="font-semibold text-slate-800">Best For:</span>{" "}
+                    <p className="text-sm text-slate-600 mb-4">
+                      <span className="font-semibold text-slate-900">
+                        Best suited for:
+                      </span>{" "}
                       {review.best_for.join(", ")}
                     </p>
                   )}
@@ -279,10 +327,14 @@ export default async function FacultyPage({
                   </div>
 
                   {review.review_text && (
-                    <p className="text-slate-700 text-sm leading-relaxed border-l-4 border-blue-500 pl-4">
-                      {review.review_text}
-                    </p>
+                    <div className="border-l-4 border-blue-500 pl-4">
+                      <p className="text-slate-700 text-sm leading-relaxed">
+                        {review.review_text}
+                      </p>
+                    </div>
                   )}
+
+                  <ReviewRatingDetails review={review} />
 
                 </div>
               ))}

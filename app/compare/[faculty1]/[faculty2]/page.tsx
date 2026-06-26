@@ -1,8 +1,21 @@
 import { supabase } from "@/lib/supabase";
 import { getAverageMetric, getOverallRating, getRatingFields } from "@/lib/ratings";
-import { formatFieldName, formatValue, getRatingLabel, getRating, PUBLIC_FACULTY_FIELDS } from "@/lib/format";
+import {
+  formatFieldName,
+  formatValue,
+  getRatingLabel,
+  getRatingDescription,
+  PUBLIC_FACULTY_FIELDS,
+} from "@/lib/format";
 
-
+// Converts a 1–5 numeric score to a word — used in per-review rating breakdown
+function getScoreWord(score: number): string {
+  if (score >= 4.5) return "Excellent";
+  if (score >= 3.5) return "Good";
+  if (score >= 2.5) return "Average";
+  if (score >= 1.5) return "Poor";
+  return "Very Poor";
+}
 
 export default async function CompareResultPage({
   params,
@@ -39,13 +52,12 @@ export default async function CompareResultPage({
   const faculty1Rating = getOverallRating(faculty1Reviews);
   const faculty2Rating = getOverallRating(faculty2Reviews);
 
-  // Faculty detail fields — fully dynamic from DB columns
+  // Faculty detail fields — whitelist from PUBLIC_FACULTY_FIELDS, auto-updates
   const facultyFields = Object.keys(faculty1).filter(
     (field) => PUBLIC_FACULTY_FIELDS.has(field)
   );
 
-  // Rating fields — derived from actual review data from either faculty
-  // Falls back to the other faculty's reviews if one has none
+  // Rating fields — derived from actual review data, auto-updates
   const ratingFields = getRatingFields(
     faculty1Reviews.length > 0 ? faculty1Reviews : faculty2Reviews
   );
@@ -138,13 +150,12 @@ export default async function CompareResultPage({
 
         {/* Ratings Comparison — dynamic from actual review data */}
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">
-            Ratings Comparison
-          </h2>
-
+          <h2 className="text-2xl font-bold text-slate-900">Ratings Comparison</h2>
           <p className="mb-4 mt-2 text-sm text-slate-500">
-            Ratings are calculated from approved reviews available at the time of viewing. Differences may also reflect the number of reviews each faculty has received.
+            Ratings are calculated from approved reviews available at the time of viewing.
+            Differences may also reflect the number of reviews each faculty has received.
           </p>
+
           {!hasAnyReviews || ratingFields.length === 0 ? (
             <div className="bg-white rounded-3xl border border-slate-200 p-10 text-center text-slate-400">
               No ratings available yet for these faculties.
@@ -163,14 +174,8 @@ export default async function CompareResultPage({
                   return (
                     <div key={field} className="contents">
                       <div className="p-4 border-b text-slate-600 text-sm">
-
-                        <span
-                          title={getRating(field)?.description}
-                          className="cursor-help border-b border-dotted border-slate-400"
-                        >
-                          {getRating(field)?.label}
-                        </span>
-
+                        <p className="font-medium text-slate-700">{getRatingLabel(field)}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{getRatingDescription(field)}</p>
                       </div>
                       <div className={`p-4 border-b border-l text-center font-bold text-sm ${w === "left" ? "text-blue-600 bg-blue-50" : "text-slate-900"}`}>
                         {faculty1Reviews.length > 0 ? v1 : "—"}
@@ -188,65 +193,169 @@ export default async function CompareResultPage({
           )}
         </div>
 
-        {/* Student Reviews */}
+        {/* What Students Are Saying — matches faculty page review card style */}
         <div>
           <h2 className="text-2xl font-bold text-slate-900 mb-6">What Students Are Saying</h2>
-          <div className="grid md:grid-cols-2 gap-6">
+          <p className="mb-6 -mt-3 text-sm text-slate-500">
+            Reviews represent the opinions of individual students and do not necessarily reflect the views of CAFacultyReviews.
+          </p>
+
+          <div className="grid md:grid-cols-2 gap-6 items-start">
             {[
               { faculty: faculty1, reviews: faculty1Reviews },
               { faculty: faculty2, reviews: faculty2Reviews },
             ].map(({ faculty, reviews }) => (
-              <div key={faculty.slug} className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
-                <h3 className="text-xl font-bold text-slate-900 mb-6">{faculty.faculty_name}</h3>
+              <div key={faculty.slug}>
+
+                {/* Column heading */}
+                <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  {faculty.faculty_name}
+                  <span className="text-slate-400 font-normal text-sm">
+                    ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
+                  </span>
+                </h3>
 
                 {reviews.length === 0 ? (
-                  <p className="text-slate-400 text-sm">No reviews yet.</p>
+                  <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 text-sm">
+                    No reviews yet.
+                  </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-5">
                     {reviews.map((review) => (
-                      <div key={review.id} className="border-b border-slate-100 pb-6 last:border-0 last:pb-0">
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {review.teacher_style && (
-                            <span className="bg-blue-50 text-blue-700 rounded-full px-3 py-1 text-xs font-medium">{review.teacher_style}</span>
+                      <div
+                        key={review.id}
+                        className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
+                      >
+
+                        {/* Background grid — matches faculty page */}
+                        <div className="grid grid-cols-2 gap-3 mb-5 text-sm">
+                          {review.course_type && (
+                            <div>
+                              <p className="text-xs text-slate-500 uppercase tracking-wide">Course</p>
+                              <p className="font-medium text-slate-900">{review.course_type}</p>
+                            </div>
                           )}
                           {review.student_type && (
-                            <span className="bg-slate-100 text-slate-600 rounded-full px-3 py-1 text-xs font-medium">{review.student_type}</span>
+                            <div>
+                              <p className="text-xs text-slate-500 uppercase tracking-wide">Reviewer</p>
+                              <p className="font-medium text-slate-900">{review.student_type}</p>
+                            </div>
                           )}
                           {review.attempt && (
-                            <span className="bg-slate-100 text-slate-600 rounded-full px-3 py-1 text-xs font-medium">{review.attempt}</span>
+                            <div>
+                              <p className="text-xs text-slate-500 uppercase tracking-wide">Attempt</p>
+                              <p className="font-medium text-slate-900">{review.attempt}</p>
+                            </div>
+                          )}
+                          {review.teacher_style && (
+                            <div>
+                              <p className="text-xs text-slate-500 uppercase tracking-wide">Teaching Style</p>
+                              <p className="font-medium text-slate-900">{review.teacher_style}</p>
+                            </div>
                           )}
                         </div>
+
+                        {/* Recommend badge */}
+                        {review.would_recommend !== null && review.would_recommend !== undefined && (
+                          <div className="mb-4">
+                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${review.would_recommend
+                                ? "bg-green-50 text-green-700"
+                                : "bg-red-50 text-red-700"
+                              }`}>
+                              {review.would_recommend
+                                ? "✓ Reviewer recommends this course"
+                                : "✗ Reviewer does not recommend this course"}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Best For */}
                         {review.best_for?.length > 0 && (
-                          <p className="text-xs text-slate-600 mb-2">
-                            <span className="font-semibold">Best For:</span> {review.best_for.join(", ")}
+                          <p className="text-sm text-slate-600 mb-4">
+                            <span className="font-semibold text-slate-900">Best suited for:</span>{" "}
+                            {review.best_for.join(", ")}
                           </p>
                         )}
-                        {review.pros && (
-                          <p className="text-xs text-slate-600 mb-1">
-                            <span className="font-semibold text-green-700">Pros:</span> {review.pros}
-                          </p>
-                        )}
-                        {review.cons && (
-                          <p className="text-xs text-slate-600 mb-2">
-                            <span className="font-semibold text-red-600">Cons:</span> {review.cons}
-                          </p>
-                        )}
+
+                        {/* Pros / Cons */}
+                        <div className="grid grid-cols-1 gap-3 mb-4">
+                          {review.pros && (
+                            <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+                              <p className="text-xs font-semibold text-green-700 mb-1">PROS</p>
+                              <p className="text-slate-700 text-sm">{review.pros}</p>
+                            </div>
+                          )}
+                          {review.cons && (
+                            <div className="bg-red-50 rounded-xl p-4 border border-red-100">
+                              <p className="text-xs font-semibold text-red-600 mb-1">CONS</p>
+                              <p className="text-slate-700 text-sm">{review.cons}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Review text */}
                         {review.review_text && (
-                          <p className="text-slate-600 text-sm italic border-l-2 border-blue-400 pl-3">
-                            {review.review_text}
-                          </p>
+                          <div className="border-l-4 border-blue-500 pl-4 mb-4">
+                            <p className="text-slate-700 text-sm leading-relaxed">
+                              {review.review_text}
+                            </p>
+                          </div>
                         )}
+
+                        {/* Per-rating breakdown with optional reasons */}
+                        {ratingFields.some((f) => review[f] != null) && (
+                          <div className="border-t border-slate-100 pt-4 mt-2">
+                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+                              Ratings
+                            </p>
+                            <div className="space-y-2">
+                              {ratingFields.map((field) => {
+                                const score = review[field];
+                                if (score == null) return null;
+                                const reason = review.rating_reasons?.[field];
+                                return (
+                                  <div key={field} className="flex items-start gap-2 text-sm">
+
+                                    {/* Score badge */}
+                                    <span className="shrink-0 bg-blue-50 text-blue-700 font-bold rounded-lg px-2 py-0.5 text-xs min-w-[36px] text-center">
+                                      {score}/5
+                                    </span>
+
+                                    <div className="flex-1 min-w-0">
+                                      {/* Label + word rating on one line */}
+                                      <span className="text-slate-700 font-medium">
+                                        {getRatingLabel(field)}
+                                      </span>
+                                      <span className="text-slate-400 text-xs ml-1.5">
+                                        — {getScoreWord(score)}
+                                      </span>
+
+                                      {/* Reason on next line if provided */}
+                                      {reason && (
+                                        <p className="text-slate-500 text-xs mt-0.5 italic">
+                                          "{reason}"
+                                        </p>
+                                      )}
+                                    </div>
+
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
                       </div>
                     ))}
                   </div>
                 )}
+
               </div>
             ))}
           </div>
         </div>
 
       </section>
-
     </main>
   );
 }

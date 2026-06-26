@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { signInWithGoogle } from "@/lib/auth";
 
 export default function AuthButton() {
 
@@ -40,15 +41,7 @@ export default function AuthButton() {
     }, []);
 
     const signIn = async () => {
-
-        await supabase.auth.signInWithOAuth({
-            provider: "google",
-            options: {
-                redirectTo:
-                    window.location.origin,
-            },
-        });
-
+        await signInWithGoogle();
     };
 
     const signOut = async () => {
