@@ -16,9 +16,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CA Faculty Reviews",
+  title: "CA Reviews",
   description:
     "Find and compare the best CA faculties across Final, Intermediate and Foundation. Real reviews from real students.",
+
+  verification: {
+    google: "PASTE_GOOGLE_TOKEN_HERE",
+  },
 };
 
 export default function RootLayout({
