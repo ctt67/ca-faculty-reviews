@@ -13,7 +13,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { generateFacultyMetadata } from "@/lib/seo";
 
-import { generateFacultySchema } from "@/lib/schema";
+
 
 function RatingBar({ value }: { value: number }) {
   return (
@@ -82,7 +82,6 @@ const { data: facultyReviews } = await supabase
 
 const reviews = facultyReviews ?? [];
 const overallRating = getOverallRating(reviews);
-
 
 // Faculty details: all columns except meta/link fields — auto-updates when DB columns are added
 const facultyFields = Object.keys(faculty).filter(
