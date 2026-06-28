@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     "Find and compare the best CA faculties across Final, Intermediate and Foundation. Real reviews from real students.",
 
   verification: {
-    google: "PASTE_GOOGLE_TOKEN_HERE",
+    google: "VWyYA_ltwZUPzQ32XQGCkl-j0spZmk0YI5mQV2BHwlM",
   },
 };
 
