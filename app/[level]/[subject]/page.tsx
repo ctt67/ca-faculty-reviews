@@ -1,6 +1,22 @@
 import { supabase } from "@/lib/supabase";
 import { getOverallRating } from "@/lib/ratings";
 import { FACULTY_SUMMARY_FIELDS } from "@/lib/faculty-config";
+import type { Metadata } from "next";
+import { generateSubjectMetadata } from "@/lib/seo";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ level: string; subject: string }>;
+}): Promise<Metadata> {
+  const { level, subject } = await params;
+
+  return generateSubjectMetadata({
+    level,
+    subject,
+  });
+}
+
 export default async function SubjectPage({
   params,
 }: {
@@ -153,7 +169,7 @@ export default async function SubjectPage({
 
                       );
 
-                    })} 
+                    })}
                   </div>
 
                   <div className="mt-7 text-blue-600 font-semibold text-sm group-hover:underline">
