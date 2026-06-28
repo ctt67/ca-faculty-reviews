@@ -42,6 +42,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select("slug")
     .eq("active", true);
 
+  const { data: subjects } = await supabase
+    .from("faculties")
+    .select("level, subject")
+    .eq("active", true);
+
+  const uniqueSubjects = [
+    ...new Map(
+      (subjects ?? []).map((item) => [
+        `${item.level}-${item.subject}`,
+        item,
+      ])
+    ).values(),
+  ];
+
+  const subjectPages = uniqueSubjects.map((item) => ({
+    url: `${baseUrl}/${item.level.toLowerCase()}/${item.subject.toLowerCase()}`,
+    lastModified: new Date(),
+    changeFrequency: "daily" as const,
+    priority: 0.9,
+  }));
+
   const facultyPages =
     faculties?.map((faculty) => ({
       url: `${baseUrl}/faculty/${faculty.slug}`,
@@ -50,5 +71,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     })) ?? [];
 
-  return [...staticPages, ...facultyPages];
+  return [...staticPages, ...facultyPages, ...subjectPages];
 }

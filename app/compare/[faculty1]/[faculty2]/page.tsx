@@ -8,6 +8,11 @@ import {
   PUBLIC_FACULTY_FIELDS,
 } from "@/lib/format";
 
+
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { generateCompareMetadata } from "@/lib/seo";
+
 // Converts a 1–5 numeric score to a word — used in per-review rating breakdown
 function getScoreWord(score: number): string {
   if (score >= 4.5) return "Excellent";
@@ -15,6 +20,50 @@ function getScoreWord(score: number): string {
   if (score >= 2.5) return "Average";
   if (score >= 1.5) return "Poor";
   return "Very Poor";
+}
+
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ faculty1: string; faculty2: string }>;
+}): Promise<Metadata> {
+  const { faculty1: faculty1Slug, faculty2: faculty2Slug } = await params;
+
+  const [{ data: faculty1 }, { data: faculty2 }] = await Promise.all([
+    supabase
+      .from("faculties")
+      .select("faculty_name, subject, level")
+      .eq("slug", faculty1Slug)
+      .single(),
+
+    supabase
+      .from("faculties")
+      .select("faculty_name, subject, level")
+      .eq("slug", faculty2Slug)
+      .single(),
+  ]);
+
+  if (!faculty1 || !faculty2) {
+    return {
+      title: "Comparison Not Found | CA Reviews",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  return generateCompareMetadata({
+    faculty1: faculty1.faculty_name,
+    faculty2: faculty2.faculty_name,
+
+    faculty1Slug,
+    faculty2Slug,
+
+    subject: faculty1.subject,
+    level: faculty1.level,
+  });
 }
 
 export default async function CompareResultPage({
@@ -30,16 +79,7 @@ export default async function CompareResultPage({
   ]);
 
   if (!faculty1 || !faculty2) {
-    return (
-      <main className="min-h-screen bg-slate-100 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-slate-900">Faculty not found</h1>
-          <a href="/compare" className="mt-4 inline-block text-blue-600 hover:underline">
-            ← Back to Compare
-          </a>
-        </div>
-      </main>
-    );
+    notFound();
   }
 
   const [{ data: reviews1 }, { data: reviews2 }] = await Promise.all([
@@ -259,8 +299,8 @@ export default async function CompareResultPage({
                         {review.would_recommend !== null && review.would_recommend !== undefined && (
                           <div className="mb-4">
                             <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${review.would_recommend
-                                ? "bg-green-50 text-green-700"
-                                : "bg-red-50 text-red-700"
+                              ? "bg-green-50 text-green-700"
+                              : "bg-red-50 text-red-700"
                               }`}>
                               {review.would_recommend
                                 ? "✓ Reviewer recommends this course"

@@ -1,6 +1,16 @@
 import { supabase } from "@/lib/supabase";
 import ReviewForm from "@/components/review-form";
+import type { Metadata } from "next";
 
+export async function generateMetadata(): Promise<Metadata> {
+    return {
+        title: "Write a Review | CA Reviews",
+        robots: {
+            index: false,
+            follow: true,
+        },
+    };
+}
 export default async function ReviewPage({
     params,
 }: {
