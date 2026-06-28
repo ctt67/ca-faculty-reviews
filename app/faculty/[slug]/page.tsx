@@ -144,7 +144,7 @@ export default async function FacultyPage({
             Write Review
           </a>
 
-          {(faculty.website || faculty.youtube) && (
+          {(faculty.website) && (
             <div className="flex flex-col gap-3">
               {faculty.website && (
                 <a
@@ -156,16 +156,7 @@ export default async function FacultyPage({
                   Visit Website
                 </a>
               )}
-              {faculty.youtube && (
-                <a
-                  href={faculty.youtube}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full text-center bg-red-50 text-red-600 border border-red-200 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-100 transition"
-                >
-                  YouTube Channel
-                </a>
-              )}
+              
             </div>
           )}
 
