@@ -59,6 +59,7 @@ export default function RootLayout({
                 <a href="/inter" className="text-white/55 hover:text-white text-sm transition">CA Inter</a>
                 <a href="/foundation" className="text-white/55 hover:text-white text-sm transition">Foundation</a>
                 <a href="/compare" className="text-white/55 hover:text-white text-sm transition">Compare</a>
+                <a href="/about" className="text-white/55 hover:text-white text-sm transition">About</a>
               </nav>
             </div>
             <p className="text-xs text-white/30 mt-8 border-t border-white/10 pt-6">
