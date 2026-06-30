@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { SITE_NAME, BASE_URL, LEVEL_LABELS } from "./config";
 import { formatSubjectName } from "./format";
 
+const OG_IMAGE = { url: "/opengraph-image", width: 1200, height: 630, alt: "Careviews" };
+
 const YEAR = new Date().getFullYear();
 
 function levelLabel(level: string): string {
@@ -25,8 +27,10 @@ export function generateFacultyMetadata(faculty: FacultySEO): Metadata {
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, url, siteName: SITE_NAME, locale: "en_IN", type: "website" },
-    twitter: { card: "summary_large_image", title, description },
+    openGraph: { title, description, url, siteName: SITE_NAME, locale: "en_IN", type: "website",
+      images: [{ ...OG_IMAGE, url: `${BASE_URL}/faculty/${faculty.slug}/opengraph-image` }] },
+    twitter: { card: "summary_large_image", title, description,
+      images: [`${BASE_URL}/faculty/${faculty.slug}/opengraph-image`] },
     robots: { index: true, follow: true },
   };
 }

@@ -44,8 +44,7 @@ export default async function Image({
       {/* Top: wordmark + badge */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center" }}>
-          <span style={{ color: "#C9A84C", fontSize: "28px", fontWeight: "800" }}>Care</span>
-          <span style={{ color: "white", fontSize: "28px", fontWeight: "800" }}>Views</span>
+          <span style={{ color: "white", fontSize: "28px", fontWeight: "800" }}>Careviews</span>
         </div>
         <div style={{
           display: "flex",
