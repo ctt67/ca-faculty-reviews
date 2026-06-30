@@ -2,6 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { PenLine, ShieldCheck, Ban, Layers, FileText, BarChart2, CircleDollarSign, Check } from "lucide-react";
 import { BASE_URL, SITE_NAME } from "@/lib/config";
+import { supabase } from "@/lib/supabase";
+
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: `${SITE_NAME} — CA Faculty Reviews | Compare CA Final, Inter & Foundation Coaching`,
@@ -50,7 +53,14 @@ const whyItems = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { count } = await supabase
+    .from("reviews")
+    .select("*", { count: "exact", head: true })
+    .eq("approved", true);
+
+  const reviewCount = count ?? 0;
+
   return (
     <main className="min-h-screen">
 
@@ -92,7 +102,7 @@ export default function HomePage() {
           {/* Social proof */}
           <div className="mt-6 inline-flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-full px-4 py-2">
             <span className="text-gold text-sm tracking-wide">★★★★★</span>
-            <span className="text-white/75 text-xs font-medium">26 student reviews</span>
+            <span className="text-white/75 text-xs font-medium">{reviewCount} student {reviewCount === 1 ? "review" : "reviews"}</span>
             <span className="text-white/25 text-xs">·</span>
             <span className="text-white/50 text-xs">Growing every week</span>
           </div>
