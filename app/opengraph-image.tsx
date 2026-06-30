@@ -19,8 +19,7 @@ export default function Image() {
     >
       {/* Wordmark */}
       <div style={{ display: "flex", alignItems: "center" }}>
-        <span style={{ color: "#C9A84C", fontSize: "32px", fontWeight: "800", letterSpacing: "-0.5px" }}>Care</span>
-        <span style={{ color: "white", fontSize: "32px", fontWeight: "800", letterSpacing: "-0.5px" }}>Views</span>
+        <span style={{ color: "white", fontSize: "32px", fontWeight: "800", letterSpacing: "-0.5px" }}>Careviews</span>
       </div>
 
       {/* Headline block */}

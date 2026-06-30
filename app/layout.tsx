@@ -27,13 +27,42 @@ const jost = Jost({
   weight: ["600", "700"],
 });
 
+const OG_DESCRIPTION =
+  "Genuine reviews from CA students. Compare faculties across detailed student ratings for CA Final, Intermediate and Foundation — independent, no paid rankings.";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://careviews.in"),
   title: "Careviews | Honest CA Faculty Reviews",
-  description:
-    "Genuine reviews from CA students. Compare faculties across detailed student ratings for CA Final, Intermediate and Foundation — independent, no paid rankings.",
+  description: OG_DESCRIPTION,
   verification: {
     google: "VWyYA_ltwZUPzQ32XQGCkl-j0spZmk0YI5mQV2BHwlM",
+  },
+  icons: {
+    icon:     "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple:    "/apple-touch-icon.png",
+  },
+  openGraph: {
+    title:       "Careviews | Honest CA Faculty Reviews",
+    description: OG_DESCRIPTION,
+    url:         "https://careviews.in",
+    siteName:    "Careviews",
+    locale:      "en_IN",
+    type:        "website",
+    images: [
+      {
+        url:    "/opengraph-image",
+        width:  1200,
+        height: 630,
+        alt:    "Careviews — Honest CA Faculty Reviews",
+      },
+    ],
+  },
+  twitter: {
+    card:        "summary_large_image",
+    title:       "Careviews | Honest CA Faculty Reviews",
+    description: OG_DESCRIPTION,
+    images:      ["/opengraph-image"],
   },
 };
 
