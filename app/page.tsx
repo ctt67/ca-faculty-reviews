@@ -1,172 +1,199 @@
 import Link from "next/link";
+import { PenLine, ShieldCheck, Ban, Layers, FileText, BarChart2, CircleDollarSign, Check } from "lucide-react";
+
+const trustItems = [
+  { icon: PenLine, label: "Genuine Reviews", desc: "Real students, real experiences." },
+  { icon: ShieldCheck, label: "Independent Platform", desc: "No affiliation with any coaching institute." },
+  { icon: Ban, label: "No Paid Rankings", desc: "Ranked by students, not money." },
+  { icon: Layers, label: "All CA Levels", desc: "Final, Intermediate and Foundation." },
+];
+
+const whyItems = [
+  {
+    icon: FileText,
+    title: "Read honest reviews",
+    desc: "Unfiltered student experiences from real CA students. No editorial control. No institute influence.",
+  },
+  {
+    icon: BarChart2,
+    title: "Compare faculties",
+    desc: "Side-by-side comparison across 10 rating dimensions — concept clarity, exam focus, doubt resolution and more.",
+  },
+  {
+    icon: CircleDollarSign,
+    title: "Avoid expensive mistakes",
+    desc: "CA coaching costs tens of thousands. One good review can save you from a year of regret.",
+  },
+];
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-slate-100">
+    <main className="min-h-screen">
 
       {/* Hero */}
-      <section className="bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-6 py-24">
-          <div className="max-w-4xl">
+      <section className="bg-navy text-white">
+        <div className="max-w-4xl mx-auto px-6 py-12 md:py-16">
 
-            <div className="inline-flex rounded-full bg-slate-800 border border-slate-700 px-4 py-2 text-sm text-slate-300 mb-6">
-              For CA Students by CA Students
-            </div>
-
-            <h1 className="text-5xl md:text-7xl font-extrabold leading-tight text-white">
-              Find the Best
-              <span className="text-blue-500"> CA Faculty</span>
-            </h1>
-
-            <p className="mt-6 text-xl text-slate-400 max-w-2xl">
-              Real reviews, ratings and comparisons across CA Final,
-              Intermediate and Foundation — from students who've been there.
-            </p>
-
-            <div className="flex flex-wrap gap-4 mt-10">
-              <Link
-                href="/compare"
-                className="bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition"
-              >
-                Compare Faculties
-              </Link>
-              <Link
-                href="/final"
-                className="border border-slate-700 text-white px-8 py-4 rounded-xl font-semibold hover:bg-slate-800 transition"
-              >
-                Browse Reviews
-              </Link>
-              <Link
-                href="/review"
-                className="border border-slate-300 bg-white text-slate-900 px-8 py-4 rounded-xl font-semibold hover:bg-slate-50 transition"
-              >
-                Write a Review
-              </Link>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* Stats bar */}
-      <section className="bg-slate-800 border-y border-slate-700">
-        <div className="max-w-7xl mx-auto px-6 py-5 grid grid-cols-3 divide-x divide-slate-700">
-          <div className="text-center px-4">
-            <div className="text-2xl font-extrabold text-white">3</div>
-            <div className="text-slate-400 text-sm mt-1">CA Levels</div>
-          </div>
-          <div className="text-center px-4">
-            <div className="text-2xl font-extrabold text-white">10+</div>
-            <div className="text-slate-400 text-sm mt-1">Subjects</div>
-          </div>
-          <div className="text-center px-4">
-            <div className="text-2xl font-extrabold text-white">12</div>
-            <div className="text-slate-400 text-sm mt-1">Rating Metrics</div>
-          </div>
-        </div>
-      </section>
-
-      {/* Levels */}
-      <section className="max-w-6xl mx-auto px-6 py-20">
-
-        <div className="mb-12">
-          <h2 className="text-4xl font-bold text-slate-900">Browse by Level</h2>
-          <p className="text-slate-500 mt-2">
-            Choose your CA level and explore faculty reviews.
+          <p className="text-xs font-semibold tracking-widest text-gold uppercase mb-5">
+            India's independent CA student review platform
           </p>
+
+          <h1 className="font-playfair text-4xl md:text-5xl font-bold text-white leading-tight max-w-xl">
+            Honest CA Faculty Reviews
+          </h1>
+
+          <p className="font-playfair italic text-gold text-xl mt-4 max-w-lg leading-relaxed">
+            Read what students wish they knew before buying.
+          </p>
+
+          <p className="text-white/70 text-sm mt-4 max-w-lg leading-relaxed">
+            Genuine reviews from CA students. Compare faculties across detailed student ratings and choose your coaching with confidence.
+          </p>
+
+          <div className="flex flex-wrap gap-3 mt-7">
+            <Link
+              href="/final"
+              className="bg-gold text-ink font-semibold px-6 py-3 rounded-lg hover:opacity-90 transition text-sm"
+            >
+              Browse Faculty
+            </Link>
+            <Link
+              href="/review"
+              className="border border-white/25 text-white font-medium px-6 py-3 rounded-lg hover:bg-white/5 transition text-sm"
+            >
+              Write a Review
+            </Link>
+          </div>
+
+          {/* Social proof */}
+          <div className="mt-6 inline-flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-full px-4 py-2">
+            <span className="text-gold text-sm tracking-wide">★★★★★</span>
+            <span className="text-white/75 text-xs font-medium">26 student reviews</span>
+            <span className="text-white/25 text-xs">·</span>
+            <span className="text-white/50 text-xs">Growing every week</span>
+          </div>
+
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-
-          <Link
-            href="/final"
-            className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-300 transition-all group"
-          >
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-6">
-              <span className="text-blue-600 font-extrabold text-lg">F</span>
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900">CA Final</h3>
-            <p className="mt-3 text-slate-500 text-sm">
-              FR, Audit, DT, IDT, AFM and more
-            </p>
-            <div className="mt-8 text-blue-600 font-semibold text-sm group-hover:underline">
-              Browse Faculties →
-            </div>
-          </Link>
-
-
-
-          <Link
-            href="/inter"
-            className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-300 transition-all group"
-          >
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-6">
-              <span className="text-blue-600 font-extrabold text-lg">I</span>
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900">CA Intermediate</h3>
-            <p className="mt-3 text-slate-500 text-sm">
-              Accounts, Law, Tax, Costing and more
-            </p>
-            <div className="mt-8 text-blue-600 font-semibold text-sm group-hover:underline">
-              Browse Faculties →
-            </div>
-          </Link>
-
-          <Link
-            href="/foundation"
-            className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-300 transition-all group"
-          >
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-6">
-              <span className="text-blue-600 font-extrabold text-lg">F</span>
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900">CA Foundation</h3>
-            <p className="mt-3 text-slate-500 text-sm">
-              All Foundation level subjects
-            </p>
-            <div className="mt-8 text-blue-600 font-semibold text-sm group-hover:underline">
-              Browse Faculties →
-            </div>
-          </Link>
-
-
-
+        {/* Stats bar */}
+        <div className="border-t border-white/10">
+          <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-[1px] bg-white/10">
+            {trustItems.map(({ icon: Icon, label, desc }) => (
+              <div key={label} className="flex flex-col items-center gap-1 text-center px-4 py-5 bg-navy">
+                <Icon size={16} className="text-gold mb-0.5" />
+                <span className="text-white/90 text-xs font-semibold leading-tight">{label}</span>
+                <span className="text-white/50 text-[10px] leading-tight mt-0.5">{desc}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="max-w-6xl mx-auto px-6 pb-20">
-        <div className="mb-12">
-          <h2 className="text-4xl font-bold text-slate-900">How It Works</h2>
-          <p className="text-slate-500 mt-2">Find your faculty in three steps.</p>
+      {/* Trust strip */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center gap-x-4 gap-y-1 justify-between border-b border-ink/5">
+        <p className="text-ink/55 text-xs">Built by CA students, for CA students.</p>
+        <Link
+          href="/about"
+          className="text-ink/50 text-xs underline underline-offset-2 decoration-dotted hover:text-ink transition"
+        >
+          Learn how we moderate reviews →
+        </Link>
+      </div>
+
+      {/* Why CareViews */}
+      <section className="max-w-6xl mx-auto px-6 pt-14 pb-10">
+        <div className="mb-8">
+          <p className="text-xs font-semibold tracking-widest text-gold uppercase mb-2">Why students use CareViews</p>
+          <h2 className="font-playfair text-2xl font-bold text-ink">Make the right call before you pay.</h2>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { step: "01", title: "Choose Your Level", desc: "Select CA Final, Intermediate or Foundation." },
-            { step: "02", title: "Browse by Subject", desc: "Pick a subject and see all available faculties with ratings." },
-            { step: "03", title: "Compare & Decide", desc: "Use our side-by-side comparison to pick the best faculty for you." },
-          ].map(({ step, title, desc }) => (
-            <div key={step} className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
-              <div className="text-4xl font-extrabold text-blue-100">{step}</div>
-              <h3 className="text-xl font-bold text-slate-900 mt-3">{title}</h3>
-              <p className="text-slate-500 text-sm mt-2">{desc}</p>
+        <div className="grid md:grid-cols-3 gap-5">
+          {whyItems.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="bg-white rounded-xl p-7 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow">
+              <div className="w-9 h-9 bg-parchment rounded-lg flex items-center justify-center mb-5">
+                <Icon size={18} className="text-navy" />
+              </div>
+              <h3 className="font-semibold text-ink text-sm">{title}</h3>
+              <p className="text-ink/60 text-sm mt-2 leading-relaxed">{desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="max-w-7xl mx-auto px-6 pb-20">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-12 text-center text-white shadow-2xl">
-          <h2 className="text-4xl font-bold">
-            Can't Decide Between Two Faculties?
-          </h2>
-          <p className="mt-4 text-blue-100 text-lg">
-            Compare ratings, reviews, pricing and student experiences side-by-side.
-          </p>
+      {/* Browse by Level */}
+      <section className="max-w-6xl mx-auto px-6 py-10">
+        <div className="mb-8">
+          <p className="text-xs font-semibold tracking-widest text-gold uppercase mb-2">CA Faculty Reviews</p>
+          <h2 className="font-playfair text-3xl font-bold text-ink">Browse by Level</h2>
+          <p className="text-ink/60 mt-2 text-sm">Choose your CA level and explore faculty reviews.</p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-5">
+          {[
+            { href: "/final", label: "CA Final", subjects: "FR, Audit, DT, IDT, AFM and more" },
+            { href: "/inter", label: "CA Intermediate", subjects: "Accounts, Law, Tax, Costing and more" },
+            { href: "/foundation", label: "CA Foundation", subjects: "All Foundation level subjects" },
+          ].map(({ href, label, subjects }) => (
+            <Link
+              key={href}
+              href={href}
+              className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all group block"
+            >
+              <div className="h-[3px] bg-navy" />
+              <div className="p-7">
+                <h3 className="font-playfair text-xl font-bold text-ink">{label}</h3>
+                <p className="mt-2 text-ink/60 text-sm">{subjects}</p>
+                <div className="mt-6 text-gold text-sm font-semibold group-hover:underline">
+                  Browse Faculties →
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="max-w-6xl mx-auto px-6 py-10 pb-16">
+        <div className="mb-8">
+          <h2 className="font-playfair text-3xl font-bold text-ink">How It Works</h2>
+          <p className="text-ink/60 mt-2 text-sm">Find your faculty in three steps.</p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-5">
+          {[
+            { step: "01", title: "Choose Your Level", desc: "Select CA Final, Intermediate or Foundation." },
+            { step: "02", title: "Browse by Subject", desc: "Pick a subject and see all available faculties with ratings." },
+            { step: "03", title: "Compare & Decide", desc: "Use our side-by-side comparison to pick the best faculty for you." },
+          ].map(({ step, title, desc }) => (
+            <div key={step} className="bg-white rounded-xl p-7 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow">
+              <div className="font-playfair text-3xl font-bold text-gold/40">{step}</div>
+              <h3 className="font-bold text-ink mt-3 text-sm">{title}</h3>
+              <p className="text-ink/60 text-sm mt-2">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Compare CTA */}
+      <section className="max-w-7xl mx-auto px-6 pb-16">
+        <div className="bg-navy rounded-2xl px-10 py-12 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div>
+            <h2 className="font-playfair text-3xl font-bold text-white">
+              Can't decide between two faculties?
+            </h2>
+            <p className="mt-3 text-white/65 text-sm">Compare two faculties side by side</p>
+            <ul className="mt-3 flex flex-col gap-1.5">
+              {["Ratings", "Reviews", "Student experiences"].map((item) => (
+                <li key={item} className="flex items-center gap-2 text-white/65 text-sm">
+                  <Check size={13} className="text-gold flex-shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
           <Link
             href="/compare"
-            className="inline-block mt-8 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-slate-100 transition"
+            className="flex-shrink-0 bg-gold text-ink px-8 py-3 rounded-lg font-semibold text-sm hover:opacity-90 transition"
           >
             Start Comparing
           </Link>
