@@ -13,6 +13,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { generateFacultyMetadata } from "@/lib/seo";
 
+const REVIEWS_PER_PAGE = 10;
+
 
 
 function RatingBar({ value }: { value: number }) {
@@ -58,10 +60,16 @@ export async function generateMetadata({
 
 export default async function FacultyPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { slug } = await params;
+  const { page: pageParam } = await searchParams;
+
+  const page = Math.max(1, Number(pageParam ?? 1));
+  const offset = (page - 1) * REVIEWS_PER_PAGE;
 
   const { data: faculty } = await supabase
     .from("faculties")
@@ -73,23 +81,39 @@ export default async function FacultyPage({
     notFound();
   }
 
+  const ratingColumns = [
+    "understandability", "exam_focus", "study_material_quality", "mock_coverage",
+    "coverage_of_questions", "doubt_resolution", "revision_support", "notes_quality",
+    "pace_of_teaching", "time_efficiency", "value_for_money", "expectation_match",
+  ].join(", ");
 
-const { data: facultyReviews } = await supabase
-  .from("reviews")
-  .select("*")
-  .eq("faculty_slug", slug)
-  .eq("approved", true);
+  const [{ data: allRatingData }, { data: pageReviews, count }] = await Promise.all([
+    supabase
+      .from("reviews")
+      .select(ratingColumns)
+      .eq("faculty_slug", slug)
+      .eq("approved", true),
+    supabase
+      .from("reviews")
+      .select("*", { count: "exact" })
+      .eq("faculty_slug", slug)
+      .eq("approved", true)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + REVIEWS_PER_PAGE - 1),
+  ]);
 
-const reviews = facultyReviews ?? [];
-const overallRating = getOverallRating(reviews);
+const reviews = pageReviews ?? [];
+const allReviews = allRatingData ?? [];
+const totalReviews = count ?? 0;
+const totalPages = Math.ceil(totalReviews / REVIEWS_PER_PAGE);
+const overallRating = getOverallRating(allReviews);
 
 // Faculty details: all columns except meta/link fields — auto-updates when DB columns are added
 const facultyFields = Object.keys(faculty).filter(
   (field) => PUBLIC_FACULTY_FIELDS.has(field)
 );
 
-// Rating fields: derived from actual review data — auto-updates when new rating columns are added
-const ratingFields = getRatingFields(reviews);
+const ratingFields = getRatingFields(allReviews);
 
 return (
   <main className="min-h-screen bg-slate-100">
@@ -117,7 +141,7 @@ return (
             </div>
             <h1 className="text-5xl font-extrabold">{faculty.faculty_name}</h1>
             <p className="text-slate-400 mt-3">
-              {reviews.length} student {reviews.length === 1 ? "review" : "reviews"}
+              {totalReviews} student {totalReviews === 1 ? "review" : "reviews"}
             </p>
           </div>
 
@@ -184,29 +208,23 @@ return (
         {/* Ratings Summary — dynamic from actual review data */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
           <h2 className="text-lg font-bold text-slate-900 mb-5">Ratings</h2>
-          {reviews.length === 0 ? (
+          {allReviews.length === 0 ? (
             <p className="text-slate-400 text-sm">No ratings yet.</p>
           ) : (
             <div className="space-y-4">
-              {ratingFields.map((field) => {
-
-
-
-                return (
-                  <div key={field}>
-                    <div className="mb-2">
-                      <p className="text-slate-700 text-sm font-medium">
-                        {getRatingLabel(field)}
-                      </p>
-
-                      <p className="text-xs text-slate-500">
-                        {getRatingDescription(field)}
-                      </p>
-                    </div>
-                    <RatingBar value={getAverageMetric(reviews, field)} />
+              {ratingFields.map((field) => (
+                <div key={field}>
+                  <div className="mb-2">
+                    <p className="text-slate-700 text-sm font-medium">
+                      {getRatingLabel(field)}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {getRatingDescription(field)}
+                    </p>
                   </div>
-                );
-              })}
+                  <RatingBar value={getAverageMetric(allReviews, field)} />
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -232,13 +250,13 @@ return (
 
         <h2 className="text-2xl font-bold text-slate-900 mb-6">
           Student Reviews
-          <span className="ml-3 text-slate-400 font-normal text-lg">({reviews.length})</span>
+          <span className="ml-3 text-slate-400 font-normal text-lg">({totalReviews})</span>
         </h2>
         <p className="mb-6 text-sm text-slate-500">
           Reviews represent the opinions of individual students and do not necessarily reflect the views of CAFacultyReviews.
         </p>
 
-        {reviews.length === 0 ? (
+        {totalReviews === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400">
             No reviews yet for this faculty.
           </div>
@@ -350,6 +368,28 @@ return (
 
               </div>
             ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-200">
+            <a
+              href={page > 1 ? `/faculty/${slug}?page=${page - 1}` : undefined}
+              aria-disabled={page <= 1}
+              className={`px-5 py-2.5 rounded-xl border text-sm font-medium transition ${page <= 1 ? "border-slate-100 text-slate-300 pointer-events-none" : "border-slate-200 text-slate-700 hover:bg-slate-50"}`}
+            >
+              ← Previous
+            </a>
+            <span className="text-sm text-slate-500">
+              Page {page} of {totalPages}
+            </span>
+            <a
+              href={page < totalPages ? `/faculty/${slug}?page=${page + 1}` : undefined}
+              aria-disabled={page >= totalPages}
+              className={`px-5 py-2.5 rounded-xl border text-sm font-medium transition ${page >= totalPages ? "border-slate-100 text-slate-300 pointer-events-none" : "border-slate-200 text-slate-700 hover:bg-slate-50"}`}
+            >
+              Next →
+            </a>
           </div>
         )}
       </div>

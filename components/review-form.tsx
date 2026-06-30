@@ -46,6 +46,7 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
   const [showErrors, setShowErrors] = useState(false);
   const [user, setUser] = useState<any>(undefined);
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
+  const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -195,16 +196,15 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
           setAlreadyReviewed(true);
           return;
         }
-        alert("Failed to submit review. Please try again.");
+        setNotification({ type: "error", message: "Failed to submit review. Please try again." });
         return;
       }
 
-      alert("Review submitted! It will appear after moderation.");
       window.location.href = `/faculty/${faculty.slug}`;
 
     } catch (err) {
       console.error(err);
-      alert("Something went wrong.");
+      setNotification({ type: "error", message: "Something went wrong. Please try again." });
     } finally {
       setSubmitting(false);
     }
@@ -616,6 +616,12 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
 
           </div>
         </div>
+
+        {notification && (
+          <div className={`rounded-2xl px-6 py-4 text-sm ${notification.type === "error" ? "bg-red-50 border border-red-200 text-red-700" : "bg-green-50 border border-green-200 text-green-700"}`}>
+            {notification.message}
+          </div>
+        )}
 
         {showErrors && (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl px-6 py-4 text-sm">

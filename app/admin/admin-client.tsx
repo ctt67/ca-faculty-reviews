@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { ratingFields } from "@/lib/rating-config";
 
 
-const ADMIN_EMAIL = "cagargrohan953@gmail.com";
+const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "";
 
 export default function AdminClient() {
 
