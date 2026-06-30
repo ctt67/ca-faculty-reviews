@@ -9,6 +9,7 @@ export default function ComparePage() {
   const router = useRouter();
 
   const [faculties, setFaculties] = useState<any[]>([]);
+  const [reviewedSlugs, setReviewedSlugs] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [level, setLevel] = useState("");
   const [subject, setSubject] = useState("");
@@ -17,22 +18,27 @@ export default function ComparePage() {
 
   useEffect(() => {
     const loadFaculties = async () => {
-      const { data } = await supabase
-        .from("faculties")
-        .select("*")
-        .eq("active", true);
-      setFaculties(data ?? []);
+      const [{ data: facultyData }, { data: reviewData }] = await Promise.all([
+        supabase.from("faculties").select("*").eq("active", true),
+        supabase.from("reviews").select("faculty_slug").eq("approved", true),
+      ]);
+      setFaculties(facultyData ?? []);
+      setReviewedSlugs(new Set((reviewData ?? []).map((r) => r.faculty_slug)));
       setLoading(false);
     };
     loadFaculties();
   }, []);
 
-  const levels = [...new Set(faculties.map((f) => f.level))];
-  const subjects = [
-    ...new Set(faculties.filter((f) => f.level === level).map((f) => f.subject)),
-  ];
+  const levels = [...new Set(
+    faculties.filter((f) => reviewedSlugs.has(f.slug)).map((f) => f.level)
+  )];
+  const subjects = [...new Set(
+    faculties
+      .filter((f) => f.level === level && reviewedSlugs.has(f.slug))
+      .map((f) => f.subject)
+  )];
   const filteredFaculties = faculties.filter(
-    (f) => f.level === level && f.subject === subject
+    (f) => f.level === level && f.subject === subject && reviewedSlugs.has(f.slug)
   );
 
   const handleCompare = () => {
@@ -62,6 +68,9 @@ export default function ComparePage() {
           <p className="mt-3 text-white/55 text-sm max-w-xl">
             Pick two faculties from the same subject and compare ratings, teaching styles,
             and real student reviews side by side.
+          </p>
+          <p className="mt-3 inline-flex items-center gap-2 bg-white/8 border border-white/15 text-white/60 text-xs px-3 py-1.5 rounded-full">
+            Only faculties with at least one approved review appear in the list below.
           </p>
         </div>
       </section>
