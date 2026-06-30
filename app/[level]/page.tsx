@@ -29,77 +29,71 @@ export default async function LevelPage({
 
   if (error) {
     return (
-      <main className="max-w-7xl mx-auto p-10 text-red-500">
+      <main className="max-w-6xl mx-auto p-10 text-red-500">
         Error loading subjects.
       </main>
     );
   }
 
-  const subjects = [
-    ...new Set(faculties?.map((f) => f.subject) ?? []),
-  ];
-
+  const subjects = [...new Set(faculties?.map((f) => f.subject) ?? [])];
   const levelLabel = LEVEL_LABELS[level.toLowerCase()] ?? `CA ${level.toUpperCase()}`;
 
   return (
-    <main className="min-h-screen bg-slate-100">
+    <main className="min-h-screen">
 
-      <section className="bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-6 py-20">
-          <div className="max-w-4xl">
-
-            <a
-              href="/"
-              className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm mb-8 transition"
-            >
-              ← Home
-            </a>
-
-            <h1 className="text-5xl md:text-7xl font-extrabold">
-              {levelLabel}
-            </h1>
-
-            <p className="mt-6 text-xl text-slate-400">
-              Browse subjects, compare faculties and find the right teacher for you.
-            </p>
-
-          </div>
+      {/* Hero */}
+      <section className="bg-navy text-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-14">
+          <a
+            href="/"
+            className="inline-flex items-center gap-1.5 text-white/50 hover:text-white text-sm mb-6 transition"
+          >
+            ← Home
+          </a>
+          <h1 className="font-playfair text-3xl md:text-4xl font-bold text-white">
+            {levelLabel}
+          </h1>
+          <p className="text-white/55 text-sm mt-3">
+            {subjects.length} {subjects.length === 1 ? "subject" : "subjects"} · Browse and compare faculty reviews.
+          </p>
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 py-16">
-
-        <div className="mb-10">
-          <h2 className="text-3xl font-bold text-slate-900">Subjects</h2>
-          <p className="mt-2 text-slate-500">
+      {/* Subjects */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-14">
+        <div className="mb-8">
+          <h2 className="font-playfair text-2xl font-bold text-ink">Subjects</h2>
+          <p className="text-ink/60 mt-2 text-sm">
             Select a subject to view faculty reviews and ratings.
           </p>
         </div>
 
         {subjects.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400">
+          <div className="bg-white rounded-xl border border-slate-100 p-12 text-center text-ink/40">
             No subjects found for this level yet.
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {subjects.map((subject) => (
               <a
                 key={subject}
                 href={`/${level}/${encodeURIComponent(subject.toLowerCase())}`}
-                className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-300 transition-all group"
+                className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all group block"
               >
-                <h3 className="text-2xl font-bold text-slate-900">{subject}</h3>
-                <p className="mt-3 text-slate-500 text-sm">
-                  Browse faculty reviews, ratings and comparisons.
-                </p>
-                <div className="mt-8 text-blue-600 font-semibold text-sm group-hover:underline">
-                  Browse Faculties →
+                <div className="h-[3px] bg-navy" />
+                <div className="p-6 sm:p-7">
+                  <h3 className="font-playfair text-xl font-bold text-ink">{subject}</h3>
+                  <p className="mt-2 text-ink/60 text-sm">
+                    Browse faculty reviews, ratings and comparisons.
+                  </p>
+                  <div className="mt-6 text-gold text-sm font-semibold group-hover:underline">
+                    Browse Faculties →
+                  </div>
                 </div>
               </a>
             ))}
           </div>
         )}
-
       </section>
 
     </main>
