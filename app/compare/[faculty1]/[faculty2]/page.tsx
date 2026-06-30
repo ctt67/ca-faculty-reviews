@@ -182,7 +182,7 @@ export default async function CompareResultPage({
             <h2 className="font-playfair text-2xl font-bold text-ink mb-5">Faculty Details</h2>
             <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
               {/* Header */}
-              <div className="grid grid-cols-3 bg-parchment border-b border-slate-100 min-w-[480px]">
+              <div className="grid grid-cols-3 bg-slate-100 border-b border-slate-200 min-w-[480px]">
                 <div className="px-5 py-3.5 text-[10px] font-semibold text-ink/50 uppercase tracking-wider">
                   Detail
                 </div>
@@ -222,7 +222,7 @@ export default async function CompareResultPage({
 
             <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
               {/* Header */}
-              <div className="grid grid-cols-3 bg-parchment border-b border-slate-100 min-w-[480px]">
+              <div className="grid grid-cols-3 bg-slate-100 border-b border-slate-200 min-w-[480px]">
                 <div className="px-5 py-3.5 text-[10px] font-semibold text-ink/50 uppercase tracking-wider">
                   Metric
                 </div>
