@@ -223,7 +223,7 @@ export default function ReviewForm({
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
           <div className="flex-1 text-amber-900 space-y-0.5">
             <p>✅ Share your genuine experience — both positives and negatives.</p>
-            <p>🚫 No personal info, promotional content, or defamatory language.</p>
+            <p>🚫 No profanity, personal attacks, promotional content, or defamatory language.</p>
           </div>
           <p className="text-xs text-amber-700 shrink-0">Moderated · usually within 24h</p>
         </div>
