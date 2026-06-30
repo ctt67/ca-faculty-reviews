@@ -8,8 +8,6 @@ import {
   PUBLIC_FACULTY_FIELDS,
   formatSubjectName,
 } from "@/lib/format";
-import MetricCard from "@/components/compare/MetricCard";
-import DetailedComparisonAccordion from "@/components/compare/DetailedComparisonAccordion";
 import CompareReviewCard from "@/components/compare/CompareReviewCard";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -87,91 +85,87 @@ export default async function CompareResultPage({
 
       {/* ── Hero ── */}
       <section className="bg-navy text-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-14">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-12">
           <a
             href="/compare"
-            className="inline-flex items-center gap-1.5 text-white/50 hover:text-white text-sm mb-6 transition"
+            className="inline-flex items-center gap-1.5 text-white/50 hover:text-white text-sm mb-5 transition"
           >
             ← Compare
           </a>
 
-          <p className="text-white/40 text-xs uppercase tracking-widest mb-5">
+          <p className="text-white/40 text-xs uppercase tracking-widest mb-4">
             {subjectLabel} · {faculty1.level}
           </p>
 
-          {/* Side-by-side faculty cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto,1fr] items-center gap-4 sm:gap-6">
+          {/* Compact side-by-side faculty cards — always horizontal */}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-5">
 
             {/* Faculty 1 */}
-            <div className="bg-white/8 border border-white/10 rounded-2xl p-6 sm:p-7">
+            <div className="bg-white/8 border border-white/10 rounded-xl px-5 py-4">
               {faculty1Rating > faculty2Rating && faculty1Reviews.length > 0 && faculty2Reviews.length > 0 && (
-                <span className="inline-block bg-green-400/15 text-green-300 border border-green-400/20 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide mb-3">
+                <span className="inline-block bg-green-400/15 text-green-300 border border-green-400/20 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide mb-2">
                   Higher Rated
                 </span>
               )}
-              <h1 className="font-playfair text-2xl md:text-3xl font-bold text-white leading-tight">
+              <h1 className="font-playfair text-lg sm:text-2xl font-bold text-white leading-tight">
                 {faculty1.faculty_name}
               </h1>
               {faculty1Reviews.length > 0 ? (
-                <div className="mt-4">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-gold text-lg leading-none">★</span>
-                    <span className="font-playfair text-5xl font-bold text-white leading-none">{faculty1Rating}</span>
-                  </div>
-                  <p className="text-white/40 text-xs mt-2">
+                <div className="flex items-baseline gap-1.5 mt-2">
+                  <span className="text-gold text-sm leading-none">★</span>
+                  <span className="font-playfair text-3xl font-bold text-white leading-none">{faculty1Rating}</span>
+                  <span className="text-white/35 text-xs ml-1">
                     {faculty1Reviews.length} {faculty1Reviews.length === 1 ? "review" : "reviews"}
-                  </p>
+                  </span>
                 </div>
               ) : (
-                <div className="mt-4">
-                  <span className="font-playfair text-4xl font-bold text-white/20">—</span>
-                  <p className="text-white/30 text-xs mt-2">No reviews yet</p>
+                <div className="flex items-baseline gap-2 mt-2">
+                  <span className="font-playfair text-2xl font-bold text-white/20">—</span>
+                  <span className="text-white/25 text-xs">No reviews</span>
                 </div>
               )}
               <a
                 href={`/faculty/${faculty1.slug}`}
-                className="mt-5 inline-block text-white/40 hover:text-white/70 text-xs transition"
+                className="mt-3 inline-block text-white/35 hover:text-white/65 text-xs transition"
               >
-                View full profile →
+                View profile →
               </a>
             </div>
 
-            {/* VS divider */}
-            <div className="text-center py-2 sm:py-0">
-              <span className="font-playfair text-gold text-2xl font-bold">vs</span>
+            {/* VS */}
+            <div className="text-center">
+              <span className="font-playfair text-gold text-xl font-bold">vs</span>
             </div>
 
             {/* Faculty 2 */}
-            <div className="bg-white/8 border border-white/10 rounded-2xl p-6 sm:p-7">
+            <div className="bg-white/8 border border-white/10 rounded-xl px-5 py-4">
               {faculty2Rating > faculty1Rating && faculty1Reviews.length > 0 && faculty2Reviews.length > 0 && (
-                <span className="inline-block bg-green-400/15 text-green-300 border border-green-400/20 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide mb-3">
+                <span className="inline-block bg-green-400/15 text-green-300 border border-green-400/20 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide mb-2">
                   Higher Rated
                 </span>
               )}
-              <h1 className="font-playfair text-2xl md:text-3xl font-bold text-white leading-tight">
+              <h1 className="font-playfair text-lg sm:text-2xl font-bold text-white leading-tight">
                 {faculty2.faculty_name}
               </h1>
               {faculty2Reviews.length > 0 ? (
-                <div className="mt-4">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-gold text-lg leading-none">★</span>
-                    <span className="font-playfair text-5xl font-bold text-white leading-none">{faculty2Rating}</span>
-                  </div>
-                  <p className="text-white/40 text-xs mt-2">
+                <div className="flex items-baseline gap-1.5 mt-2">
+                  <span className="text-gold text-sm leading-none">★</span>
+                  <span className="font-playfair text-3xl font-bold text-white leading-none">{faculty2Rating}</span>
+                  <span className="text-white/35 text-xs ml-1">
                     {faculty2Reviews.length} {faculty2Reviews.length === 1 ? "review" : "reviews"}
-                  </p>
+                  </span>
                 </div>
               ) : (
-                <div className="mt-4">
-                  <span className="font-playfair text-4xl font-bold text-white/20">—</span>
-                  <p className="text-white/30 text-xs mt-2">No reviews yet</p>
+                <div className="flex items-baseline gap-2 mt-2">
+                  <span className="font-playfair text-2xl font-bold text-white/20">—</span>
+                  <span className="text-white/25 text-xs">No reviews</span>
                 </div>
               )}
               <a
                 href={`/faculty/${faculty2.slug}`}
-                className="mt-5 inline-block text-white/40 hover:text-white/70 text-xs transition"
+                className="mt-3 inline-block text-white/35 hover:text-white/65 text-xs transition"
               >
-                View full profile →
+                View profile →
               </a>
             </div>
 
@@ -186,27 +180,34 @@ export default async function CompareResultPage({
         {facultyFields.length > 0 && (
           <div>
             <h2 className="font-playfair text-2xl font-bold text-ink mb-5">Faculty Details</h2>
-            <div className="grid sm:grid-cols-2 gap-5">
-              {[
-                { faculty: faculty1 },
-                { faculty: faculty2 },
-              ].map(({ faculty }) => (
-                <div key={faculty.slug} className="bg-white rounded-xl shadow-sm p-6">
-                  <h3 className="font-playfair text-lg font-bold text-ink pb-3 mb-4 border-b border-slate-100">
-                    {faculty.faculty_name}
-                  </h3>
-                  <div className="space-y-4">
-                    {facultyFields.map((field) => (
-                      <div key={field}>
-                        <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium mb-1">
-                          {formatFieldName(field)}
-                        </p>
-                        <p className="text-ink font-medium text-sm">{formatValue(faculty[field])}</p>
-                      </div>
-                    ))}
-                  </div>
+            <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+              {/* Header */}
+              <div className="grid grid-cols-3 bg-parchment border-b border-slate-100 min-w-[480px]">
+                <div className="px-5 py-3.5 text-[10px] font-semibold text-ink/50 uppercase tracking-wider">
+                  Detail
                 </div>
-              ))}
+                <div className="px-5 py-3.5 font-semibold text-ink text-sm text-center border-l border-slate-100 truncate">
+                  {faculty1.faculty_name}
+                </div>
+                <div className="px-5 py-3.5 font-semibold text-ink text-sm text-center border-l border-slate-100 truncate">
+                  {faculty2.faculty_name}
+                </div>
+              </div>
+              <div className="min-w-[480px]">
+                {facultyFields.map((field) => (
+                  <div key={field} className="grid grid-cols-3 border-b border-slate-100 last:border-b-0">
+                    <div className="px-5 py-4 text-sm font-medium text-ink/70">
+                      {formatFieldName(field)}
+                    </div>
+                    <div className="px-5 py-4 border-l border-slate-100 text-center text-sm font-medium text-ink">
+                      {formatValue(faculty1[field])}
+                    </div>
+                    <div className="px-5 py-4 border-l border-slate-100 text-center text-sm font-medium text-ink">
+                      {formatValue(faculty2[field])}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -219,64 +220,62 @@ export default async function CompareResultPage({
               Calculated from approved reviews. Differences may reflect review volume, not just faculty quality.
             </p>
 
-            <div className="space-y-3 mb-6">
-              {ratingFields.map((field) => (
-                <MetricCard
-                  key={field}
-                  label={getRatingLabel(field)}
-                  hint={getRatingHint(field)}
-                  v1={getAverageMetric(faculty1Reviews, field)}
-                  v2={getAverageMetric(faculty2Reviews, field)}
-                  name1={faculty1.faculty_name}
-                  name2={faculty2.faculty_name}
-                  hasReviews1={faculty1Reviews.length > 0}
-                  hasReviews2={faculty2Reviews.length > 0}
-                />
-              ))}
-            </div>
-
-            {/* Detailed Comparison accordion */}
-            <DetailedComparisonAccordion>
-              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                <div className="grid grid-cols-3">
-                  <div className="p-4 bg-parchment text-[10px] font-semibold text-ink/50 uppercase tracking-wider border-b">
-                    Metric
-                  </div>
-                  <div className="p-4 bg-parchment font-semibold text-ink text-sm text-center border-b border-l truncate">
-                    {faculty1.faculty_name}
-                  </div>
-                  <div className="p-4 bg-parchment font-semibold text-ink text-sm text-center border-b border-l truncate">
-                    {faculty2.faculty_name}
-                  </div>
-
-                  {ratingFields.map((field) => {
-                    const v1 = getAverageMetric(faculty1Reviews, field);
-                    const v2 = getAverageMetric(faculty2Reviews, field);
-                    const w = winner(v1, v2);
-                    return (
-                      <div key={field} className="contents">
-                        <div className="p-4 border-b">
-                          <p className="text-xs font-semibold text-ink">{getRatingLabel(field)}</p>
-                          <p className="text-[10px] text-ink/40 mt-0.5 leading-tight">{getRatingHint(field)}</p>
-                        </div>
-                        <div className={`p-4 border-b border-l text-center text-sm font-bold ${
-                          w === "left" ? "bg-gold/10 text-ink" : "text-ink/55"
-                        }`}>
-                          {faculty1Reviews.length > 0 ? v1 : "—"}
-                          {w === "left" && <span className="ml-1 text-gold text-xs">↑</span>}
-                        </div>
-                        <div className={`p-4 border-b border-l text-center text-sm font-bold ${
-                          w === "right" ? "bg-gold/10 text-ink" : "text-ink/55"
-                        }`}>
-                          {faculty2Reviews.length > 0 ? v2 : "—"}
-                          {w === "right" && <span className="ml-1 text-gold text-xs">↑</span>}
-                        </div>
-                      </div>
-                    );
-                  })}
+            <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+              {/* Header */}
+              <div className="grid grid-cols-3 bg-parchment border-b border-slate-100 min-w-[480px]">
+                <div className="px-5 py-3.5 text-[10px] font-semibold text-ink/50 uppercase tracking-wider">
+                  Metric
+                </div>
+                <div className="px-5 py-3.5 font-semibold text-ink text-sm text-center border-l border-slate-100 truncate">
+                  {faculty1.faculty_name}
+                </div>
+                <div className="px-5 py-3.5 font-semibold text-ink text-sm text-center border-l border-slate-100 truncate">
+                  {faculty2.faculty_name}
                 </div>
               </div>
-            </DetailedComparisonAccordion>
+
+              {/* Rows */}
+              <div className="min-w-[480px]">
+                {ratingFields.map((field) => {
+                  const v1 = getAverageMetric(faculty1Reviews, field);
+                  const v2 = getAverageMetric(faculty2Reviews, field);
+                  const w = winner(v1, v2);
+                  return (
+                    <div key={field} className="grid grid-cols-3 border-b border-slate-100 last:border-b-0">
+                      {/* Metric label + hint */}
+                      <div className="px-5 py-4">
+                        <p className="text-sm font-semibold text-ink">{getRatingLabel(field)}</p>
+                        <p className="text-[10px] text-ink/40 mt-0.5 leading-tight">{getRatingHint(field)}</p>
+                      </div>
+
+                      {/* Faculty 1 score */}
+                      <div className={`px-5 py-4 border-l border-slate-100 flex items-center justify-center gap-1.5 ${
+                        w === "left" ? "bg-gold/10" : ""
+                      }`}>
+                        <span className={`font-playfair text-2xl font-bold tabular-nums leading-none ${
+                          w === "left" ? "text-ink" : "text-ink/35"
+                        }`}>
+                          {faculty1Reviews.length > 0 ? v1 : "—"}
+                        </span>
+                        {w === "left" && <span className="text-gold text-sm font-bold leading-none">↑</span>}
+                      </div>
+
+                      {/* Faculty 2 score */}
+                      <div className={`px-5 py-4 border-l border-slate-100 flex items-center justify-center gap-1.5 ${
+                        w === "right" ? "bg-gold/10" : ""
+                      }`}>
+                        <span className={`font-playfair text-2xl font-bold tabular-nums leading-none ${
+                          w === "right" ? "text-ink" : "text-ink/35"
+                        }`}>
+                          {faculty2Reviews.length > 0 ? v2 : "—"}
+                        </span>
+                        {w === "right" && <span className="text-gold text-sm font-bold leading-none">↑</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 
