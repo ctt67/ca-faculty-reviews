@@ -235,11 +235,10 @@ export default function ReviewForm({
         )}
 
         {notification && (
-          <div className={`rounded-xl px-5 py-3 text-sm ${
-            notification.type === "error"
+          <div className={`rounded-xl px-5 py-3 text-sm ${notification.type === "error"
               ? "bg-red-50 border border-red-200 text-red-700"
               : "bg-green-50 border border-green-200 text-green-700"
-          }`}>
+            }`}>
             {notification.message}
           </div>
         )}
@@ -300,12 +299,15 @@ export default function ReviewForm({
 
             <div>
               <label className="block mb-1.5 text-sm font-semibold text-ink">
-                Student Type <span className="text-ink/40 font-normal">(optional)</span>
+                Student Type <span className="text-red-500">*</span>
               </label>
+
               <select
                 value={formData.student_type}
-                onChange={(e) => setFormData({ ...formData, student_type: e.target.value })}
-                className={selectClass}
+                onChange={(e) =>
+                  setFormData({ ...formData, student_type: e.target.value })
+                }
+                className={`${selectClass} ${fieldErr(!formData.student_type)}`}
               >
                 <option value="">Select</option>
                 <option>In Articleship</option>
@@ -350,11 +352,10 @@ export default function ReviewForm({
                         key={val}
                         type="button"
                         onClick={() => setRatings({ ...ratings, [field.key]: val })}
-                        className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${
-                          selected === val
+                        className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${selected === val
                             ? "bg-navy text-white"
                             : "bg-slate-100 text-ink/80 hover:bg-slate-200"
-                        }`}
+                          }`}
                       >
                         {val}
                       </button>
@@ -403,13 +404,12 @@ export default function ReviewForm({
                 {["Yes", "No"].map((val) => (
                   <label
                     key={val}
-                    className={`flex-1 text-center border rounded-xl py-3 cursor-pointer font-semibold text-sm transition ${
-                      formData.would_recommend === val
+                    className={`flex-1 text-center border rounded-xl py-3 cursor-pointer font-semibold text-sm transition ${formData.would_recommend === val
                         ? val === "Yes"
                           ? "bg-green-50 border-green-500 text-green-700"
                           : "bg-red-50 border-red-400 text-red-700"
                         : "border-slate-200 text-ink/70 hover:bg-slate-50"
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
@@ -533,11 +533,10 @@ export default function ReviewForm({
                 {BEST_FOR_OPTIONS.map((option) => (
                   <label
                     key={option}
-                    className={`px-3 py-1.5 border rounded-full cursor-pointer transition font-medium text-sm select-none ${
-                      formData.best_for.includes(option)
+                    className={`px-3 py-1.5 border rounded-full cursor-pointer transition font-medium text-sm select-none ${formData.best_for.includes(option)
                         ? "bg-navy text-white border-navy"
                         : "border-slate-200 text-ink/60 hover:bg-slate-50"
-                    }`}
+                      }`}
                   >
                     <input
                       type="checkbox"
