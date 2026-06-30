@@ -10,7 +10,7 @@ import {
 } from "@/lib/format";
 import CompareReviewCard from "@/components/compare/CompareReviewCard";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { generateCompareMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
@@ -48,6 +48,12 @@ export default async function CompareResultPage({
   params: Promise<{ faculty1: string; faculty2: string }>;
 }) {
   const { faculty1: faculty1Slug, faculty2: faculty2Slug } = await params;
+
+  // Canonical ordering — always redirect to alphabetically-sorted URL so
+  // /compare/pavan/bhavik and /compare/bhavik/pavan resolve to one page.
+  if (faculty1Slug > faculty2Slug) {
+    permanentRedirect(`/compare/${faculty2Slug}/${faculty1Slug}`);
+  }
 
   const [{ data: faculty1 }, { data: faculty2 }] = await Promise.all([
     supabase.from("faculties").select("*").eq("slug", faculty1Slug).single(),

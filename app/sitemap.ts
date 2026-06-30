@@ -71,8 +71,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ) {
         const d1 = lastReviewDate.get(f1.slug)!;
         const d2 = lastReviewDate.get(f2.slug)!;
+        const [s1, s2] = [f1.slug, f2.slug].sort();
         comparePages.push({
-          url: `${BASE_URL}/compare/${f1.slug}/${f2.slug}`,
+          url: `${BASE_URL}/compare/${s1}/${s2}`,
           lastModified: d1 > d2 ? d1 : d2,
           changeFrequency: "weekly" as const,
           priority: 0.7,
