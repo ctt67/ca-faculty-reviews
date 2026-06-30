@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { formatSubjectName } from "@/lib/format";
 import type { Faculty } from "@/lib/types";
 
 export default function ReviewHomePage() {
@@ -35,36 +36,36 @@ export default function ReviewHomePage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-100">
+    <main className="min-h-screen bg-parchment">
 
-      <section className="bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-6 py-20">
-          <div className="max-w-4xl">
-            <h1 className="text-5xl md:text-7xl font-extrabold">
-              Write <span className="text-blue-500">Review</span>
-            </h1>
-            <p className="mt-6 text-xl text-slate-400">
-              Share your experience and help fellow students choose the right faculty.
-            </p>
-          </div>
+      {/* Hero */}
+      <section className="bg-navy text-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-16">
+          <h1 className="font-playfair text-4xl md:text-5xl font-bold">
+            Write a <span className="text-gold">Review</span>
+          </h1>
+          <p className="mt-3 text-white/55 text-base max-w-xl">
+            Share your experience and help fellow CA students choose the right faculty.
+          </p>
         </div>
       </section>
 
-      <section className="max-w-2xl mx-auto px-6 py-16">
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
-          <h2 className="text-xl font-bold text-slate-900 mb-6">Select Faculty</h2>
+      {/* Faculty selector */}
+      <section className="max-w-xl mx-auto px-4 sm:px-6 py-14">
+        <div className="bg-white rounded-xl shadow-sm p-8">
+          <h2 className="font-playfair text-xl font-bold text-ink mb-6">Select Faculty</h2>
 
           {loading ? (
-            <div className="text-slate-400 text-sm py-8 text-center">Loading faculties...</div>
+            <div className="text-ink/35 text-sm py-8 text-center">Loading faculties…</div>
           ) : (
             <div className="space-y-5">
 
               <div>
-                <label className="block mb-2 text-sm font-semibold text-slate-700">Level</label>
+                <label className="block mb-1.5 text-xs font-semibold text-ink/55 uppercase tracking-wider">Level</label>
                 <select
                   value={level}
                   onChange={(e) => { setLevel(e.target.value); setSubject(""); setFaculty(""); }}
-                  className="w-full border border-slate-200 rounded-xl p-3.5 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-slate-200 rounded-xl p-3.5 text-ink bg-white focus:outline-none focus:ring-2 focus:ring-navy"
                 >
                   <option value="">Select Level</option>
                   {levels.map((l) => <option key={l} value={l}>{l}</option>)}
@@ -73,25 +74,27 @@ export default function ReviewHomePage() {
 
               {level && (
                 <div>
-                  <label className="block mb-2 text-sm font-semibold text-slate-700">Subject</label>
+                  <label className="block mb-1.5 text-xs font-semibold text-ink/55 uppercase tracking-wider">Subject</label>
                   <select
                     value={subject}
                     onChange={(e) => { setSubject(e.target.value); setFaculty(""); }}
-                    className="w-full border border-slate-200 rounded-xl p-3.5 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-slate-200 rounded-xl p-3.5 text-ink bg-white focus:outline-none focus:ring-2 focus:ring-navy"
                   >
                     <option value="">Select Subject</option>
-                    {subjects.map((s) => <option key={s} value={s}>{s}</option>)}
+                    {subjects.map((s) => (
+                      <option key={s} value={s}>{formatSubjectName(s)}</option>
+                    ))}
                   </select>
                 </div>
               )}
 
               {subject && (
                 <div>
-                  <label className="block mb-2 text-sm font-semibold text-slate-700">Faculty</label>
+                  <label className="block mb-1.5 text-xs font-semibold text-ink/55 uppercase tracking-wider">Faculty</label>
                   <select
                     value={faculty}
                     onChange={(e) => setFaculty(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl p-3.5 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-slate-200 rounded-xl p-3.5 text-ink bg-white focus:outline-none focus:ring-2 focus:ring-navy"
                   >
                     <option value="">Select Faculty</option>
                     {filteredFaculties.map((f) => (
@@ -104,9 +107,9 @@ export default function ReviewHomePage() {
               <button
                 onClick={handleContinue}
                 disabled={!faculty}
-                className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-40 disabled:cursor-not-allowed mt-2"
+                className="w-full bg-gold text-ink py-3.5 rounded-xl text-sm font-semibold hover:bg-gold/90 transition disabled:opacity-40 disabled:cursor-not-allowed mt-2"
               >
-                Continue to Review
+                Continue to Review →
               </button>
 
             </div>
