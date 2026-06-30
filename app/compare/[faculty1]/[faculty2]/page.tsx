@@ -6,6 +6,7 @@ import {
   getRatingLabel,
   getRatingHint,
   PUBLIC_FACULTY_FIELDS,
+  PUBLIC_REVIEW_COLUMNS,
   formatSubjectName,
 } from "@/lib/format";
 import CompareReviewCard from "@/components/compare/CompareReviewCard";
@@ -63,12 +64,12 @@ export default async function CompareResultPage({
   if (!faculty1 || !faculty2) notFound();
 
   const [{ data: reviews1 }, { data: reviews2 }] = await Promise.all([
-    supabase.from("reviews").select("*").eq("faculty_slug", faculty1Slug).eq("approved", true),
-    supabase.from("reviews").select("*").eq("faculty_slug", faculty2Slug).eq("approved", true),
+    supabase.from("reviews").select(PUBLIC_REVIEW_COLUMNS).eq("faculty_slug", faculty1Slug).eq("approved", true),
+    supabase.from("reviews").select(PUBLIC_REVIEW_COLUMNS).eq("faculty_slug", faculty2Slug).eq("approved", true),
   ]);
 
-  const faculty1Reviews = reviews1 ?? [];
-  const faculty2Reviews = reviews2 ?? [];
+  const faculty1Reviews = (reviews1 ?? []) as unknown as Record<string, any>[];
+  const faculty2Reviews = (reviews2 ?? []) as unknown as Record<string, any>[];
   const faculty1Rating = getOverallRating(faculty1Reviews);
   const faculty2Rating = getOverallRating(faculty2Reviews);
 

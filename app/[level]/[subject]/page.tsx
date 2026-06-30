@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { getOverallRating } from "@/lib/ratings";
 import { FACULTY_SUMMARY_FIELDS } from "@/lib/faculty-config";
 import { LEVEL_LABELS } from "@/lib/config";
-import { formatSubjectName } from "@/lib/format";
+import { formatSubjectName, PUBLIC_REVIEW_COLUMNS } from "@/lib/format";
 import type { Metadata } from "next";
 import { generateSubjectMetadata } from "@/lib/seo";
 
@@ -41,13 +41,15 @@ export default async function SubjectPage({
 
   const slugs = subjectFaculties?.map((f) => f.slug) ?? [];
 
-  const { data: allReviews } = slugs.length
+  const { data: rawReviews } = slugs.length
     ? await supabase
         .from("reviews")
-        .select("*")
+        .select(PUBLIC_REVIEW_COLUMNS)
         .in("faculty_slug", slugs)
         .eq("approved", true)
     : { data: [] };
+
+  const allReviews = (rawReviews ?? []) as unknown as Record<string, any>[];
 
   // Enrich with review data and sort by review count descending
   const enrichedFaculties = (subjectFaculties ?? [])

@@ -27,6 +27,19 @@ export function formatValue(value: unknown): string {
 // Website has its own button. Active/youtube are internal.
 export const PUBLIC_FACULTY_FIELDS = new Set(["language", "mode"]);
 
+// Columns safe to ship to the public faculty/compare/subject pages.
+// Excludes user_id and anti-spam/analytics metadata (typing_started_at,
+// submitted_at, time_taken_seconds, referrer, utm_source, device_type, ip_hash).
+export const PUBLIC_REVIEW_COLUMNS = [
+  "id", "faculty_slug", "created_at",
+  "attempt", "student_type", "course_type", "teacher_style", "course_progress",
+  "class_environment", "actual_duration_hours", "best_for", "would_recommend",
+  "pros", "cons", "review_text", "rating_reasons",
+  "understandability", "exam_focus", "study_material_quality", "mock_coverage",
+  "coverage_of_questions", "doubt_resolution", "revision_support", "notes_quality",
+  "pace_of_teaching", "time_efficiency", "value_for_money", "expectation_match",
+].join(", ");
+
 export function formatFieldName(field: string): string {
   return field.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }

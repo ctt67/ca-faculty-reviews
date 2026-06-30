@@ -3,10 +3,9 @@
 import { useState } from "react";
 import { getRatingLabel } from "@/lib/format";
 import { ratingFields } from "@/lib/rating-config";
-import type { Review } from "@/lib/types";
 
 interface Props {
-  review: Review;
+  review: Record<string, unknown> & { rating_reasons?: Record<string, string> | null };
 }
 
 export default function ReviewRatingDetails({ review }: Props) {

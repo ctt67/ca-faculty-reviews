@@ -6,6 +6,7 @@ import {
   getRatingLabel,
   getRatingHint,
   PUBLIC_FACULTY_FIELDS,
+  PUBLIC_REVIEW_COLUMNS,
   formatSubjectName,
 } from "@/lib/format";
 import ReviewRatingDetails from "@/components/ReviewRatingDetails";
@@ -87,14 +88,14 @@ export default async function FacultyPage({
       .eq("approved", true),
     supabase
       .from("reviews")
-      .select("*", { count: "exact" })
+      .select(PUBLIC_REVIEW_COLUMNS, { count: "exact" })
       .eq("faculty_slug", slug)
       .eq("approved", true)
       .order("created_at", { ascending: false })
       .range(offset, offset + REVIEWS_PER_PAGE - 1),
   ]);
 
-  const reviews = pageReviews ?? [];
+  const reviews = (pageReviews ?? []) as unknown as Record<string, any>[];
   const allReviews = (allRatingData ?? []) as unknown as Record<string, unknown>[];
   const totalReviews = count ?? 0;
   const totalPages = Math.ceil(totalReviews / REVIEWS_PER_PAGE);
