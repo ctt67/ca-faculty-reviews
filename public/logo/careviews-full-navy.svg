@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Careviews — Full horizontal lockup — Navy on transparent -->
+<svg width="480" height="100" viewBox="0 0 480 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Jost:wght@600&amp;display=swap');</style>
+  </defs>
+  <!-- C mark -->
+  <path d="M 72 11.9 A 44 44 0 1 0 72 88.1 L 64.5 75.1 A 29 29 0 1 1 64.5 24.9 Z" fill="#1B3055"/>
+  <!-- Gold dot: light-bg standard gold -->
+  <circle cx="82" cy="50" r="8" fill="#C9A84C"/>
+  <!-- Wordmark -->
+  <text x="128" y="65"
+    font-family="'Jost', sans-serif"
+    font-weight="600"
+    font-size="44"
+    letter-spacing="1"
+    fill="#1B3055">Careviews</text>
+</svg>

@@ -142,7 +142,7 @@ export default async function HomePage() {
       {/* Why CareViews */}
       <section className="max-w-6xl mx-auto px-6 pt-14 pb-10">
         <div className="mb-8">
-          <p className="text-xs font-semibold tracking-widest text-gold uppercase mb-2">Why students use CareViews</p>
+          <p className="text-xs font-semibold tracking-widest text-gold uppercase mb-2">Why students use Careviews</p>
           <h2 className="font-playfair text-2xl font-bold text-ink">Make the right call before you pay.</h2>
         </div>
 

@@ -11,7 +11,7 @@ import { CONTACT_EMAIL, SITE_NAME, BASE_URL } from "@/lib/config";
 export const metadata: Metadata = {
   title: `About | ${SITE_NAME}`,
   description:
-    "How CareViews works — our mission, moderation policy, independence statement, and rating methodology.",
+    "How Careviews works — our mission, moderation policy, independence statement, and rating methodology.",
   alternates: { canonical: `${BASE_URL}/about` },
 };
 
@@ -47,11 +47,11 @@ const HOW_REVIEWS_WORK = [
   },
   {
     title: "Personal experience, not editorial opinion",
-    desc: "CareViews does not write or influence review content. Every review reflects the individual student's experience.",
+    desc: "Careviews does not write or influence review content. Every review reflects the individual student's experience.",
   },
   {
     title: "Minimal editing",
-    desc: "CareViews does not edit review opinions. Content is only touched in cases where moderation policy requires it — typically to remove identifying information.",
+    desc: "Careviews does not edit review opinions. Content is only touched in cases where moderation policy requires it — typically to remove identifying information.",
   },
   {
     title: "Ratings calculated from approved reviews",
@@ -112,11 +112,11 @@ const CONTACT_TOPICS = [
 ];
 
 const DISCLAIMER_ITEMS = [
-  "Reviews represent the opinions of individual students. CareViews does not independently verify every factual statement within a review.",
+  "Reviews represent the opinions of individual students. Careviews does not independently verify every factual statement within a review.",
   "Users should conduct their own research before purchasing any course or coaching programme.",
-  "CareViews is an information platform. Nothing on this site constitutes educational, financial, or professional advice.",
+  "Careviews is an information platform. Nothing on this site constitutes educational, financial, or professional advice.",
   "Faculty names, trademarks, course names, and associated logos remain the intellectual property of their respective owners.",
-  "CareViews does not claim affiliation with any coaching institute, faculty, or educational body unless explicitly and publicly stated.",
+  "Careviews does not claim affiliation with any coaching institute, faculty, or educational body unless explicitly and publicly stated.",
 ];
 
 // ── Shared sub-components ──────────────────────────────────────────────────────
@@ -147,7 +147,7 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-14 md:py-20">
           <p className="text-white/40 text-xs uppercase tracking-widest mb-4">About</p>
           <h1 className="font-playfair text-4xl md:text-5xl font-bold leading-tight">
-            About CareViews
+            About Careviews
           </h1>
           <p className="mt-4 text-white/60 text-base sm:text-lg max-w-2xl leading-relaxed">
             Helping CA students make better coaching decisions through transparent, community-driven reviews.
@@ -192,7 +192,7 @@ export default function AboutPage() {
               faculty's course.
             </p>
             <p className="font-semibold text-ink">
-              CareViews exists to organise student experiences into one trustworthy, searchable platform —
+              Careviews exists to organise student experiences into one trustworthy, searchable platform —
               so every CA student can make this decision with better information than the one before them.
             </p>
           </div>
@@ -290,7 +290,7 @@ export default function AboutPage() {
             <div className="h-1 bg-navy" />
             <div className="p-7 space-y-5">
               <p className="text-[15px] text-ink/70 leading-relaxed">
-                CareViews is an independent review platform with no commercial relationships with coaching
+                Careviews is an independent review platform with no commercial relationships with coaching
                 institutes or faculties.
               </p>
 
@@ -307,7 +307,7 @@ export default function AboutPage() {
               </div>
 
               <p className="text-[15px] text-ink/65 leading-relaxed">
-                If CareViews introduces affiliate partnerships, discount codes, or other commercial
+                If Careviews introduces affiliate partnerships, discount codes, or other commercial
                 arrangements in the future, these will be clearly disclosed and will not influence
                 review data or rankings.
               </p>

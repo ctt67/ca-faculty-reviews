@@ -1,4 +1,4 @@
-export const SITE_NAME = "CareViews";
+export const SITE_NAME = "Careviews";
 export const BASE_URL = "https://careviews.in";
 export const CONTACT_EMAIL = "cagargrohan953@gmail.com";
 

@@ -28,7 +28,7 @@ export async function generateMetadata({
 
   if (!faculty1 || !faculty2) {
     return {
-      title: "Comparison Not Found | CareViews",
+      title: "Comparison Not Found | Careviews",
       robots: { index: false, follow: false },
     };
   }
@@ -290,7 +290,7 @@ export default async function CompareResultPage({
         <div>
           <h2 className="font-playfair text-2xl font-bold text-ink mb-2">What Students Are Saying</h2>
           <p className="text-ink/45 text-xs mb-7">
-            Reviews represent individual student opinions. CareViews does not endorse any faculty.
+            Reviews represent individual student opinions. Careviews does not endorse any faculty.
           </p>
 
           <div className="grid md:grid-cols-2 gap-6 items-start">

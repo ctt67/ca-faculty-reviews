@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X, Search } from "lucide-react";
 import AuthButton from "./auth-button";
 import SearchOverlay from "./SearchOverlay";
+import Logo from "./Logo";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -28,8 +29,8 @@ export default function Navbar() {
     <header className="bg-navy border-b border-white/10 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
 
-        <Link href="/" className="font-playfair text-xl font-bold">
-          <span className="text-gold">Care</span><span className="text-white">Views</span>
+        <Link href="/" aria-label="Careviews home">
+          <Logo scheme="white" height={32} />
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">

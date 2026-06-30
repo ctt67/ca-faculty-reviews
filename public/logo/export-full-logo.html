@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Careviews — Full Logo PNG Exporter</title>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@600&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Jost', sans-serif; background:#f0eeea; color:#1A1A2E; padding:40px; }
+  h1 { font-size:18px; font-weight:600; margin-bottom:8px; }
+  p  { font-size:13px; color:#888; margin-bottom:32px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px; }
+  .card { background:#fff; border-radius:12px; padding:20px; }
+  .card h2 { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:#aaa; margin-bottom:12px; }
+  .preview { display:flex; align-items:center; justify-content:center; border-radius:8px; padding:16px; min-height:100px; margin-bottom:12px; }
+  .preview.light { background:#fff; border:1px solid #eee; }
+  .preview.dark  { background:#1B3055; }
+  button { width:100%; padding:9px; border-radius:8px; border:none; cursor:pointer; font-family:'Jost',sans-serif; font-size:12px; font-weight:600; letter-spacing:.05em; background:#1B3055; color:#fff; transition:opacity.15s; }
+  button:hover { opacity:.85; }
+  canvas { display:none; }
+</style>
+</head>
+<body>
+<h1>Careviews — Full Logo PNG Exporter</h1>
+<p>Renders each variant via Canvas API (Jost font loaded from Google Fonts). Click "Download" to save the PNG.</p>
+
+<div class="grid">
+  <!-- Full Navy 4096 -->
+  <div class="card">
+    <h2>Full lockup — Navy (4096×1707)</h2>
+    <div class="preview light" id="prev-full-navy"></div>
+    <button onclick="exportLogo('full','navy',4096)">Download 4096px PNG</button>
+  </div>
+  <!-- Full White 4096 -->
+  <div class="card">
+    <h2>Full lockup — White (4096×1707)</h2>
+    <div class="preview dark" id="prev-full-white"></div>
+    <button onclick="exportLogo('full','white',4096)">Download 4096px PNG</button>
+  </div>
+  <!-- Full Navy 1024 -->
+  <div class="card">
+    <h2>Full lockup — Navy 1024px</h2>
+    <div class="preview light" id="prev-full-navy-sm"></div>
+    <button onclick="exportLogo('full','navy',1024)">Download 1024px PNG</button>
+  </div>
+  <!-- Square navy 1024 -->
+  <div class="card">
+    <h2>Square app icon 1024×1024</h2>
+    <div class="preview dark" id="prev-sq-navy"></div>
+    <button onclick="exportLogo('square','navy',1024)">Download 1024px PNG</button>
+  </div>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const MARK_PATH = new Path2D("M 72 11.9 A 44 44 0 1 0 72 88.1 L 64.5 75.1 A 29 29 0 1 1 64.5 24.9 Z");
+
+function drawMark(ctx, x, y, unitSize, scheme) {
+  const scale = unitSize / 100;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = scheme === 'white' ? '#ffffff' : '#1B3055';
+  ctx.fill(MARK_PATH);
+  ctx.beginPath();
+  ctx.arc(82, 50, 8, 0, Math.PI * 2);
+  ctx.fillStyle = scheme === 'white' ? '#D9BE6A' : '#C9A84C';
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawFullLogo(ctx, w, h, scheme) {
+  const markH = h;
+  const gap   = Math.round(h * 0.28);
+  const fs    = Math.round(h * 0.58);
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  drawMark(ctx, 0, 0, markH, scheme);
+  ctx.font = `600 ${fs}px 'Jost', sans-serif`;
+  ctx.fillStyle = scheme === 'white' ? '#ffffff' : '#1B3055';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('Careviews', markH + gap, Math.round(h * 0.72));
+}
+
+function drawSquareLogo(ctx, size, scheme) {
+  ctx.clearRect(0, 0, size, size);
+  if (scheme === 'navy') {
+    ctx.fillStyle = '#1B3055';
+    const r = size * 0.22;
+    ctx.beginPath();
+    ctx.roundRect(0, 0, size, size, r);
+    ctx.fill();
+  }
+  const pad   = Math.round(size * 0.15);
+  const inner = size - pad * 2;
+  drawMark(ctx, pad, pad, inner, scheme === 'navy' ? 'white' : scheme);
+}
+
+function textWidth(ctx, text, fs) {
+  ctx.font = `600 ${fs}px 'Jost', sans-serif`;
+  return ctx.measureText(text).width;
+}
+
+async function waitForFont() {
+  await document.fonts.ready;
+}
+
+async function exportLogo(variant, scheme, size) {
+  await waitForFont();
+  const canvas = document.getElementById('canvas');
+  const ctx    = canvas.getContext('2d');
+
+  let w, h;
+  if (variant === 'full') {
+    h = size;
+    const fs  = Math.round(h * 0.58);
+    const gap = Math.round(h * 0.28);
+    ctx.font = `600 ${fs}px 'Jost', sans-serif`;
+    const tw = ctx.measureText('Careviews').width + 8 * 0.5;
+    w = h + gap + Math.ceil(tw) + Math.round(h * 0.1);
+  } else {
+    w = h = size;
+  }
+
+  canvas.width  = w;
+  canvas.height = h;
+
+  if (variant === 'full') {
+    drawFullLogo(ctx, w, h, scheme);
+  } else {
+    drawSquareLogo(ctx, size, scheme);
+  }
+
+  const link = document.createElement('a');
+  link.download = `careviews-${variant}-${scheme}-${size}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+// Render previews
+async function renderPreviews() {
+  await waitForFont();
+  const variants = [
+    { id:'prev-full-navy',  variant:'full',   scheme:'navy',  size:600 },
+    { id:'prev-full-white', variant:'full',   scheme:'white', size:600 },
+    { id:'prev-full-navy-sm',variant:'full',  scheme:'navy',  size:600 },
+    { id:'prev-sq-navy',    variant:'square', scheme:'navy',  size:120 },
+  ];
+  const canvas = document.getElementById('canvas');
+  const ctx    = canvas.getContext('2d');
+
+  for (const v of variants) {
+    const previewH = v.variant === 'full' ? 40 : v.size;
+    const previewW = v.variant === 'full' ? 200 : v.size;
+    canvas.width  = previewW;
+    canvas.height = previewH;
+    if (v.variant === 'full') drawFullLogo(ctx, previewW, previewH, v.scheme);
+    else drawSquareLogo(ctx, v.size, v.scheme);
+    const img = document.createElement('img');
+    img.src = canvas.toDataURL('image/png');
+    img.style.maxWidth = '100%';
+    img.style.maxHeight = '80px';
+    document.getElementById(v.id).appendChild(img);
+  }
+}
+
+renderPreviews();
+</script>
+</body>
+</html>

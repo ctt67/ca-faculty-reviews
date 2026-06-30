@@ -266,7 +266,7 @@ export default function ReviewForm({
   };
 
   const shareUrl = `${BASE_URL}/faculty/${faculty.slug}?utm_source=whatsapp_share`;
-  const shareText = `I just reviewed ${faculty.faculty_name} on CareViews. If you've studied under them too, your experience could help a lot of CA students — takes 5 minutes. Write yours: ${shareUrl}`;
+  const shareText = `I just reviewed ${faculty.faculty_name} on Careviews. If you've studied under them too, your experience could help a lot of CA students — takes 5 minutes. Write yours: ${shareUrl}`;
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
 
   const handleShareClick = () => {

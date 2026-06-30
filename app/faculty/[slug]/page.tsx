@@ -48,7 +48,7 @@ export async function generateMetadata({
 
   if (!faculty) {
     return {
-      title: "Faculty Not Found | CareViews",
+      title: "Faculty Not Found | Careviews",
       robots: { index: false, follow: false },
     };
   }
@@ -280,7 +280,7 @@ export default async function FacultyPage({
                 <span className="text-ink/35 font-normal text-lg">({totalReviews})</span>
               </div>
               <p className="text-ink/45 text-xs mb-7">
-                Reviews represent individual student opinions. CareViews does not endorse any faculty.
+                Reviews represent individual student opinions. Careviews does not endorse any faculty.
               </p>
 
               {totalReviews === 0 ? (

@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
     return {
-        title: "Write a Review | CareViews",
+        title: "Write a Review | Careviews",
         robots: {
             index: false,
             follow: true,

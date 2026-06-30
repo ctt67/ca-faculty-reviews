@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter, Playfair_Display, Jost } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import Logo from "@/components/Logo";
 import { Analytics } from "@vercel/analytics/next";
 import { CONTACT_EMAIL } from "@/lib/config";
 
@@ -17,9 +18,15 @@ const playfairDisplay = Playfair_Display({
   style: ["normal", "italic"],
 });
 
+const jost = Jost({
+  variable: "--font-jost",
+  subsets: ["latin"],
+  weight: ["600", "700"],
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://careviews.in"),
-  title: "CareViews | Honest CA Faculty Reviews",
+  title: "Careviews | Honest CA Faculty Reviews",
   description:
     "Genuine reviews from CA students. Compare faculties across detailed student ratings for CA Final, Intermediate and Foundation — independent, no paid rankings.",
   verification: {
@@ -35,7 +42,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${playfairDisplay.variable} h-full antialiased`}
+      className={`${inter.variable} ${playfairDisplay.variable} ${jost.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-parchment text-ink">
 
@@ -48,9 +55,7 @@ export default function RootLayout({
             <div className="flex flex-col sm:flex-row justify-between gap-8">
               {/* Brand */}
               <div className="shrink-0">
-                <div className="font-playfair text-lg font-bold">
-                  <span className="text-gold">Care</span><span className="text-white">Views</span>
-                </div>
+                <Logo scheme="white" height={28} />
                 <p className="text-white/45 text-xs mt-2">For CA Students by CA Students</p>
                 <p className="text-white/35 text-xs mt-1">Contact: {CONTACT_EMAIL}</p>
               </div>
@@ -64,7 +69,7 @@ export default function RootLayout({
               </nav>
             </div>
             <p className="text-xs text-white/30 mt-8 border-t border-white/10 pt-6">
-              CareViews is an independent student platform and is not affiliated with ICAI or any coaching institute.
+              Careviews is an independent student platform and is not affiliated with ICAI or any coaching institute.
             </p>
           </div>
         </footer>
