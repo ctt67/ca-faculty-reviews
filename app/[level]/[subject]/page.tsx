@@ -52,6 +52,14 @@ export default async function SubjectPage({
         .eq("approved", true)
     : { data: [] };
 
+  // Enrich with review data and sort by review count descending
+  const enrichedFaculties = (subjectFaculties ?? [])
+    .map((faculty) => {
+      const facultyReviews = allReviews?.filter((r) => r.faculty_slug === faculty.slug) ?? [];
+      return { faculty, facultyReviews };
+    })
+    .sort((a, b) => b.facultyReviews.length - a.facultyReviews.length);
+
   const levelLabel = LEVEL_LABELS[level.toLowerCase()] ?? level.toUpperCase();
   const subjectLabel = toTitleCase(decodeURIComponent(subject));
 
@@ -71,25 +79,24 @@ export default async function SubjectPage({
             {subjectLabel}
           </h1>
           <p className="text-white/55 text-sm mt-3">
-            {subjectFaculties?.length ?? 0}{" "}
-            {subjectFaculties?.length === 1 ? "faculty" : "faculties"} ·{" "}
-            Compare reviews, ratings and student experiences.
+            {enrichedFaculties.length}{" "}
+            {enrichedFaculties.length === 1 ? "faculty" : "faculties"} · Compare reviews, ratings and student experiences.
           </p>
         </div>
       </section>
 
       {/* Faculty grid */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-14">
-        {!subjectFaculties || subjectFaculties.length === 0 ? (
+        {enrichedFaculties.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-100 p-12 text-center text-ink/40">
             No faculties found for this subject yet.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {subjectFaculties.map((faculty) => {
-              const facultyReviews =
-                allReviews?.filter((r) => r.faculty_slug === faculty.slug) ?? [];
-              const overallRating = getOverallRating(facultyReviews);
+            {enrichedFaculties.map(({ faculty, facultyReviews }) => {
+              const overallRating = getOverallRating(
+                facultyReviews as unknown as Record<string, unknown>[]
+              );
               const hasReviews = facultyReviews.length > 0;
               const bestFor = hasReviews ? facultyReviews[0]?.best_for?.[0] : null;
               const teachingStyle = hasReviews ? facultyReviews[0]?.teacher_style : null;
@@ -119,28 +126,34 @@ export default async function SubjectPage({
                             )}
                             {bestFor && (
                               <span className="bg-parchment text-ink/65 px-2.5 py-1 rounded-full text-xs font-medium">
-                                {bestFor}
+                                {toTitleCase(bestFor)}
                               </span>
                             )}
                           </div>
                         )}
                       </div>
 
+                      {/* Rating block */}
                       <div className="text-right shrink-0">
                         {hasReviews ? (
                           <>
-                            <div className="text-gold text-base leading-none">★</div>
-                            <div className="font-playfair text-2xl font-bold text-ink leading-tight">
-                              {overallRating}
+                            <div className="flex items-baseline justify-end gap-1">
+                              <span className="text-gold text-sm leading-none">★</span>
+                              <span className="font-playfair text-2xl font-bold text-ink leading-none">
+                                {overallRating}
+                              </span>
+                            </div>
+                            <div className="text-ink/40 text-[10px] mt-1 text-right">
+                              {facultyReviews.length}{" "}
+                              {facultyReviews.length === 1 ? "review" : "reviews"}
                             </div>
                           </>
                         ) : (
-                          <div className="font-playfair text-2xl font-bold text-ink/25">—</div>
+                          <>
+                            <span className="font-playfair text-2xl font-bold text-ink/25">—</span>
+                            <div className="text-ink/30 text-[10px] mt-1">No reviews</div>
+                          </>
                         )}
-                        <div className="text-ink/40 text-[10px] mt-0.5">
-                          {facultyReviews.length}{" "}
-                          {facultyReviews.length === 1 ? "review" : "reviews"}
-                        </div>
                       </div>
                     </div>
 
