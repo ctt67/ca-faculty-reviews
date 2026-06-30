@@ -6,7 +6,7 @@ import {
   formatFieldName,
   formatValue,
   getRatingLabel,
-  getRatingDescription,
+  getRatingHint,
   PUBLIC_FACULTY_FIELDS,
 } from "@/lib/format";
 
@@ -246,7 +246,7 @@ return (
                       {getRatingLabel(field)}
                     </p>
                     <p className="text-xs text-slate-500">
-                      {getRatingDescription(field)}
+                      {getRatingHint(field)}
                     </p>
                   </div>
                   <RatingBar value={getAverageMetric(allReviews, field)} />

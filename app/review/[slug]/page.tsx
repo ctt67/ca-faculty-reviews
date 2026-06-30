@@ -37,14 +37,6 @@ export default async function ReviewPage({
 
 
 
-    return (<main className="min-h-screen bg-slate-100">
-
-
-        <ReviewForm faculty={faculty} />
-
-    </main>
-
-
-    );
+    return <ReviewForm faculty={faculty} />;
 
 }

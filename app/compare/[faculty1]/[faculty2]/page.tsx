@@ -4,7 +4,7 @@ import {
   formatFieldName,
   formatValue,
   getRatingLabel,
-  getRatingDescription,
+  getRatingHint,
   PUBLIC_FACULTY_FIELDS,
 } from "@/lib/format";
 
@@ -215,7 +215,7 @@ export default async function CompareResultPage({
                     <div key={field} className="contents">
                       <div className="p-4 border-b text-slate-600 text-sm">
                         <p className="font-medium text-slate-700">{getRatingLabel(field)}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">{getRatingDescription(field)}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{getRatingHint(field)}</p>
                       </div>
                       <div className={`p-4 border-b border-l text-center font-bold text-sm ${w === "left" ? "text-blue-600 bg-blue-50" : "text-slate-900"}`}>
                         {faculty1Reviews.length > 0 ? v1 : "—"}

@@ -21,8 +21,8 @@ export function getRatingLabel(key: string): string {
   return ratingFields.find((f) => f.key === key)?.label ?? formatFieldName(key);
 }
 
-export function getRatingDescription(key: string): string {
-  return ratingFields.find((f) => f.key === key)?.description ?? "";
+export function getRatingHint(key: string): string {
+  return ratingFields.find((f) => f.key === key)?.hint ?? "";
 }
 
 export function getRating(key: string) {
