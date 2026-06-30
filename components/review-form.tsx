@@ -341,7 +341,7 @@ export default function ReviewForm({
                         <span className="text-xs text-navy font-medium shrink-0">{RATING_LABELS[selected]}</span>
                       )}
                     </div>
-                    <p className="text-xs text-ink/45 mt-0.5 leading-snug">{field.hint}</p>
+                    <p className="text-xs text-ink/60 mt-0.5 leading-snug">{field.hint}</p>
                   </div>
 
                   <div className="flex gap-1.5">
@@ -353,7 +353,7 @@ export default function ReviewForm({
                         className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${
                           selected === val
                             ? "bg-navy text-white"
-                            : "bg-slate-100 text-ink/50 hover:bg-slate-200"
+                            : "bg-slate-100 text-ink/80 hover:bg-slate-200"
                         }`}
                       >
                         {val}
@@ -361,8 +361,8 @@ export default function ReviewForm({
                     ))}
                   </div>
                   <div className="flex justify-between mt-1">
-                    <span className="text-[10px] text-ink/25">Poor</span>
-                    <span className="text-[10px] text-ink/25">Excellent</span>
+                    <span className="text-[10px] text-ink/45">Poor</span>
+                    <span className="text-[10px] text-ink/45">Excellent</span>
                   </div>
 
                   {expandedReasons[field.key] ? (
@@ -378,9 +378,9 @@ export default function ReviewForm({
                     <button
                       type="button"
                       onClick={() => setExpandedReasons((prev) => ({ ...prev, [field.key]: true }))}
-                      className="mt-3 text-xs text-ink/35 hover:text-ink/60 transition flex items-center gap-1"
+                      className="mt-3 text-xs text-ink/50 hover:text-ink/70 transition flex items-center gap-1"
                     >
-                      💬 Explain your rating <span className="text-ink/25">(optional)</span>
+                      💬 Explain your rating <span className="text-ink/35">(optional)</span>
                     </button>
                   )}
                 </div>
