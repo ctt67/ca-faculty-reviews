@@ -17,7 +17,7 @@ interface FacultySEO {
 
 export function generateFacultyMetadata(faculty: FacultySEO): Metadata {
   const title = `${faculty.faculty_name} — ${faculty.subject} Reviews (${YEAR}) | ${levelLabel(faculty.level)} | ${SITE_NAME}`;
-  const description = `Verified student reviews and ratings for ${faculty.faculty_name} (${faculty.subject}, ${levelLabel(faculty.level)}). See teaching style, ratings across 12 metrics, and real student experiences before you decide.`;
+  const description = `Student reviews and ratings for ${faculty.faculty_name} (${faculty.subject}, ${levelLabel(faculty.level)}). See teaching style, detailed student ratings, and real experiences before you decide.`;
   const url = `${BASE_URL}/faculty/${faculty.slug}`;
 
   return {
@@ -39,7 +39,7 @@ export function generateSubjectMetadata(page: SubjectSEO): Metadata {
   const level = levelLabel(page.level);
   const subject = formatSubjectName(page.subject);
   const title = `Best ${level} ${subject} Faculty (${YEAR}) | Student Reviews | ${SITE_NAME}`;
-  const description = `Compare ${level} ${subject} faculties with verified student reviews, ratings across 12 metrics, teaching styles and real student experiences.`;
+  const description = `Compare ${level} ${subject} faculties with verified student reviews, detailed student ratings, teaching styles and real student experiences.`;
   const url = `${BASE_URL}/${page.level.toLowerCase()}/${page.subject.toLowerCase()}`;
 
   return {
@@ -79,7 +79,7 @@ interface CompareSEO {
 
 export function generateCompareMetadata(page: CompareSEO): Metadata {
   const title = `${page.faculty1} vs ${page.faculty2} — ${formatSubjectName(page.subject)} Reviews (${YEAR}) | ${SITE_NAME}`;
-  const description = `Compare ${page.faculty1} and ${page.faculty2} side-by-side using verified student reviews, ratings across 12 metrics and real student experiences.`;
+  const description = `Compare ${page.faculty1} and ${page.faculty2} side-by-side using verified student reviews, detailed student ratings and real student experiences.`;
   const url = `${BASE_URL}/compare/${page.faculty1Slug}/${page.faculty2Slug}`;
 
   return {
