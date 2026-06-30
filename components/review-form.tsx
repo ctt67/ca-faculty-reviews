@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { ratingFields } from "@/lib/rating-config";
 import { formatSubjectName } from "@/lib/format";
@@ -59,6 +59,11 @@ export default function ReviewForm({
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [suggestions, setSuggestions] = useState<Array<{ slug: string; faculty_name: string; subject: string }>>([]);
+
+  const typingStartedAtRef = useRef<number | null>(null);
+  const markStarted = () => {
+    if (typingStartedAtRef.current === null) typingStartedAtRef.current = Date.now();
+  };
 
   useEffect(() => {
     if (!submitted || !user) return;
@@ -186,6 +191,14 @@ export default function ReviewForm({
     setSubmitting(true);
 
     try {
+      const submittedAt = new Date();
+      const typingStartedAt = typingStartedAtRef.current ? new Date(typingStartedAtRef.current) : null;
+      const timeTakenSeconds = typingStartedAt
+        ? Math.round((submittedAt.getTime() - typingStartedAt.getTime()) / 1000)
+        : null;
+      const utmSource = new URLSearchParams(window.location.search).get("utm_source");
+      const deviceType = /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop";
+
       const { error } = await supabase.from("reviews").insert([{
         faculty_slug: faculty.slug,
         user_id: currentUser.id,
@@ -204,6 +217,12 @@ export default function ReviewForm({
         approved: false,
         rating_reasons: Object.keys(ratingReasons).length > 0 ? ratingReasons : null,
         ...ratings,
+        typing_started_at: typingStartedAt?.toISOString() ?? null,
+        submitted_at: submittedAt.toISOString(),
+        time_taken_seconds: timeTakenSeconds,
+        referrer: document.referrer || null,
+        utm_source: utmSource,
+        device_type: deviceType,
       }]);
 
       if (error) {
@@ -356,7 +375,11 @@ export default function ReviewForm({
         </div>
       </section>
 
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-5">
+      <section
+        className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-5"
+        onChangeCapture={markStarted}
+        onClickCapture={markStarted}
+      >
 
         {/* Guideline banner */}
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
