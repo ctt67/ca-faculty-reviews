@@ -228,6 +228,38 @@ export default function InsightsClient() {
     const recommendYes = reviews.filter((r) => r.would_recommend === true).length;
     const recommendNo = reviews.filter((r) => r.would_recommend === false).length;
 
+    // Search metrics
+    const searchEvents = events.filter((e) => e.event_name === "search_performed");
+    const totalSearches = searchEvents.length;
+    const searchesWithResults = searchEvents.filter(
+      (e) => ((e.properties?.results_count as number) ?? 0) > 0
+    ).length;
+    const searchNoResultRate = pct(totalSearches - searchesWithResults, totalSearches);
+
+    const searchClickEvents = events.filter((e) => e.event_name === "search_result_clicked");
+    const searchClickRate = pct(searchClickEvents.length, totalSearches);
+
+    const topSearchQueries = (() => {
+      const counts = new Map<string, number>();
+      for (const e of searchEvents) {
+        const q = (e.properties?.query as string)?.toLowerCase().trim();
+        if (!q) continue;
+        counts.set(q, (counts.get(q) ?? 0) + 1);
+      }
+      return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
+    })();
+
+    const noResultQueries = (() => {
+      const counts = new Map<string, number>();
+      for (const e of searchEvents) {
+        if (((e.properties?.results_count as number) ?? 1) > 0) continue;
+        const q = (e.properties?.query as string)?.toLowerCase().trim();
+        if (!q) continue;
+        counts.set(q, (counts.get(q) ?? 0) + 1);
+      }
+      return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
+    })();
+
     return {
       totalApproved: approved.length,
       totalPending: pending.length,
@@ -251,6 +283,11 @@ export default function InsightsClient() {
       coverageBuckets,
       recommendYes,
       recommendNo,
+      totalSearches,
+      searchNoResultRate,
+      searchClickRate,
+      topSearchQueries,
+      noResultQueries,
     };
   }, [reviews, events, facultyCount, facultiesWithReviews]);
 
@@ -433,6 +470,63 @@ export default function InsightsClient() {
             ))}
           </div>
         </Section>
+
+        {/* Search metrics */}
+        <div className="grid sm:grid-cols-3 gap-4">
+          <Kpi
+            label="Total Searches"
+            value={String(stats.totalSearches)}
+            sub={`last ${LOOKBACK_DAYS} days`}
+          />
+          <Kpi
+            label="Click-through Rate"
+            value={`${stats.searchClickRate}%`}
+            sub="Searches that led to a faculty page"
+            light={lightFor(stats.searchClickRate, 40, 20)}
+          />
+          <Kpi
+            label="No-result Rate"
+            value={`${stats.searchNoResultRate}%`}
+            sub="Searches that found nothing"
+            light={lightFor(stats.searchNoResultRate, 10, 25, false)}
+          />
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <Section title="Top Search Queries" sub={`Most searched terms, last ${LOOKBACK_DAYS} days`}>
+            {stats.topSearchQueries.length === 0 ? (
+              <p className="text-sm text-slate-400">No searches yet.</p>
+            ) : (
+              <div className="space-y-2.5">
+                {stats.topSearchQueries.map(([q, count]) => (
+                  <Bar
+                    key={q}
+                    label={q}
+                    value={count}
+                    max={Math.max(...stats.topSearchQueries.map(([, c]) => c), 1)}
+                  />
+                ))}
+              </div>
+            )}
+          </Section>
+
+          <Section title="Zero-result Queries" sub="What users searched for but didn't find — gaps to fill">
+            {stats.noResultQueries.length === 0 ? (
+              <p className="text-sm text-slate-400">No zero-result searches yet.</p>
+            ) : (
+              <div className="space-y-2.5">
+                {stats.noResultQueries.map(([q, count]) => (
+                  <Bar
+                    key={q}
+                    label={q}
+                    value={count}
+                    max={Math.max(...stats.noResultQueries.map(([, c]) => c), 1)}
+                  />
+                ))}
+              </div>
+            )}
+          </Section>
+        </div>
 
       </section>
     </main>
