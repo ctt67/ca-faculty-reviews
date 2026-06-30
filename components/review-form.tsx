@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { ratingFields } from "@/lib/rating-config";
 import { formatSubjectName } from "@/lib/format";
+import { CheckCircle2, Share2, Copy, Check } from "lucide-react";
+import { BASE_URL } from "@/lib/config";
 
 const RATING_LABELS: Record<number, string> = {
   1: "Very Poor",
@@ -54,6 +56,8 @@ export default function ReviewForm({
   const [user, setUser] = useState<{ id: string; email?: string } | undefined>(undefined);
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -183,7 +187,7 @@ export default function ReviewForm({
         return;
       }
 
-      window.location.href = `/faculty/${faculty.slug}`;
+      setSubmitted(true);
 
     } catch (err) {
       console.error(err);
@@ -192,6 +196,88 @@ export default function ReviewForm({
       setSubmitting(false);
     }
   };
+
+  const shareUrl = `${BASE_URL}/faculty/${faculty.slug}`;
+  const shareText = `I just reviewed ${faculty.faculty_name} on CareViews. If you've studied under them too, your experience could help a lot of CA students — takes 5 minutes. Write yours: ${shareUrl}`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  if (submitted) {
+    return (
+      <main className="min-h-screen bg-parchment">
+        <section className="bg-navy text-white">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 md:py-12">
+            <h1 className="font-playfair text-3xl font-bold text-white">Review Submitted</h1>
+            <p className="mt-2 text-white/50 text-sm">
+              {faculty.faculty_name} · {faculty.level} · {formatSubjectName(faculty.subject)}
+            </p>
+          </div>
+        </section>
+
+        <section className="max-w-xl mx-auto px-4 sm:px-6 py-14 space-y-5">
+
+          {/* Success card */}
+          <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+            <div className="w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 size={28} className="text-green-500" />
+            </div>
+            <h2 className="font-playfair text-2xl font-bold text-ink">Thank you</h2>
+            <p className="mt-2 text-ink/60 text-sm leading-relaxed max-w-xs mx-auto">
+              Your review is pending approval and will go live within 24 hours. Every genuine review makes this platform more useful.
+            </p>
+            <a
+              href={`/faculty/${faculty.slug}`}
+              className="mt-6 inline-block bg-gold text-ink px-6 py-3 rounded-xl font-semibold text-sm hover:opacity-90 transition"
+            >
+              Back to {faculty.faculty_name} →
+            </a>
+          </div>
+
+          {/* Share card */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center gap-2.5 mb-2">
+              <Share2 size={16} className="text-gold shrink-0" />
+              <p className="text-sm font-semibold text-ink">Know someone else who studied from {faculty.faculty_name}?</p>
+            </div>
+            <p className="text-xs text-ink/55 leading-relaxed mb-5">
+              Their experience could help a future CA student make a better decision. One more review takes 5 minutes and goes a long way.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 bg-[#25D366] text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.554 4.107 1.523 5.83L.057 23.7a.5.5 0 0 0 .61.61l5.87-1.466A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.012-1.375l-.36-.213-3.724.975.994-3.635-.234-.373A9.818 9.818 0 1 1 12 21.818z"/>
+                </svg>
+                Share on WhatsApp
+              </a>
+
+              <button
+                onClick={handleCopy}
+                className="flex-1 flex items-center justify-center gap-2 border border-slate-200 text-ink px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 transition"
+              >
+                {copied
+                  ? <><Check size={15} className="text-green-500" /> Copied!</>
+                  : <><Copy size={15} /> Copy Link</>
+                }
+              </button>
+            </div>
+          </div>
+
+        </section>
+      </main>
+    );
+  }
 
   const fieldErr = (condition: boolean) =>
     showErrors && condition ? "border-red-400" : "border-slate-200";
