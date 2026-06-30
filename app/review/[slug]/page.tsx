@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
     return {
-        title: "Write a Review | CA Reviews",
+        title: "Write a Review | CareViews",
         robots: {
             index: false,
             follow: true,
@@ -27,8 +27,8 @@ export default async function ReviewPage({
 
     if (!faculty) {
         return (
-            <main className="min-h-screen bg-slate-100 flex items-center justify-center">
-                <h1 className="text-3xl font-bold text-slate-900">
+            <main className="min-h-screen flex items-center justify-center">
+                <h1 className="font-playfair text-3xl font-bold text-ink">
                     Faculty not found
                 </h1>
             </main>

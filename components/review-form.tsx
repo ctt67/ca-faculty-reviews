@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { ratingFields } from "@/lib/rating-config";
+import { formatSubjectName } from "@/lib/format";
 
 const RATING_LABELS: Record<number, string> = {
   1: "Very Poor",
@@ -22,8 +23,14 @@ const BEST_FOR_OPTIONS = [
   "Repeaters",
 ];
 
-export default function ReviewForm({ faculty }: { faculty: { slug: string; faculty_name: string; level: string; subject: string } }) {
+const selectClass =
+  "w-full border border-slate-200 rounded-xl p-3 text-ink bg-white focus:outline-none focus:ring-2 focus:ring-navy text-sm";
 
+export default function ReviewForm({
+  faculty,
+}: {
+  faculty: { slug: string; faculty_name: string; level: string; subject: string };
+}) {
   const [formData, setFormData] = useState({
     attempt: "",
     student_type: "",
@@ -84,21 +91,23 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
 
   if (user === undefined) {
     return (
-      <main className="min-h-screen bg-slate-100 flex items-center justify-center">
-        <p className="text-slate-500">Checking authentication…</p>
+      <main className="min-h-screen flex items-center justify-center">
+        <p className="text-ink/45 text-sm">Checking authentication…</p>
       </main>
     );
   }
 
   if (alreadyReviewed) {
     return (
-      <main className="min-h-screen bg-slate-100 flex items-center justify-center">
-        <div className="bg-white rounded-3xl shadow-lg p-8 text-center max-w-md">
-          <h2 className="text-2xl font-bold text-slate-900">Already Reviewed</h2>
-          <p className="mt-3 text-slate-600">You've already submitted a review for {faculty.faculty_name}.</p>
+      <main className="min-h-screen flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl shadow-sm p-8 text-center max-w-md w-full">
+          <h2 className="font-playfair text-2xl font-bold text-ink">Already Reviewed</h2>
+          <p className="mt-3 text-ink/60 text-sm">
+            You&apos;ve already submitted a review for {faculty.faculty_name}.
+          </p>
           <a
             href={`/faculty/${faculty.slug}`}
-            className="mt-6 inline-block bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition"
+            className="mt-6 inline-block bg-gold text-ink px-6 py-3 rounded-xl font-semibold text-sm hover:opacity-90 transition"
           >
             Back to Faculty
           </a>
@@ -187,29 +196,31 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
   const fieldErr = (condition: boolean) =>
     showErrors && condition ? "border-red-400" : "border-slate-200";
 
+  const subjectLabel = formatSubjectName(faculty.subject);
+
   return (
-    <main className="min-h-screen bg-slate-100">
+    <main className="min-h-screen">
 
       {/* Hero */}
-      <section className="bg-slate-900 text-white">
-        <div className="max-w-4xl mx-auto px-6 py-12">
+      <section className="bg-navy text-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 md:py-12">
           <a
             href={`/faculty/${faculty.slug}`}
-            className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm mb-6 transition"
+            className="inline-flex items-center gap-1.5 text-white/50 hover:text-white text-sm mb-6 transition"
           >
             ← Back to {faculty.faculty_name}
           </a>
-          <h1 className="text-4xl font-extrabold">Write a Review</h1>
-          <p className="mt-2 text-slate-400 text-sm">
-            {faculty.faculty_name} · {faculty.level} · {faculty.subject}
+          <h1 className="font-playfair text-3xl font-bold text-white">Write a Review</h1>
+          <p className="mt-2 text-white/50 text-sm">
+            {faculty.faculty_name} · {faculty.level} · {subjectLabel}
           </p>
         </div>
       </section>
 
-      <section className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-5">
 
         {/* Guideline banner */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
           <div className="flex-1 text-amber-900 space-y-0.5">
             <p>✅ Share your genuine experience — both positives and negatives.</p>
             <p>🚫 No personal info, promotional content, or defamatory language.</p>
@@ -224,24 +235,28 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
         )}
 
         {notification && (
-          <div className={`rounded-xl px-5 py-3 text-sm ${notification.type === "error" ? "bg-red-50 border border-red-200 text-red-700" : "bg-green-50 border border-green-200 text-green-700"}`}>
+          <div className={`rounded-xl px-5 py-3 text-sm ${
+            notification.type === "error"
+              ? "bg-red-50 border border-red-200 text-red-700"
+              : "bg-green-50 border border-green-200 text-green-700"
+          }`}>
             {notification.message}
           </div>
         )}
 
         {/* ── Section 1: Background ── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h2 className="text-lg font-bold text-slate-900 mb-4">Your Background</h2>
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="font-playfair text-lg font-bold text-ink mb-4">Your Background</h2>
           <div className="grid sm:grid-cols-2 gap-4">
 
             <div>
-              <label className="block mb-1.5 text-sm font-semibold text-slate-700">
+              <label className="block mb-1.5 text-sm font-semibold text-ink">
                 Attempt <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.attempt}
                 onChange={(e) => setFormData({ ...formData, attempt: e.target.value })}
-                className={`w-full border rounded-xl p-3 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${fieldErr(!formData.attempt)}`}
+                className={`${selectClass} ${fieldErr(!formData.attempt)}`}
               >
                 <option value="">Select</option>
                 <option>First Attempt</option>
@@ -251,13 +266,13 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
             </div>
 
             <div>
-              <label className="block mb-1.5 text-sm font-semibold text-slate-700">
+              <label className="block mb-1.5 text-sm font-semibold text-ink">
                 Course Progress <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.course_progress}
                 onChange={(e) => setFormData({ ...formData, course_progress: e.target.value })}
-                className={`w-full border rounded-xl p-3 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${fieldErr(!formData.course_progress)}`}
+                className={`${selectClass} ${fieldErr(!formData.course_progress)}`}
               >
                 <option value="">Select</option>
                 <option>Less than 25%</option>
@@ -269,13 +284,13 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
             </div>
 
             <div>
-              <label className="block mb-1.5 text-sm font-semibold text-slate-700">
+              <label className="block mb-1.5 text-sm font-semibold text-ink">
                 Course Type <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.course_type}
                 onChange={(e) => setFormData({ ...formData, course_type: e.target.value })}
-                className={`w-full border rounded-xl p-3 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${fieldErr(!formData.course_type)}`}
+                className={`${selectClass} ${fieldErr(!formData.course_type)}`}
               >
                 <option value="">Select</option>
                 <option>Regular</option>
@@ -284,13 +299,13 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
             </div>
 
             <div>
-              <label className="block mb-1.5 text-sm font-semibold text-slate-700">
-                Student Type <span className="text-slate-400 font-normal">(optional)</span>
+              <label className="block mb-1.5 text-sm font-semibold text-ink">
+                Student Type <span className="text-ink/40 font-normal">(optional)</span>
               </label>
               <select
                 value={formData.student_type}
                 onChange={(e) => setFormData({ ...formData, student_type: e.target.value })}
-                className="w-full border border-slate-200 rounded-xl p-3 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className={selectClass}
               >
                 <option value="">Select</option>
                 <option>In Articleship</option>
@@ -304,9 +319,11 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
         </div>
 
         {/* ── Section 2: Ratings ── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h2 className="text-lg font-bold text-slate-900 mb-1">Rate Your Experience <span className="text-red-500">*</span></h2>
-          <p className="text-slate-500 text-sm mb-5">Help future CA students make better coaching decisions.</p>
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="font-playfair text-lg font-bold text-ink mb-1">
+            Rate Your Experience <span className="text-red-500">*</span>
+          </h2>
+          <p className="text-ink/45 text-sm mb-5">Help future CA students make better coaching decisions.</p>
 
           <div className="grid md:grid-cols-2 gap-3">
             {ratingFields.map((field) => {
@@ -317,15 +334,16 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
                   key={field.key}
                   className={`border rounded-xl p-5 ${hasError ? "border-red-400 bg-red-50" : "border-slate-200"}`}
                 >
-                  <div className="mb-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-slate-900">{field.label}</span>
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-semibold text-ink">{field.label}</span>
                       {selected && (
-                        <span className="text-xs text-blue-600 font-medium">{RATING_LABELS[selected]}</span>
+                        <span className="text-xs text-navy font-medium shrink-0">{RATING_LABELS[selected]}</span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5 leading-snug">{field.hint}</p>
+                    <p className="text-xs text-ink/45 mt-0.5 leading-snug">{field.hint}</p>
                   </div>
+
                   <div className="flex gap-1.5">
                     {[1, 2, 3, 4, 5].map((val) => (
                       <button
@@ -334,8 +352,8 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
                         onClick={() => setRatings({ ...ratings, [field.key]: val })}
                         className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${
                           selected === val
-                            ? "bg-blue-600 text-white"
-                            : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                            ? "bg-navy text-white"
+                            : "bg-slate-100 text-ink/50 hover:bg-slate-200"
                         }`}
                       >
                         {val}
@@ -343,9 +361,10 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
                     ))}
                   </div>
                   <div className="flex justify-between mt-1">
-                    <span className="text-[10px] text-slate-300">Poor</span>
-                    <span className="text-[10px] text-slate-300">Excellent</span>
+                    <span className="text-[10px] text-ink/25">Poor</span>
+                    <span className="text-[10px] text-ink/25">Excellent</span>
                   </div>
+
                   {expandedReasons[field.key] ? (
                     <textarea
                       rows={2}
@@ -353,15 +372,15 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
                       onChange={(e) => setRatingReasons({ ...ratingReasons, [field.key]: e.target.value })}
                       placeholder="Why? (optional)"
                       autoFocus
-                      className="mt-2 w-full border border-slate-200 rounded-lg p-2.5 text-slate-900 placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="mt-2 w-full border border-slate-200 rounded-lg p-2.5 text-ink placeholder:text-ink/30 text-xs focus:outline-none focus:ring-2 focus:ring-navy"
                     />
                   ) : (
                     <button
                       type="button"
                       onClick={() => setExpandedReasons((prev) => ({ ...prev, [field.key]: true }))}
-                      className="mt-3 text-xs text-slate-400 hover:text-slate-600 transition flex items-center gap-1"
+                      className="mt-3 text-xs text-ink/35 hover:text-ink/60 transition flex items-center gap-1"
                     >
-                      💬 Explain your rating <span className="text-slate-300">(optional)</span>
+                      💬 Explain your rating <span className="text-ink/25">(optional)</span>
                     </button>
                   )}
                 </div>
@@ -371,14 +390,13 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
         </div>
 
         {/* ── Section 3: Your Review ── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h2 className="text-lg font-bold text-slate-900 mb-4">Your Review</h2>
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="font-playfair text-lg font-bold text-ink mb-4">Your Review</h2>
 
           <div className="space-y-5">
 
-            {/* Would recommend */}
             <div>
-              <label className="block mb-2 text-sm font-semibold text-slate-700">
+              <label className="block mb-2 text-sm font-semibold text-ink">
                 Would you recommend this faculty? <span className="text-red-500">*</span>
               </label>
               <div className="flex gap-3">
@@ -390,7 +408,7 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
                         ? val === "Yes"
                           ? "bg-green-50 border-green-500 text-green-700"
                           : "bg-red-50 border-red-400 text-red-700"
-                        : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                        : "border-slate-200 text-ink/70 hover:bg-slate-50"
                     }`}
                   >
                     <input
@@ -406,9 +424,8 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
               </div>
             </div>
 
-            {/* Pros */}
             <div>
-              <label className="block mb-1.5 text-sm font-semibold text-slate-700">
+              <label className="block mb-1.5 text-sm font-semibold text-ink">
                 Pros <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -416,13 +433,12 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
                 value={formData.pros}
                 onChange={(e) => setFormData({ ...formData, pros: e.target.value })}
                 placeholder="What worked well? Teaching, notes, revision, doubt support…"
-                className={`w-full border rounded-xl p-3 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${fieldErr(!formData.pros.trim())}`}
+                className={`w-full border rounded-xl p-3 text-ink placeholder:text-ink/30 text-sm focus:outline-none focus:ring-2 focus:ring-navy ${fieldErr(!formData.pros.trim())}`}
               />
             </div>
 
-            {/* Cons */}
             <div>
-              <label className="block mb-1.5 text-sm font-semibold text-slate-700">
+              <label className="block mb-1.5 text-sm font-semibold text-ink">
                 Cons <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -430,21 +446,20 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
                 value={formData.cons}
                 onChange={(e) => setFormData({ ...formData, cons: e.target.value })}
                 placeholder="What could be better? Pacing, coverage, updates, support…"
-                className={`w-full border rounded-xl p-3 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${fieldErr(!formData.cons.trim())}`}
+                className={`w-full border rounded-xl p-3 text-ink placeholder:text-ink/30 text-sm focus:outline-none focus:ring-2 focus:ring-navy ${fieldErr(!formData.cons.trim())}`}
               />
             </div>
 
-            {/* Overall review - optional */}
             <div>
-              <label className="block mb-1.5 text-sm font-semibold text-slate-700">
-                Overall Review <span className="text-slate-400 font-normal">(optional)</span>
+              <label className="block mb-1.5 text-sm font-semibold text-ink">
+                Overall Review <span className="text-ink/40 font-normal">(optional)</span>
               </label>
               <textarea
                 rows={4}
                 value={formData.review_text}
                 onChange={(e) => setFormData({ ...formData, review_text: e.target.value })}
                 placeholder="Anything else future students should know…"
-                className="w-full border border-slate-200 rounded-xl p-3 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-slate-200 rounded-xl p-3 text-ink placeholder:text-ink/30 text-sm focus:outline-none focus:ring-2 focus:ring-navy"
               />
             </div>
 
@@ -452,18 +467,18 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
         </div>
 
         {/* ── Section 4: Course Experience ── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h2 className="text-lg font-bold text-slate-900 mb-4">Course Experience</h2>
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="font-playfair text-lg font-bold text-ink mb-4">Course Experience</h2>
           <div className="grid sm:grid-cols-2 gap-4">
 
             <div>
-              <label className="block mb-1.5 text-sm font-semibold text-slate-700">
+              <label className="block mb-1.5 text-sm font-semibold text-ink">
                 Teaching Style <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.teacher_style}
                 onChange={(e) => setFormData({ ...formData, teacher_style: e.target.value })}
-                className={`w-full border rounded-xl p-3 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${fieldErr(!formData.teacher_style)}`}
+                className={`${selectClass} ${fieldErr(!formData.teacher_style)}`}
               >
                 <option value="">Select</option>
                 <option>Conceptual</option>
@@ -474,18 +489,18 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
             </div>
 
             <div>
-              <label className="block mb-1.5 text-sm font-semibold text-slate-700">
+              <label className="block mb-1.5 text-sm font-semibold text-ink">
                 Class Environment <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.class_environment}
                 onChange={(e) => setFormData({ ...formData, class_environment: e.target.value })}
-                className={`w-full border rounded-xl p-3 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${fieldErr(!formData.class_environment)}`}
+                className={`${selectClass} ${fieldErr(!formData.class_environment)}`}
               >
                 <option value="">Select</option>
-                <option>Strict & Focused</option>
+                <option>Strict &amp; Focused</option>
                 <option>Balanced</option>
-                <option>Interactive & Fun</option>
+                <option>Interactive &amp; Fun</option>
                 <option>Too Much Timepass</option>
               </select>
             </div>
@@ -494,34 +509,34 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
         </div>
 
         {/* ── Section 5: Optional extras ── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h2 className="text-lg font-bold text-slate-900 mb-1">A Few More Details</h2>
-          <p className="text-slate-400 text-xs mb-4">Optional — helps future students filter.</p>
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="font-playfair text-lg font-bold text-ink mb-1">A Few More Details</h2>
+          <p className="text-ink/40 text-xs mb-4">Optional — helps future students filter.</p>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
 
             <div>
-              <label className="block mb-1.5 text-sm font-semibold text-slate-700">Actual Duration (Hours)</label>
+              <label className="block mb-1.5 text-sm font-semibold text-ink">Actual Duration (Hours)</label>
               <input
                 type="number"
                 min="1"
                 value={formData.actual_duration_hours}
                 onChange={(e) => setFormData({ ...formData, actual_duration_hours: e.target.value })}
                 placeholder="e.g. 240"
-                className="w-full border border-slate-200 rounded-xl p-3 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className={selectClass}
               />
             </div>
 
             <div>
-              <label className="block mb-2 text-sm font-semibold text-slate-700">Best For</label>
+              <label className="block mb-2 text-sm font-semibold text-ink">Best For</label>
               <div className="flex flex-wrap gap-2">
                 {BEST_FOR_OPTIONS.map((option) => (
                   <label
                     key={option}
                     className={`px-3 py-1.5 border rounded-full cursor-pointer transition font-medium text-sm select-none ${
                       formData.best_for.includes(option)
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                        ? "bg-navy text-white border-navy"
+                        : "border-slate-200 text-ink/60 hover:bg-slate-50"
                     }`}
                   >
                     <input
@@ -541,13 +556,13 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
 
         {/* Submit */}
         <div className="pb-12">
-          <p className="text-xs text-slate-400 mb-3">
+          <p className="text-xs text-ink/40 mb-3">
             By submitting, you confirm this is your genuine experience and you are not affiliated with this faculty.
           </p>
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="w-full bg-blue-600 text-white py-4 rounded-2xl font-semibold text-base hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gold text-ink py-4 rounded-2xl font-semibold text-base hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? "Submitting…" : "Submit Review"}
           </button>
