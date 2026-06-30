@@ -90,15 +90,13 @@ export default async function Image({
         {/* Rating row */}
         {rating !== null && (
           <div style={{ display: "flex", alignItems: "center", gap: "14px", marginTop: "6px" }}>
-            <div style={{ display: "flex", gap: "3px" }}>
+            <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
               {[1, 2, 3, 4, 5].map((i) => (
-                <span key={i} style={{
-                  color: rating >= i - 0.25 ? "#C9A84C" : "rgba(255,255,255,0.15)",
-                  fontSize: "32px",
-                  lineHeight: 1,
-                }}>
-                  ★
-                </span>
+                <svg key={i} width="30" height="30" viewBox="0 0 24 24"
+                  fill={rating >= i - 0.25 ? "#C9A84C" : "rgba(255,255,255,0.15)"}
+                >
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
               ))}
             </div>
             <span style={{ color: "#C9A84C", fontSize: "36px", fontWeight: "800", lineHeight: 1 }}>
