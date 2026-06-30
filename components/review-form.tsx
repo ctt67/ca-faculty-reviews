@@ -44,9 +44,10 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
   const [ratingReasons, setRatingReasons] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
-  const [user, setUser] = useState<any>(undefined);
+  const [user, setUser] = useState<{ id: string; email?: string } | undefined>(undefined);
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [expandedReasons, setExpandedReasons] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -232,47 +233,14 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
       <section className="max-w-4xl mx-auto px-6 py-12 space-y-8">
 
         {/* Guideline banner */}
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-          <h3 className="font-semibold text-amber-900">Before You Submit</h3>
-          <ul className="space-y-3 text-sm text-slate-700">
-
-            <li className="flex gap-2">
-              <span>✅</span>
-              <span>Share your genuine experience with the complete course.</span>
-            </li>
-
-            <li className="flex gap-2">
-              <span>✅</span>
-              <span>Mention both positives and negatives whenever possible.</span>
-            </li>
-
-            <li className="flex gap-2">
-              <span>✅</span>
-              <span>Specific examples help future students make better decisions.</span>
-            </li>
-
-            <li className="flex gap-2">
-              <span>🚫</span>
-              <span>Do not include personal information, phone numbers, email addresses or defamatory content.</span>
-            </li>
-
-            <li className="flex gap-2">
-              <span>🚫</span>
-              <span>Promotional, abusive or misleading reviews will not be approved.</span>
-            </li>
-
-          </ul>
-
-          <div className="mt-5 rounded-xl bg-amber-50 border border-amber-200 p-4">
-
-            <p className="text-sm text-amber-800">
-
-              Reviews are manually moderated before being published.
-              This usually takes less than 24 hours.
-
-            </p>
-
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1 text-sm text-amber-900 space-y-1">
+            <p>✅ Share your genuine experience — both positives and negatives.</p>
+            <p>🚫 No personal info, promotional content, or defamatory language.</p>
           </div>
+          <p className="text-xs text-amber-700 sm:text-right sm:max-w-[180px] shrink-0">
+            Reviews are moderated before publishing — usually within 24 hours.
+          </p>
         </div>
 
         {/* Faculty header */}
@@ -431,6 +399,24 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
             </div>
 
             <div>
+              <label className="block mb-2 text-sm font-semibold text-slate-700">
+                Actual Duration (Hours)
+                <span className="text-slate-400 font-normal"> (Optional)</span>
+              </label>
+              <p className="text-sm text-slate-500 mb-3">
+                Approximate hours watched, excluding skipped content and speed adjustments.
+              </p>
+              <input
+                type="number"
+                min="1"
+                value={formData.actual_duration_hours}
+                onChange={(e) => setFormData({ ...formData, actual_duration_hours: e.target.value })}
+                placeholder="e.g. 240"
+                className="w-full border border-slate-200 rounded-xl p-3.5 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
               <label className="block mb-3 text-sm font-semibold text-slate-700">
                 Best For <span className="text-red-500">*</span>
               </label>
@@ -457,32 +443,6 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
                 ))}
               </div>
 
-              <div className="mt-6">
-                <label className="block mb-2 text-sm font-semibold text-slate-700">
-                  Actual Duration (Hours)
-                  <span className="text-slate-400 font-normal">
-                    {" "}
-                    (Optional)
-                  </span>
-                </label>
-                <p className="text-sm text-slate-500 mb-3">
-                  Approximate hours you actually watched, excluding skipped lectures and increased playback speed.
-                </p>
-
-                <input
-                  type="number"
-                  min="1"
-                  value={formData.actual_duration_hours}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      actual_duration_hours: e.target.value,
-                    })
-                  }
-                  placeholder="e.g. 240"
-                  className="w-full border border-slate-200 rounded-xl p-3.5 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
             </div>
 
           </div>
@@ -520,15 +480,26 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
-                <textarea
-                  rows={2}
-                  value={ratingReasons[field.key] ?? ""}
-                  onChange={(e) =>
-                    setRatingReasons({ ...ratingReasons, [field.key]: e.target.value })
-                  }
-                  placeholder="Why? (Optional)"
-                  className="mt-3 w-full border border-slate-200 rounded-xl p-3 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                {expandedReasons[field.key] ? (
+                  <textarea
+                    rows={2}
+                    value={ratingReasons[field.key] ?? ""}
+                    onChange={(e) =>
+                      setRatingReasons({ ...ratingReasons, [field.key]: e.target.value })
+                    }
+                    placeholder="Why? (Optional)"
+                    autoFocus
+                    className="mt-3 w-full border border-slate-200 rounded-xl p-3 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setExpandedReasons((prev) => ({ ...prev, [field.key]: true }))}
+                    className="mt-2 text-xs text-slate-400 hover:text-slate-600 transition"
+                  >
+                    + Add reason (optional)
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -630,26 +601,8 @@ export default function ReviewForm({ faculty }: { faculty: any }) {
         )}
 
         <div className="pb-16">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 mb-6">
-            <h3 className="font-semibold text-slate-900 mb-3">
-              Before submitting your review
-            </h3>
-
-            <ul className="space-y-2 text-sm text-slate-600 list-disc pl-5">
-              <li>You have personally taken this course.</li>
-              <li>Your review reflects your genuine experience.</li>
-              <li>You are not affiliated with this faculty or a competing faculty.</li>
-              <li>Promotional, abusive or misleading reviews may be rejected.</li>
-              <li>Reviews may be edited for grammar or formatting without changing their meaning.</li>
-            </ul>
-
-            <p className="mt-4 text-xs text-slate-500">
-              By submitting this review, you confirm the above statements are true.
-            </p>
-          </div>
-
           <p className="text-xs text-slate-500 mb-4">
-            Your email address is never shown publicly. Only your review is visible after moderation.
+            By submitting, you confirm this is your genuine experience, you are not affiliated with this faculty, and you agree that reviews may be edited for grammar. Your email is never shown publicly.
           </p>
           <button
             onClick={handleSubmit}

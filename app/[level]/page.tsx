@@ -1,10 +1,18 @@
 import { supabase } from "@/lib/supabase";
+import type { Metadata } from "next";
+import { generateLevelMetadata } from "@/lib/seo";
+import { LEVEL_LABELS } from "@/lib/config";
 
-const levelLabels: Record<string, string> = {
-  final: "CA Final",
-  inter: "CA Intermediate",
-  foundation: "CA Foundation",
-};
+export const revalidate = 3600;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ level: string }>;
+}): Promise<Metadata> {
+  const { level } = await params;
+  return generateLevelMetadata(level);
+}
 
 export default async function LevelPage({
   params,
@@ -31,7 +39,7 @@ export default async function LevelPage({
     ...new Set(faculties?.map((f) => f.subject) ?? []),
   ];
 
-  const levelLabel = levelLabels[level.toLowerCase()] ?? `CA ${level.toUpperCase()}`;
+  const levelLabel = LEVEL_LABELS[level.toLowerCase()] ?? `CA ${level.toUpperCase()}`;
 
   return (
     <main className="min-h-screen bg-slate-100">

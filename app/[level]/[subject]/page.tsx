@@ -1,5 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { getOverallRating } from "@/lib/ratings";
+
+export const revalidate = 300;
 import { FACULTY_SUMMARY_FIELDS } from "@/lib/faculty-config";
 import type { Metadata } from "next";
 import { generateSubjectMetadata } from "@/lib/seo";

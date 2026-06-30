@@ -3,22 +3,24 @@
 import { useState } from "react";
 import { getRatingLabel } from "@/lib/format";
 import { ratingFields } from "@/lib/rating-config";
+import type { Review } from "@/lib/types";
 
 interface Props {
-    review: any;
+  review: Review;
 }
 
 export default function ReviewRatingDetails({ review }: Props) {
     if (!review.rating_reasons) return null;
 
+    const row = review as unknown as Record<string, unknown>;
     const entries = ratingFields
         .map((field) => ({
             key: field.key,
             reason: review.rating_reasons?.[field.key],
-            rating: review[field.key],
+            rating: row[field.key],
         }))
         .filter(
-            (item) =>
+            (item): item is { key: string; reason: string; rating: number } =>
                 typeof item.reason === "string" &&
                 item.reason.trim().length > 0 &&
                 typeof item.rating === "number"

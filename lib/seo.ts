@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
+import { SITE_NAME, BASE_URL, LEVEL_LABELS } from "./config";
 
-const SITE_NAME = "CA Reviews";
-const BASE_URL = "https://careviews.in";
-const CURRENT_YEAR = new Date().getFullYear();
+const YEAR = new Date().getFullYear();
+
+function toTitleCase(str: string): string {
+  return str.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function levelLabel(level: string): string {
+  return LEVEL_LABELS[level.toLowerCase()] ?? `CA ${toTitleCase(level)}`;
+}
 
 interface FacultySEO {
   slug: string;
@@ -11,136 +18,79 @@ interface FacultySEO {
   level: string;
 }
 
-interface SubjectSEO {
-  subject: string;
-  level: string;
-}
-
-export function generateFacultyMetadata(
-  faculty: FacultySEO
-): Metadata {
-  const title = `${faculty.faculty_name} ${faculty.subject} Reviews (${CURRENT_YEAR}) | ${faculty.level.toUpperCase()} | ${SITE_NAME}`;
-
-  const description = `Read verified student reviews, ratings, teaching style, fees, batches, language and student experiences for ${faculty.faculty_name}. Compare before choosing your CA faculty.`;
-
+export function generateFacultyMetadata(faculty: FacultySEO): Metadata {
+  const title = `${faculty.faculty_name} — ${faculty.subject} Reviews (${YEAR}) | ${levelLabel(faculty.level)} | ${SITE_NAME}`;
+  const description = `Verified student reviews and ratings for ${faculty.faculty_name} (${faculty.subject}, ${levelLabel(faculty.level)}). See teaching style, ratings across 12 metrics, and real student experiences before you decide.`;
   const url = `${BASE_URL}/faculty/${faculty.slug}`;
 
   return {
     title,
     description,
-
-    alternates: {
-      canonical: url,
-    },
-
-    openGraph: {
-      title,
-      description,
-      url,
-      siteName: SITE_NAME,
-      locale: "en_IN",
-      type: "website",
-    },
-
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    },
-
-    robots: {
-      index: true,
-      follow: true,
-    },
+    alternates: { canonical: url },
+    openGraph: { title, description, url, siteName: SITE_NAME, locale: "en_IN", type: "website" },
+    twitter: { card: "summary_large_image", title, description },
+    robots: { index: true, follow: true },
   };
 }
 
-export function generateSubjectMetadata(
-  page: SubjectSEO
-): Metadata {
-  const title = `Best ${page.level.toUpperCase()} ${page.subject.toUpperCase()} Faculties (${CURRENT_YEAR}) | Student Reviews | ${SITE_NAME}`;
+interface SubjectSEO {
+  subject: string;
+  level: string;
+}
 
-  const description = `Compare the best ${page.level.toUpperCase()} ${page.subject.toUpperCase()} faculties using verified student reviews, ratings, teaching styles and experiences.`;
-
+export function generateSubjectMetadata(page: SubjectSEO): Metadata {
+  const level = levelLabel(page.level);
+  const subject = toTitleCase(page.subject);
+  const title = `Best ${level} ${subject} Faculty (${YEAR}) | Student Reviews | ${SITE_NAME}`;
+  const description = `Compare ${level} ${subject} faculties with verified student reviews, ratings across 12 metrics, teaching styles and real student experiences.`;
   const url = `${BASE_URL}/${page.level.toLowerCase()}/${page.subject.toLowerCase()}`;
 
   return {
     title,
     description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, siteName: SITE_NAME, locale: "en_IN", type: "website" },
+    twitter: { card: "summary_large_image", title, description },
+    robots: { index: true, follow: true },
+  };
+}
 
-    alternates: {
-      canonical: url,
-    },
+export function generateLevelMetadata(level: string): Metadata {
+  const label = levelLabel(level);
+  const title = `${label} Faculty Reviews (${YEAR}) | ${SITE_NAME}`;
+  const description = `Browse all ${label} subjects and compare faculties using verified student reviews, ratings and real student experiences.`;
+  const url = `${BASE_URL}/${level.toLowerCase()}`;
 
-    openGraph: {
-      title,
-      description,
-      url,
-      siteName: SITE_NAME,
-      locale: "en_IN",
-      type: "website",
-    },
-
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    },
-
-    robots: {
-      index: true,
-      follow: true,
-    },
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, siteName: SITE_NAME, locale: "en_IN", type: "website" },
+    twitter: { card: "summary_large_image", title, description },
+    robots: { index: true, follow: true },
   };
 }
 
 interface CompareSEO {
   faculty1: string;
   faculty2: string;
-
   faculty1Slug: string;
   faculty2Slug: string;
-
   subject: string;
   level: string;
 }
 
-export function generateCompareMetadata(
-  page: CompareSEO
-): Metadata {
-  const title = `${page.faculty1} vs ${page.faculty2} (${page.subject.toUpperCase()}) Reviews (${CURRENT_YEAR}) | ${SITE_NAME}`;
-
-  const description = `Compare ${page.faculty1} and ${page.faculty2} based on verified student reviews, ratings, teaching style and overall student experience.`;
-
-  const url =
-    `${BASE_URL}/compare/${page.faculty1Slug}/${page.faculty2Slug}`;
+export function generateCompareMetadata(page: CompareSEO): Metadata {
+  const title = `${page.faculty1} vs ${page.faculty2} — ${toTitleCase(page.subject)} Reviews (${YEAR}) | ${SITE_NAME}`;
+  const description = `Compare ${page.faculty1} and ${page.faculty2} side-by-side using verified student reviews, ratings across 12 metrics and real student experiences.`;
+  const url = `${BASE_URL}/compare/${page.faculty1Slug}/${page.faculty2Slug}`;
 
   return {
     title,
     description,
-
-    alternates: {
-      canonical: url,
-    },
-
-    openGraph: {
-      title,
-      description,
-      url,
-      siteName: SITE_NAME,
-      locale: "en_IN",
-      type: "website",
-    },
-
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    },
-
-    robots: {
-      index: true,
-      follow: true,
-    },
+    alternates: { canonical: url },
+    openGraph: { title, description, url, siteName: SITE_NAME, locale: "en_IN", type: "website" },
+    twitter: { card: "summary_large_image", title, description },
+    robots: { index: true, follow: true },
   };
 }

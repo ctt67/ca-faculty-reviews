@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { Analytics } from "@vercel/analytics/next";
+import { CONTACT_EMAIL } from "@/lib/config";
 
 
 const geistSans = Geist({
@@ -16,10 +17,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CA Reviews",
+  title: "CA Reviews | Find & Compare the Best CA Faculty",
   description:
-    "Find and compare the best CA faculties across Final, Intermediate and Foundation. Real reviews from real students.",
-
+    "Real student reviews and ratings for CA Final, Intermediate and Foundation faculty. Compare teaching styles, ratings across 12 metrics and student experiences before choosing.",
   verification: {
     google: "VWyYA_ltwZUPzQ32XQGCkl-j0spZmk0YI5mQV2BHwlM",
   },
@@ -54,7 +54,7 @@ export default function RootLayout({
               CAFacultyReviews is an independent student platform and is not affiliated with ICAI or any coaching institute.
             </p>
             <p className="text-slate-500 text-xs mt-2">
-              Contact: cagargrohan953@gmail.com
+              Contact: {CONTACT_EMAIL}
             </p>
             <nav className="flex gap-2">
               <a href="/final" className="text-slate-400 hover:text-white text-sm transition">CA Final</a>

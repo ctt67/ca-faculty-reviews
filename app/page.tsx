@@ -1,4 +1,4 @@
-
+import Link from "next/link";
 
 export default function HomePage() {
   return (
@@ -24,25 +24,24 @@ export default function HomePage() {
             </p>
 
             <div className="flex flex-wrap gap-4 mt-10">
-              <a
+              <Link
                 href="/compare"
                 className="bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition"
               >
                 Compare Faculties
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/final"
                 className="border border-slate-700 text-white px-8 py-4 rounded-xl font-semibold hover:bg-slate-800 transition"
               >
                 Browse Reviews
-              </a>
-
-              <a
+              </Link>
+              <Link
                 href="/review"
-                className="border border-slate-300 bg-white text-slate-900 px-6 py-3 rounded-xl font-semibold hover:bg-slate-50 transition"
+                className="border border-slate-300 bg-white text-slate-900 px-8 py-4 rounded-xl font-semibold hover:bg-slate-50 transition"
               >
-                Write Review
-              </a>
+                Write a Review
+              </Link>
             </div>
 
           </div>
@@ -61,7 +60,7 @@ export default function HomePage() {
             <div className="text-slate-400 text-sm mt-1">Subjects</div>
           </div>
           <div className="text-center px-4">
-            <div className="text-2xl font-extrabold text-white">6</div>
+            <div className="text-2xl font-extrabold text-white">12</div>
             <div className="text-slate-400 text-sm mt-1">Rating Metrics</div>
           </div>
         </div>
@@ -79,7 +78,7 @@ export default function HomePage() {
 
         <div className="grid md:grid-cols-3 gap-6">
 
-          <a
+          <Link
             href="/final"
             className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-300 transition-all group"
           >
@@ -93,11 +92,11 @@ export default function HomePage() {
             <div className="mt-8 text-blue-600 font-semibold text-sm group-hover:underline">
               Browse Faculties →
             </div>
-          </a>
+          </Link>
 
 
 
-          <a
+          <Link
             href="/inter"
             className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-300 transition-all group"
           >
@@ -111,9 +110,9 @@ export default function HomePage() {
             <div className="mt-8 text-blue-600 font-semibold text-sm group-hover:underline">
               Browse Faculties →
             </div>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/foundation"
             className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-300 transition-all group"
           >
@@ -127,7 +126,7 @@ export default function HomePage() {
             <div className="mt-8 text-blue-600 font-semibold text-sm group-hover:underline">
               Browse Faculties →
             </div>
-          </a>
+          </Link>
 
 
 
@@ -165,12 +164,12 @@ export default function HomePage() {
           <p className="mt-4 text-blue-100 text-lg">
             Compare ratings, reviews, pricing and student experiences side-by-side.
           </p>
-          <a
+          <Link
             href="/compare"
             className="inline-block mt-8 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-slate-100 transition"
           >
             Start Comparing
-          </a>
+          </Link>
         </div>
       </section>
 

@@ -1,58 +1,30 @@
 import { ratingFields } from "./rating-config";
 
-
-export function formatValue(value: any): string {
-    if (Array.isArray(value)) {
-        return value.join(", ");
-    }
-
-    if (value === null || value === undefined || value === "") {
-        return "—";
-    }
-
-    if (typeof value === "boolean") {
-        return value ? "Yes" : "No";
-    }
-
-    if (typeof value === "number" && value > 1000) {
-        return `₹${value.toLocaleString("en-IN")}`;
-    }
-
-    return String(value);
+export function formatValue(value: unknown): string {
+  if (Array.isArray(value)) return value.join(", ");
+  if (value === null || value === undefined || value === "") return "—";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "number" && value > 1000) return `₹${value.toLocaleString("en-IN")}`;
+  return String(value);
 }
 
-export const PUBLIC_FACULTY_FIELDS = new Set([
-    "faculty_name",
-    "subject",
-    "level",
-    "language",
-    "mode",
-    "website",
-    "youtube",
-    "active",
-]);
+// Only fields worth showing in the Faculty Details sidebar card.
+// Faculty name / subject / level are already in the page hero.
+// Website has its own button. Active/youtube are internal.
+export const PUBLIC_FACULTY_FIELDS = new Set(["language", "mode"]);
 
 export function formatFieldName(field: string): string {
-    return field
-        .replaceAll("_", " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase());
+  return field.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-
 export function getRatingLabel(key: string): string {
-    return (
-        ratingFields.find((field) => field.key === key)?.label ??
-        formatFieldName(key)
-    );
+  return ratingFields.find((f) => f.key === key)?.label ?? formatFieldName(key);
 }
 
 export function getRatingDescription(key: string): string {
-    return (
-        ratingFields.find((field) => field.key === key)?.description ??
-        ""
-    );
+  return ratingFields.find((f) => f.key === key)?.description ?? "";
 }
 
 export function getRating(key: string) {
-    return ratingFields.find((field) => field.key === key);
+  return ratingFields.find((f) => f.key === key);
 }

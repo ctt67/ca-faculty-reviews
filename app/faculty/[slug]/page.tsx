@@ -1,5 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { getAverageMetric, getOverallRating, getRatingFields } from "@/lib/ratings";
+
+export const revalidate = 300;
 import {
   formatFieldName,
   formatValue,
@@ -103,7 +105,7 @@ export default async function FacultyPage({
   ]);
 
 const reviews = pageReviews ?? [];
-const allReviews = allRatingData ?? [];
+const allReviews = (allRatingData ?? []) as unknown as Record<string, unknown>[];
 const totalReviews = count ?? 0;
 const totalPages = Math.ceil(totalReviews / REVIEWS_PER_PAGE);
 const overallRating = getOverallRating(allReviews);
@@ -115,7 +117,32 @@ const facultyFields = Object.keys(faculty).filter(
 
 const ratingFields = getRatingFields(allReviews);
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: faculty.faculty_name,
+  jobTitle: `${faculty.subject} Educator`,
+  knowsAbout: faculty.subject,
+  ...(faculty.website ? { url: faculty.website } : {}),
+  ...(totalReviews > 0
+    ? {
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: overallRating.toFixed(1),
+          reviewCount: totalReviews,
+          bestRating: "5",
+          worstRating: "1",
+        },
+      }
+    : {}),
+};
+
 return (
+  <>
+  <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+  />
   <main className="min-h-screen bg-slate-100">
 
     {/* Hero */}
@@ -397,5 +424,6 @@ return (
     </section>
 
   </main>
+  </>
 );
 }
