@@ -6,6 +6,8 @@ import { ratingFields } from "@/lib/rating-config";
 import { formatSubjectName } from "@/lib/format";
 import { CheckCircle2, Share2, Copy, Check } from "lucide-react";
 import { BASE_URL } from "@/lib/config";
+import { track } from "@/lib/track";
+import { REVIEW_VERSION, detectBrowser, hashUserAgent } from "@/lib/client-meta";
 
 const RATING_LABELS: Record<number, string> = {
   1: "Very Poor",
@@ -62,7 +64,10 @@ export default function ReviewForm({
 
   const typingStartedAtRef = useRef<number | null>(null);
   const markStarted = () => {
-    if (typingStartedAtRef.current === null) typingStartedAtRef.current = Date.now();
+    if (typingStartedAtRef.current === null) {
+      typingStartedAtRef.current = Date.now();
+      track("review_started", { faculty_slug: faculty.slug, subject: faculty.subject, level: faculty.level });
+    }
   };
 
   useEffect(() => {
@@ -199,6 +204,11 @@ export default function ReviewForm({
       const utmSource = new URLSearchParams(window.location.search).get("utm_source");
       const deviceType = /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop";
 
+      const [meta, userAgentHash] = await Promise.all([
+        fetch("/api/review-meta").then((r) => r.json()).catch(() => ({ ip_hash: null, country: null })),
+        hashUserAgent(navigator.userAgent),
+      ]);
+
       const { error } = await supabase.from("reviews").insert([{
         faculty_slug: faculty.slug,
         user_id: currentUser.id,
@@ -223,6 +233,11 @@ export default function ReviewForm({
         referrer: document.referrer || null,
         utm_source: utmSource,
         device_type: deviceType,
+        ip_hash: meta.ip_hash ?? null,
+        country: meta.country ?? null,
+        user_agent_hash: userAgentHash,
+        browser: detectBrowser(navigator.userAgent),
+        review_version: REVIEW_VERSION,
       }]);
 
       if (error) {
@@ -235,6 +250,12 @@ export default function ReviewForm({
       }
 
       setSubmitted(true);
+      track("review_submitted", {
+        faculty_slug: faculty.slug,
+        subject: faculty.subject,
+        level: faculty.level,
+        time_taken_seconds: timeTakenSeconds,
+      });
 
     } catch (err) {
       console.error(err);
@@ -244,13 +265,18 @@ export default function ReviewForm({
     }
   };
 
-  const shareUrl = `${BASE_URL}/faculty/${faculty.slug}`;
+  const shareUrl = `${BASE_URL}/faculty/${faculty.slug}?utm_source=whatsapp_share`;
   const shareText = `I just reviewed ${faculty.faculty_name} on CareViews. If you've studied under them too, your experience could help a lot of CA students — takes 5 minutes. Write yours: ${shareUrl}`;
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+
+  const handleShareClick = () => {
+    track("share_clicked", { share_source: "whatsapp", faculty_slug: faculty.slug });
+  };
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
+    track("share_clicked", { share_source: "copy_link", faculty_slug: faculty.slug });
     setTimeout(() => setCopied(false), 2500);
   };
 
@@ -325,6 +351,7 @@ export default function ReviewForm({
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={handleShareClick}
                 className="flex-1 flex items-center justify-center gap-2 bg-[#25D366] text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition"
               >
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">

@@ -43,4 +43,28 @@ export interface Review {
   time_efficiency: number | null;
   value_for_money: number | null;
   expectation_match: number | null;
+  typing_started_at: string | null;
+  submitted_at: string | null;
+  time_taken_seconds: number | null;
+  referrer: string | null;
+  utm_source: string | null;
+  device_type: string | null;
+  ip_hash: string | null;
+  user_agent_hash: string | null;
+  browser: string | null;
+  country: string | null;
+  review_version: string | null;
+}
+
+export interface AnalyticsEvent {
+  id: number;
+  event_name: string;
+  properties: Record<string, unknown> | null;
+  session_id: string | null;
+  user_id: string | null;
+  path: string | null;
+  referrer: string | null;
+  utm_source: string | null;
+  device_type: string | null;
+  created_at: string;
 }

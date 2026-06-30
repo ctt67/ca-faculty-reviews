@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { PenLine, ShieldCheck, Ban, Layers, FileText, BarChart2, CircleDollarSign, Check } from "lucide-react";
 import { BASE_URL, SITE_NAME } from "@/lib/config";
 import { supabase } from "@/lib/supabase";
+import PageViewTracker from "@/components/PageViewTracker";
+import TrackedLink from "@/components/TrackedLink";
 
 export const revalidate = 300;
 
@@ -63,6 +65,7 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen">
+      <PageViewTracker event="homepage_viewed" />
 
       {/* Hero */}
       <section className="bg-navy text-white">
@@ -91,12 +94,14 @@ export default async function HomePage() {
             >
               Browse Faculty
             </Link>
-            <Link
+            <TrackedLink
               href="/review"
+              event="write_review_clicked"
+              properties={{ source: "homepage" }}
               className="border border-white/25 text-white font-medium px-6 py-3 rounded-lg hover:bg-white/5 transition text-sm"
             >
               Write a Review
-            </Link>
+            </TrackedLink>
           </div>
 
           {/* Social proof */}

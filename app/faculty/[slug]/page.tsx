@@ -10,6 +10,8 @@ import {
   formatSubjectName,
 } from "@/lib/format";
 import ReviewRatingDetails from "@/components/ReviewRatingDetails";
+import PageViewTracker from "@/components/PageViewTracker";
+import TrackedLink from "@/components/TrackedLink";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { generateFacultyMetadata } from "@/lib/seo";
@@ -132,6 +134,7 @@ export default async function FacultyPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <PageViewTracker event="faculty_page_viewed" properties={{ faculty_slug: faculty.slug, subject: faculty.subject, level: faculty.level }} />
       <main className="min-h-screen">
 
         {/* Hero */}
@@ -214,12 +217,14 @@ export default async function FacultyPage({
               )}
 
               {/* CTA buttons */}
-              <a
+              <TrackedLink
                 href={`/review/${faculty.slug}`}
+                event="write_review_clicked"
+                properties={{ faculty_slug: faculty.slug, source: "faculty_page" }}
                 className="bg-gold text-ink w-full text-center py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition block"
               >
                 Write a Review
-              </a>
+              </TrackedLink>
               {faculty.website && (
                 <a
                   href={faculty.website}
