@@ -4,9 +4,11 @@ import {
   Heart, Shield, Eye, Users,
   FileText, Filter, Scale, BarChart2,
   AlertTriangle, CheckCircle2, Lock,
-  Mail, XCircle, CheckCircle, PenLine,
+  Mail, XCircle, CheckCircle, PenLine, MessageCircle,
 } from "lucide-react";
 import { CONTACT_EMAIL, SITE_NAME, BASE_URL } from "@/lib/config";
+import CommunityLinks from "@/components/CommunityLinks";
+import NewsletterSignup from "@/components/NewsletterSignup";
 
 export const metadata: Metadata = {
   title: `About | ${SITE_NAME}`,
@@ -392,6 +394,44 @@ export default function AboutPage() {
               Only the minimum necessary information is collected to enable the review submission
               process. Personal account details are not publicly displayed alongside your review.
             </p>
+          </div>
+        </section>
+
+        {/* ── Community ── */}
+        <section>
+          <SectionTag icon={MessageCircle} label="Community" />
+          <SectionHeading>Help Shape Careviews</SectionHeading>
+
+          <div className="bg-navy rounded-xl overflow-hidden">
+            <div className="p-7 sm:p-9">
+              <p className="text-gold text-xs font-semibold uppercase tracking-widest mb-4">
+                🚀 Join the Careviews Community
+              </p>
+              <div className="grid sm:grid-cols-2 gap-8">
+                <div>
+                  <ul className="space-y-3 mb-6">
+                    {[
+                      "Vote on upcoming features",
+                      "Share ideas and feedback",
+                      "Get website updates first",
+                      "Access CA resources before they're published",
+                    ].map((item) => (
+                      <li key={item} className="flex items-start gap-3 text-white/75 text-[14px] leading-relaxed">
+                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-gold shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-white/45 text-sm leading-relaxed mb-5">
+                    Your feedback directly influences what we build next. Help us build the platform the CA community deserves.
+                  </p>
+                  <CommunityLinks scheme="dark" />
+                </div>
+                <div className="flex flex-col justify-center">
+                  <NewsletterSignup source="about" scheme="dark" />
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

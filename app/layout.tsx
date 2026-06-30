@@ -3,6 +3,9 @@ import { Inter, Playfair_Display, Jost } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Logo from "@/components/Logo";
+import CommunityLinks from "@/components/CommunityLinks";
+import NewsletterSignup from "@/components/NewsletterSignup";
+import CommunityFloat from "@/components/CommunityFloat";
 import { Analytics } from "@vercel/analytics/next";
 import { CONTACT_EMAIL } from "@/lib/config";
 
@@ -51,28 +54,54 @@ export default function RootLayout({
         <div className="flex-1">{children}</div>
 
         <footer className="bg-navy mt-auto">
-          <div className="max-w-6xl mx-auto px-6 py-10">
-            <div className="flex flex-col sm:flex-row justify-between gap-8">
+          <div className="max-w-6xl mx-auto px-6 py-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+
               {/* Brand */}
-              <div className="shrink-0">
+              <div>
                 <Logo scheme="white" height={28} />
-                <p className="text-white/45 text-xs mt-2">For CA Students by CA Students</p>
-                <p className="text-white/35 text-xs mt-1">Contact: {CONTACT_EMAIL}</p>
+                <p className="text-white/45 text-xs mt-3 leading-relaxed">
+                  For CA Students by CA Students
+                </p>
+                <p className="text-white/30 text-xs mt-1">
+                  <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-white/60 transition">{CONTACT_EMAIL}</a>
+                </p>
               </div>
+
               {/* Nav */}
-              <nav className="flex flex-wrap gap-x-6 gap-y-2 items-start content-start">
-                <a href="/final" className="text-white/55 hover:text-white text-sm transition">CA Final</a>
-                <a href="/inter" className="text-white/55 hover:text-white text-sm transition">CA Inter</a>
-                <a href="/foundation" className="text-white/55 hover:text-white text-sm transition">Foundation</a>
-                <a href="/compare" className="text-white/55 hover:text-white text-sm transition">Compare</a>
-                <a href="/about" className="text-white/55 hover:text-white text-sm transition">About</a>
-              </nav>
+              <div>
+                <p className="text-white/35 text-[10px] font-semibold uppercase tracking-widest mb-4">Platform</p>
+                <nav className="flex flex-col gap-2.5">
+                  <a href="/final"      className="text-white/55 hover:text-white text-sm transition">CA Final</a>
+                  <a href="/inter"      className="text-white/55 hover:text-white text-sm transition">CA Inter</a>
+                  <a href="/foundation" className="text-white/55 hover:text-white text-sm transition">Foundation</a>
+                  <a href="/compare"    className="text-white/55 hover:text-white text-sm transition">Compare</a>
+                  <a href="/about"      className="text-white/55 hover:text-white text-sm transition">About</a>
+                </nav>
+              </div>
+
+              {/* Community */}
+              <div>
+                <p className="text-white/35 text-[10px] font-semibold uppercase tracking-widest mb-1">Community</p>
+                <p className="text-white font-semibold text-sm mb-1">Join the Careviews Community</p>
+                <p className="text-white/45 text-xs mb-4 leading-relaxed">
+                  Get product updates, CA resources, and help shape Careviews through community feedback.
+                </p>
+                <CommunityLinks scheme="dark" size="sm" />
+                <div className="mt-5">
+                  <NewsletterSignup source="footer" scheme="dark" />
+                </div>
+              </div>
+
             </div>
-            <p className="text-xs text-white/30 mt-8 border-t border-white/10 pt-6">
+
+            <p className="text-xs text-white/25 mt-10 border-t border-white/10 pt-6">
               Careviews is an independent student platform and is not affiliated with ICAI or any coaching institute.
             </p>
           </div>
         </footer>
+
+        <CommunityFloat />
 
         <Analytics />
       </body>

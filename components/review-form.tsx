@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { ratingFields } from "@/lib/rating-config";
 import { formatSubjectName } from "@/lib/format";
 import { CheckCircle2, Share2, Copy, Check } from "lucide-react";
-import { BASE_URL } from "@/lib/config";
+import { BASE_URL, INSTAGRAM_URL, WHATSAPP_URL, TELEGRAM_URL } from "@/lib/config";
 import { track } from "@/lib/track";
 import { REVIEW_VERSION, detectBrowser, hashUserAgent } from "@/lib/client-meta";
 
@@ -309,6 +309,33 @@ export default function ReviewForm({
             >
               Back to {faculty.faculty_name} →
             </a>
+          </div>
+
+          {/* Community CTA */}
+          <div className="bg-navy rounded-xl p-6">
+            <p className="text-gold text-xs font-semibold uppercase tracking-widest mb-2">You&apos;re now a contributor</p>
+            <h3 className="text-white font-semibold text-base mb-1">Want to help shape Careviews?</h3>
+            <p className="text-white/55 text-sm leading-relaxed mb-4">
+              Join our community where we discuss new features, collect feedback, and share updates.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { name: "Instagram", url: INSTAGRAM_URL, color: "#E1306C" },
+                { name: "WhatsApp",  url: WHATSAPP_URL,  color: "#25D366" },
+                { name: "Telegram",  url: TELEGRAM_URL,  color: "#2CA5E0" },
+              ].map(({ name, url, color }) => (
+                <a
+                  key={name}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 rounded-lg text-white text-sm font-semibold transition-opacity hover:opacity-85"
+                  style={{ backgroundColor: color }}
+                >
+                  {name}
+                </a>
+              ))}
+            </div>
           </div>
 
           {/* Cross-review nudge */}

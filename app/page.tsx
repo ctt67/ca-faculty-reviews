@@ -5,6 +5,8 @@ import { BASE_URL, SITE_NAME } from "@/lib/config";
 import { supabase } from "@/lib/supabase";
 import PageViewTracker from "@/components/PageViewTracker";
 import TrackedLink from "@/components/TrackedLink";
+import CommunityLinks from "@/components/CommunityLinks";
+import NewsletterSignup from "@/components/NewsletterSignup";
 
 export const revalidate = 300;
 
@@ -210,6 +212,27 @@ export default async function HomePage() {
               <p className="text-ink/60 text-sm mt-2">{desc}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Community */}
+      <section className="max-w-6xl mx-auto px-6 py-10">
+        <div className="bg-navy rounded-2xl px-8 sm:px-12 py-10 flex flex-col md:flex-row items-start md:items-center gap-8">
+          <div className="flex-1 min-w-0">
+            <p className="text-gold text-xs font-semibold uppercase tracking-widest mb-2">Open Platform</p>
+            <h2 className="font-playfair text-2xl sm:text-3xl font-bold text-white mb-3">
+              Help Build Careviews
+            </h2>
+            <p className="text-white/60 text-sm leading-relaxed max-w-lg">
+              Careviews is built with the CA community. Join our WhatsApp, Telegram, or Instagram to vote on upcoming features, share ideas, and see what&apos;s being built next.
+            </p>
+            <div className="mt-5">
+              <CommunityLinks scheme="dark" />
+            </div>
+          </div>
+          <div className="w-full md:w-72 shrink-0">
+            <NewsletterSignup source="homepage" scheme="dark" />
+          </div>
         </div>
       </section>
 
