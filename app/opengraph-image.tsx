@@ -18,28 +18,41 @@ export default function Image() {
       }}
     >
       {/* Wordmark */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0px" }}>
+      <div style={{ display: "flex", alignItems: "center" }}>
         <span style={{ color: "#C9A84C", fontSize: "32px", fontWeight: "800", letterSpacing: "-0.5px" }}>Care</span>
         <span style={{ color: "white", fontSize: "32px", fontWeight: "800", letterSpacing: "-0.5px" }}>Views</span>
       </div>
 
-      {/* Headline */}
+      {/* Headline block */}
       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-        <div style={{ color: "rgba(201,168,76,0.7)", fontSize: "20px", fontWeight: "600", letterSpacing: "4px", textTransform: "uppercase" }}>
-          India&apos;s Independent CA Review Platform
+        <div style={{ display: "flex" }}>
+          <span style={{ color: "rgba(201,168,76,0.7)", fontSize: "20px", fontWeight: "600", letterSpacing: "4px", textTransform: "uppercase" }}>
+            India's Independent CA Review Platform
+          </span>
         </div>
-        <div style={{ color: "white", fontSize: "80px", fontWeight: "800", lineHeight: 1.05, letterSpacing: "-2px" }}>
-          Honest CA Faculty<br />Reviews
+        <div style={{ display: "flex", flexDirection: "column", gap: "0px" }}>
+          <span style={{ color: "white", fontSize: "80px", fontWeight: "800", lineHeight: 1.05, letterSpacing: "-2px" }}>
+            Honest CA Faculty
+          </span>
+          <span style={{ color: "white", fontSize: "80px", fontWeight: "800", lineHeight: 1.05, letterSpacing: "-2px" }}>
+            Reviews
+          </span>
         </div>
-        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "24px", fontWeight: "400", lineHeight: 1.5, marginTop: "4px" }}>
-          Compare faculties across teaching quality, exam focus,<br />doubt resolution and more. Independent, no paid rankings.
+        <div style={{ display: "flex", flexDirection: "column", gap: "2px", marginTop: "4px" }}>
+          <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "24px", fontWeight: "400", lineHeight: 1.5 }}>
+            Compare faculties across teaching quality, exam focus,
+          </span>
+          <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "24px", fontWeight: "400", lineHeight: 1.5 }}>
+            doubt resolution and more. Independent, no paid rankings.
+          </span>
         </div>
       </div>
 
-      {/* Bottom */}
+      {/* Bottom bar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "18px" }}>careviews.in</span>
         <div style={{
+          display: "flex",
           background: "rgba(201,168,76,0.15)",
           border: "1px solid rgba(201,168,76,0.3)",
           borderRadius: "24px",
@@ -48,7 +61,7 @@ export default function Image() {
           fontSize: "16px",
           fontWeight: "600",
         }}>
-          CA Final · CA Inter · Foundation
+          <span>CA Final · CA Inter · Foundation</span>
         </div>
       </div>
     </div>,

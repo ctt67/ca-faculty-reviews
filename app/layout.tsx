@@ -18,6 +18,7 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://careviews.in"),
   title: "CareViews | Honest CA Faculty Reviews",
   description:
     "Genuine reviews from CA students. Compare faculties across detailed student ratings for CA Final, Intermediate and Foundation — independent, no paid rankings.",

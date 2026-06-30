@@ -25,9 +25,8 @@ export default async function Image({
   const name = faculty?.faculty_name ?? "Faculty";
   const subject = faculty ? formatSubjectName(faculty.subject ?? "") : "";
   const level = faculty?.level ?? "";
-
-  // Truncate long names so they don't overflow
-  const displayName = name.length > 28 ? name.slice(0, 26) + "…" : name;
+  const displayName = name.length > 26 ? name.slice(0, 24) + "…" : name;
+  const nameFontSize = displayName.length > 18 ? "64px" : "80px";
 
   return new ImageResponse(
     <div
@@ -49,60 +48,63 @@ export default async function Image({
           <span style={{ color: "white", fontSize: "28px", fontWeight: "800" }}>Views</span>
         </div>
         <div style={{
+          display: "flex",
           background: "rgba(255,255,255,0.08)",
           border: "1px solid rgba(255,255,255,0.12)",
           borderRadius: "24px",
           padding: "6px 18px",
-          color: "rgba(255,255,255,0.5)",
-          fontSize: "15px",
-          fontWeight: "600",
         }}>
-          Faculty Review
+          <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "15px", fontWeight: "600" }}>
+            Faculty Review
+          </span>
         </div>
       </div>
 
-      {/* Middle: content */}
+      {/* Middle: faculty info */}
       <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-        {/* Subject + Level */}
-        <div style={{
-          color: "rgba(201,168,76,0.75)",
-          fontSize: "18px",
-          fontWeight: "700",
-          letterSpacing: "3px",
-          textTransform: "uppercase",
-        }}>
-          {level}{subject ? ` · ${subject}` : ""}
+        {/* Level · Subject */}
+        <div style={{ display: "flex" }}>
+          <span style={{
+            color: "rgba(201,168,76,0.75)",
+            fontSize: "18px",
+            fontWeight: "700",
+            letterSpacing: "3px",
+            textTransform: "uppercase",
+          }}>
+            {level}{subject ? ` · ${subject}` : ""}
+          </span>
         </div>
 
-        {/* Faculty name */}
-        <div style={{
-          color: "white",
-          fontSize: displayName.length > 18 ? "64px" : "80px",
-          fontWeight: "800",
-          lineHeight: 1.05,
-          letterSpacing: "-1.5px",
-        }}>
-          {displayName}
+        {/* Name */}
+        <div style={{ display: "flex" }}>
+          <span style={{
+            color: "white",
+            fontSize: nameFontSize,
+            fontWeight: "800",
+            lineHeight: 1.05,
+            letterSpacing: "-1.5px",
+          }}>
+            {displayName}
+          </span>
         </div>
 
         {/* Rating row */}
         {rating !== null && (
           <div style={{ display: "flex", alignItems: "center", gap: "14px", marginTop: "6px" }}>
-            {/* Stars */}
             <div style={{ display: "flex", gap: "3px" }}>
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} style={{
+                <span key={i} style={{
                   color: rating >= i - 0.25 ? "#C9A84C" : "rgba(255,255,255,0.15)",
                   fontSize: "32px",
                   lineHeight: 1,
-                }}>★</div>
+                }}>
+                  ★
+                </span>
               ))}
             </div>
-            {/* Numeric rating */}
             <span style={{ color: "#C9A84C", fontSize: "36px", fontWeight: "800", lineHeight: 1 }}>
               {rating}
             </span>
-            {/* Review count */}
             <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "20px", fontWeight: "500" }}>
               {reviewCount} {reviewCount === 1 ? "review" : "reviews"}
             </span>
@@ -110,20 +112,19 @@ export default async function Image({
         )}
 
         {!hasReviews && (
-          <div style={{
-            color: "rgba(255,255,255,0.3)",
-            fontSize: "20px",
-            fontWeight: "500",
-            marginTop: "6px",
-          }}>
-            Be the first to leave a review
+          <div style={{ display: "flex", marginTop: "6px" }}>
+            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "20px", fontWeight: "500" }}>
+              Be the first to leave a review
+            </span>
           </div>
         )}
       </div>
 
       {/* Bottom: URL */}
-      <div style={{ color: "rgba(255,255,255,0.25)", fontSize: "17px", fontWeight: "500" }}>
-        careviews.in — Honest CA Faculty Reviews
+      <div style={{ display: "flex" }}>
+        <span style={{ color: "rgba(255,255,255,0.25)", fontSize: "17px", fontWeight: "500" }}>
+          careviews.in — Honest CA Faculty Reviews
+        </span>
       </div>
     </div>,
     { ...size },
