@@ -3,7 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Heart, Shield, Eye, Users,
   FileText, Filter, Scale, BarChart2,
-  AlertTriangle, CheckCircle2, Lock, Lightbulb,
+  AlertTriangle, CheckCircle2, Lock,
   Mail, XCircle, CheckCircle, PenLine,
 } from "lucide-react";
 import { CONTACT_EMAIL, SITE_NAME, BASE_URL } from "@/lib/config";
@@ -101,13 +101,6 @@ const GUIDELINES = [
   "Help future students — write the review you wish you had read before enrolling.",
 ];
 
-const FUTURE_FEATURES = [
-  "Study material and mock test reviews",
-  "Exam strategy guides written by students who have cleared each level",
-  "AI-generated summaries across large review sets",
-  "Better faculty comparison tools",
-  "Personalised faculty recommendations",
-];
 
 const CONTACT_TOPICS = [
   "Incorrect faculty information",
@@ -399,32 +392,6 @@ export default function AboutPage() {
               Only the minimum necessary information is collected to enable the review submission
               process. Personal account details are not publicly displayed alongside your review.
             </p>
-          </div>
-        </section>
-
-        {/* ── Future Vision ── */}
-        <section>
-          <SectionTag icon={Lightbulb} label="Vision" />
-          <SectionHeading>Future Vision</SectionHeading>
-
-          <div className="bg-white rounded-xl shadow-sm p-7 space-y-5">
-            <p className="text-[15px] text-ink/70 leading-relaxed">
-              CareViews aims to become the most trusted destination for educational review content
-              across all CA levels. Future improvements may include:
-            </p>
-            <ul className="space-y-2.5">
-              {FUTURE_FEATURES.map((item) => (
-                <li key={item} className="flex items-center gap-3 text-[15px] text-ink/65">
-                  <span className="w-1.5 h-1.5 rounded-full bg-gold shrink-0" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <div className="pt-4 border-t border-slate-100">
-              <p className="text-[15px] text-ink font-semibold">
-                The mission remains the same: help CA students make informed decisions.
-              </p>
-            </div>
           </div>
         </section>
 
