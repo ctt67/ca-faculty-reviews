@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
             {
                 userAgent: "*",
                 allow: "/",
-                disallow: ["/api/", "/admin/", "/test/"],
+                disallow: ["/api/", "/admin/", "/test/", "/review"],
             },
         ],
         sitemap: "https://careviews.in/sitemap.xml",

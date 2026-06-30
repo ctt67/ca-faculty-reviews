@@ -1,5 +1,29 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { PenLine, ShieldCheck, Ban, Layers, FileText, BarChart2, CircleDollarSign, Check } from "lucide-react";
+import { BASE_URL, SITE_NAME } from "@/lib/config";
+
+export const metadata: Metadata = {
+  title: `${SITE_NAME} — CA Faculty Reviews | Compare CA Final, Inter & Foundation Coaching`,
+  description:
+    "Read genuine student reviews of CA coaching faculties. Compare teaching quality, exam focus, doubt resolution and more across CA Final, Intermediate and Foundation. Independent, no paid rankings.",
+  alternates: { canonical: BASE_URL },
+  openGraph: {
+    title: `${SITE_NAME} — Honest CA Faculty Reviews`,
+    description:
+      "Genuine student reviews of CA coaching faculties. Compare faculties across 10 rating dimensions for CA Final, Intermediate and Foundation. Independent, no paid rankings.",
+    url: BASE_URL,
+    siteName: SITE_NAME,
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} — Honest CA Faculty Reviews`,
+    description:
+      "Genuine student reviews of CA coaching faculties. Compare faculties across 10 rating dimensions. Independent, no paid rankings.",
+  },
+};
 
 const trustItems = [
   { icon: PenLine, label: "Genuine Reviews", desc: "Real students, real experiences." },
