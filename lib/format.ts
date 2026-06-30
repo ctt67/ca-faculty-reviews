@@ -1,5 +1,19 @@
 import { ratingFields } from "./rating-config";
 
+// Words that should always render in ALL CAPS when derived from URL slugs.
+// Add new abbreviations here as subjects are added to the DB.
+const SUBJECT_ABBREVIATIONS = new Set([
+  "afm", "fr", "dt", "idt", "sfm", "sm", "isca", "eis", "sbl", "mcs", "ma", "bcr",
+]);
+
+export function formatSubjectName(subject: string): string {
+  return decodeURIComponent(subject).replace(/\w\S*/g, (word) => {
+    const lower = word.toLowerCase();
+    if (SUBJECT_ABBREVIATIONS.has(lower)) return lower.toUpperCase();
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  });
+}
+
 export function formatValue(value: unknown): string {
   if (Array.isArray(value)) return value.join(", ");
   if (value === null || value === undefined || value === "") return "—";

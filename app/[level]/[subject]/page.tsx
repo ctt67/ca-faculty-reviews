@@ -2,14 +2,11 @@ import { supabase } from "@/lib/supabase";
 import { getOverallRating } from "@/lib/ratings";
 import { FACULTY_SUMMARY_FIELDS } from "@/lib/faculty-config";
 import { LEVEL_LABELS } from "@/lib/config";
+import { formatSubjectName } from "@/lib/format";
 import type { Metadata } from "next";
 import { generateSubjectMetadata } from "@/lib/seo";
 
 export const revalidate = 300;
-
-function toTitleCase(str: string) {
-  return str.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
-}
 
 export async function generateMetadata({
   params,
@@ -61,7 +58,7 @@ export default async function SubjectPage({
     .sort((a, b) => b.facultyReviews.length - a.facultyReviews.length);
 
   const levelLabel = LEVEL_LABELS[level.toLowerCase()] ?? level.toUpperCase();
-  const subjectLabel = toTitleCase(decodeURIComponent(subject));
+  const subjectLabel = formatSubjectName(subject);
 
   return (
     <main className="min-h-screen">
@@ -126,7 +123,7 @@ export default async function SubjectPage({
                             )}
                             {bestFor && (
                               <span className="bg-parchment text-ink/65 px-2.5 py-1 rounded-full text-xs font-medium">
-                                {toTitleCase(bestFor)}
+                                {formatSubjectName(bestFor)}
                               </span>
                             )}
                           </div>
