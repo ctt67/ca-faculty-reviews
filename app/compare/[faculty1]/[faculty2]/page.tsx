@@ -8,17 +8,12 @@ import {
   PUBLIC_FACULTY_FIELDS,
   formatSubjectName,
 } from "@/lib/format";
+import MetricCard from "@/components/compare/MetricCard";
+import DetailedComparisonAccordion from "@/components/compare/DetailedComparisonAccordion";
+import CompareReviewCard from "@/components/compare/CompareReviewCard";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { generateCompareMetadata } from "@/lib/seo";
-
-function getScoreWord(score: number): string {
-  if (score >= 4.5) return "Excellent";
-  if (score >= 3.5) return "Good";
-  if (score >= 2.5) return "Average";
-  if (score >= 1.5) return "Poor";
-  return "Very Poor";
-}
 
 export async function generateMetadata({
   params,
@@ -79,18 +74,18 @@ export default async function CompareResultPage({
   );
   const hasAnyReviews = faculty1Reviews.length > 0 || faculty2Reviews.length > 0;
 
+  const subjectLabel = formatSubjectName(faculty1.subject ?? "");
+
   const winner = (v1: number, v2: number) => {
     if (v1 > v2) return "left";
     if (v2 > v1) return "right";
     return "tie";
   };
 
-  const subjectLabel = formatSubjectName(faculty1.subject ?? "");
-
   return (
     <main className="min-h-screen">
 
-      {/* Hero */}
+      {/* ── Hero ── */}
       <section className="bg-navy text-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-14">
           <a
@@ -100,158 +95,192 @@ export default async function CompareResultPage({
             ← Compare
           </a>
 
-          <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-5 mb-3">
-            <h1 className="font-playfair text-2xl md:text-4xl font-bold text-white leading-tight">
-              {faculty1.faculty_name}
-            </h1>
-            <span className="font-playfair text-gold text-xl font-bold sm:pb-0.5">vs</span>
-            <h1 className="font-playfair text-2xl md:text-4xl font-bold text-white leading-tight">
-              {faculty2.faculty_name}
-            </h1>
-          </div>
+          <p className="text-white/40 text-xs uppercase tracking-widest mb-5">
+            {subjectLabel} · {faculty1.level}
+          </p>
 
-          <p className="text-white/45 text-sm">{subjectLabel} · {faculty1.level}</p>
+          {/* Side-by-side faculty cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto,1fr] items-center gap-4 sm:gap-6">
+
+            {/* Faculty 1 */}
+            <div className="bg-white/8 border border-white/10 rounded-2xl p-6 sm:p-7">
+              {faculty1Rating > faculty2Rating && faculty1Reviews.length > 0 && faculty2Reviews.length > 0 && (
+                <span className="inline-block bg-green-400/15 text-green-300 border border-green-400/20 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide mb-3">
+                  Higher Rated
+                </span>
+              )}
+              <h1 className="font-playfair text-2xl md:text-3xl font-bold text-white leading-tight">
+                {faculty1.faculty_name}
+              </h1>
+              {faculty1Reviews.length > 0 ? (
+                <div className="mt-4">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-gold text-lg leading-none">★</span>
+                    <span className="font-playfair text-5xl font-bold text-white leading-none">{faculty1Rating}</span>
+                  </div>
+                  <p className="text-white/40 text-xs mt-2">
+                    {faculty1Reviews.length} {faculty1Reviews.length === 1 ? "review" : "reviews"}
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-4">
+                  <span className="font-playfair text-4xl font-bold text-white/20">—</span>
+                  <p className="text-white/30 text-xs mt-2">No reviews yet</p>
+                </div>
+              )}
+              <a
+                href={`/faculty/${faculty1.slug}`}
+                className="mt-5 inline-block text-white/40 hover:text-white/70 text-xs transition"
+              >
+                View full profile →
+              </a>
+            </div>
+
+            {/* VS divider */}
+            <div className="text-center py-2 sm:py-0">
+              <span className="font-playfair text-gold text-2xl font-bold">vs</span>
+            </div>
+
+            {/* Faculty 2 */}
+            <div className="bg-white/8 border border-white/10 rounded-2xl p-6 sm:p-7">
+              {faculty2Rating > faculty1Rating && faculty1Reviews.length > 0 && faculty2Reviews.length > 0 && (
+                <span className="inline-block bg-green-400/15 text-green-300 border border-green-400/20 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide mb-3">
+                  Higher Rated
+                </span>
+              )}
+              <h1 className="font-playfair text-2xl md:text-3xl font-bold text-white leading-tight">
+                {faculty2.faculty_name}
+              </h1>
+              {faculty2Reviews.length > 0 ? (
+                <div className="mt-4">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-gold text-lg leading-none">★</span>
+                    <span className="font-playfair text-5xl font-bold text-white leading-none">{faculty2Rating}</span>
+                  </div>
+                  <p className="text-white/40 text-xs mt-2">
+                    {faculty2Reviews.length} {faculty2Reviews.length === 1 ? "review" : "reviews"}
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-4">
+                  <span className="font-playfair text-4xl font-bold text-white/20">—</span>
+                  <p className="text-white/30 text-xs mt-2">No reviews yet</p>
+                </div>
+              )}
+              <a
+                href={`/faculty/${faculty2.slug}`}
+                className="mt-5 inline-block text-white/40 hover:text-white/70 text-xs transition"
+              >
+                View full profile →
+              </a>
+            </div>
+
+          </div>
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-14 space-y-10">
-
-        {/* Overall Rating Cards */}
-        <div className="grid sm:grid-cols-2 gap-5">
-          {[
-            { faculty: faculty1, reviews: faculty1Reviews, rating: faculty1Rating, otherRating: faculty2Rating },
-            { faculty: faculty2, reviews: faculty2Reviews, rating: faculty2Rating, otherRating: faculty1Rating },
-          ].map(({ faculty, reviews, rating, otherRating }) => (
-            <div key={faculty.slug} className="bg-white rounded-xl shadow-sm p-6 sm:p-7">
-              <div className="flex items-start justify-between gap-4 mb-5">
-                <div>
-                  <h2 className="font-playfair text-xl font-bold text-ink leading-tight">
-                    {faculty.faculty_name}
-                  </h2>
-                  <p className="text-ink/45 text-xs mt-1">{faculty.subject}</p>
-                </div>
-                {rating > otherRating && (
-                  <span className="bg-green-50 text-green-700 border border-green-200 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0">
-                    Best Rated
-                  </span>
-                )}
-              </div>
-
-              {reviews.length > 0 ? (
-                <>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-gold text-xl leading-none">★</span>
-                    <span className="font-playfair text-5xl font-bold text-ink leading-none">{rating}</span>
-                  </div>
-                  <p className="text-ink/40 text-xs mt-2">Overall Rating</p>
-                  <p className="text-ink/35 text-[10px] mt-1">
-                    {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <span className="font-playfair text-5xl font-bold text-ink/20">—</span>
-                  <p className="text-ink/35 text-xs mt-2">No reviews yet</p>
-                </>
-              )}
-
-              <a
-                href={`/faculty/${faculty.slug}`}
-                className="mt-5 block text-center border border-slate-200 text-ink text-sm font-medium py-2.5 rounded-xl hover:bg-slate-50 transition"
-              >
-                View Full Profile →
-              </a>
-            </div>
-          ))}
-        </div>
+      {/* ── Body ── */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-16 space-y-14">
 
         {/* Faculty Details */}
         {facultyFields.length > 0 && (
           <div>
-            <h2 className="font-playfair text-2xl font-bold text-ink mb-4">Faculty Details</h2>
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="grid grid-cols-3">
-                <div className="p-4 bg-parchment text-[10px] font-semibold text-ink/50 uppercase tracking-wider border-b">
-                  Metric
-                </div>
-                <div className="p-4 bg-parchment font-semibold text-ink text-sm text-center border-b border-l truncate">
-                  {faculty1.faculty_name}
-                </div>
-                <div className="p-4 bg-parchment font-semibold text-ink text-sm text-center border-b border-l truncate">
-                  {faculty2.faculty_name}
-                </div>
-
-                {facultyFields.map((field) => (
-                  <div key={field} className="contents">
-                    <div className="p-4 border-b text-ink/60 text-sm">{formatFieldName(field)}</div>
-                    <div className="p-4 border-b border-l text-center text-ink font-medium text-sm">
-                      {formatValue(faculty1[field])}
-                    </div>
-                    <div className="p-4 border-b border-l text-center text-ink font-medium text-sm">
-                      {formatValue(faculty2[field])}
-                    </div>
+            <h2 className="font-playfair text-2xl font-bold text-ink mb-5">Faculty Details</h2>
+            <div className="grid sm:grid-cols-2 gap-5">
+              {[
+                { faculty: faculty1 },
+                { faculty: faculty2 },
+              ].map(({ faculty }) => (
+                <div key={faculty.slug} className="bg-white rounded-xl shadow-sm p-6">
+                  <h3 className="font-playfair text-lg font-bold text-ink pb-3 mb-4 border-b border-slate-100">
+                    {faculty.faculty_name}
+                  </h3>
+                  <div className="space-y-4">
+                    {facultyFields.map((field) => (
+                      <div key={field}>
+                        <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium mb-1">
+                          {formatFieldName(field)}
+                        </p>
+                        <p className="text-ink font-medium text-sm">{formatValue(faculty[field])}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
         {/* Ratings Comparison */}
-        <div>
-          <h2 className="font-playfair text-2xl font-bold text-ink mb-1">Ratings Comparison</h2>
-          <p className="text-ink/45 text-xs mb-5">
-            Calculated from approved reviews. Differences may reflect review volume, not just faculty quality.
-          </p>
+        {hasAnyReviews && ratingFields.length > 0 && (
+          <div>
+            <h2 className="font-playfair text-2xl font-bold text-ink mb-1">Ratings Comparison</h2>
+            <p className="text-ink/45 text-xs mb-6">
+              Calculated from approved reviews. Differences may reflect review volume, not just faculty quality.
+            </p>
 
-          {!hasAnyReviews || ratingFields.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-100 p-10 text-center text-ink/40 text-sm">
-              No ratings available yet for these faculties.
+            <div className="space-y-3 mb-6">
+              {ratingFields.map((field) => (
+                <MetricCard
+                  key={field}
+                  label={getRatingLabel(field)}
+                  hint={getRatingHint(field)}
+                  v1={getAverageMetric(faculty1Reviews, field)}
+                  v2={getAverageMetric(faculty2Reviews, field)}
+                  name1={faculty1.faculty_name}
+                  name2={faculty2.faculty_name}
+                  hasReviews1={faculty1Reviews.length > 0}
+                  hasReviews2={faculty2Reviews.length > 0}
+                />
+              ))}
             </div>
-          ) : (
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="grid grid-cols-3">
-                <div className="p-4 bg-parchment text-[10px] font-semibold text-ink/50 uppercase tracking-wider border-b">
-                  Metric
-                </div>
-                <div className="p-4 bg-parchment font-semibold text-ink text-sm text-center border-b border-l truncate">
-                  {faculty1.faculty_name}
-                </div>
-                <div className="p-4 bg-parchment font-semibold text-ink text-sm text-center border-b border-l truncate">
-                  {faculty2.faculty_name}
-                </div>
 
-                {ratingFields.map((field) => {
-                  const v1 = getAverageMetric(faculty1Reviews, field);
-                  const v2 = getAverageMetric(faculty2Reviews, field);
-                  const w = winner(v1, v2);
-                  return (
-                    <div key={field} className="contents">
-                      <div className="p-4 border-b">
-                        <p className="text-xs font-semibold text-ink">{getRatingLabel(field)}</p>
-                        <p className="text-[10px] text-ink/40 mt-0.5 leading-tight">{getRatingHint(field)}</p>
+            {/* Detailed Comparison accordion */}
+            <DetailedComparisonAccordion>
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div className="grid grid-cols-3">
+                  <div className="p-4 bg-parchment text-[10px] font-semibold text-ink/50 uppercase tracking-wider border-b">
+                    Metric
+                  </div>
+                  <div className="p-4 bg-parchment font-semibold text-ink text-sm text-center border-b border-l truncate">
+                    {faculty1.faculty_name}
+                  </div>
+                  <div className="p-4 bg-parchment font-semibold text-ink text-sm text-center border-b border-l truncate">
+                    {faculty2.faculty_name}
+                  </div>
+
+                  {ratingFields.map((field) => {
+                    const v1 = getAverageMetric(faculty1Reviews, field);
+                    const v2 = getAverageMetric(faculty2Reviews, field);
+                    const w = winner(v1, v2);
+                    return (
+                      <div key={field} className="contents">
+                        <div className="p-4 border-b">
+                          <p className="text-xs font-semibold text-ink">{getRatingLabel(field)}</p>
+                          <p className="text-[10px] text-ink/40 mt-0.5 leading-tight">{getRatingHint(field)}</p>
+                        </div>
+                        <div className={`p-4 border-b border-l text-center text-sm font-bold ${
+                          w === "left" ? "bg-gold/10 text-ink" : "text-ink/55"
+                        }`}>
+                          {faculty1Reviews.length > 0 ? v1 : "—"}
+                          {w === "left" && <span className="ml-1 text-gold text-xs">↑</span>}
+                        </div>
+                        <div className={`p-4 border-b border-l text-center text-sm font-bold ${
+                          w === "right" ? "bg-gold/10 text-ink" : "text-ink/55"
+                        }`}>
+                          {faculty2Reviews.length > 0 ? v2 : "—"}
+                          {w === "right" && <span className="ml-1 text-gold text-xs">↑</span>}
+                        </div>
                       </div>
-                      <div className={`p-4 border-b border-l text-center text-sm font-bold ${
-                        w === "left" ? "bg-gold/10 text-ink" : "text-ink/55"
-                      }`}>
-                        {faculty1Reviews.length > 0 ? v1 : "—"}
-                        {w === "left" && <span className="ml-1 text-gold text-xs">↑</span>}
-                      </div>
-                      <div className={`p-4 border-b border-l text-center text-sm font-bold ${
-                        w === "right" ? "bg-gold/10 text-ink" : "text-ink/55"
-                      }`}>
-                        {faculty2Reviews.length > 0 ? v2 : "—"}
-                        {w === "right" && <span className="ml-1 text-gold text-xs">↑</span>}
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            </DetailedComparisonAccordion>
+          </div>
+        )}
 
-        {/* What Students Are Saying */}
+        {/* Student Reviews */}
         <div>
           <h2 className="font-playfair text-2xl font-bold text-ink mb-2">What Students Are Saying</h2>
           <p className="text-ink/45 text-xs mb-7">
@@ -264,7 +293,6 @@ export default async function CompareResultPage({
               { faculty: faculty2, reviews: faculty2Reviews },
             ].map(({ faculty, reviews }) => (
               <div key={faculty.slug}>
-
                 <div className="flex items-baseline gap-2 mb-4">
                   <h3 className="font-playfair text-lg font-bold text-ink">{faculty.faculty_name}</h3>
                   <span className="text-ink/35 text-sm">({reviews.length})</span>
@@ -277,117 +305,14 @@ export default async function CompareResultPage({
                 ) : (
                   <div className="space-y-5">
                     {reviews.map((review) => (
-                      <div key={review.id} className="bg-white rounded-xl shadow-sm p-6">
-
-                        {/* Metadata */}
-                        <div className="grid grid-cols-2 gap-x-5 gap-y-3 mb-5">
-                          {review.course_type && (
-                            <div>
-                              <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium">Course</p>
-                              <p className="text-sm font-medium text-ink mt-0.5">{review.course_type}</p>
-                            </div>
-                          )}
-                          {review.student_type && (
-                            <div>
-                              <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium">Reviewer</p>
-                              <p className="text-sm font-medium text-ink mt-0.5">{review.student_type}</p>
-                            </div>
-                          )}
-                          {review.attempt && (
-                            <div>
-                              <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium">Attempt</p>
-                              <p className="text-sm font-medium text-ink mt-0.5">{review.attempt}</p>
-                            </div>
-                          )}
-                          {review.teacher_style && (
-                            <div>
-                              <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium">Teaching Style</p>
-                              <p className="text-sm font-medium text-ink mt-0.5">{review.teacher_style}</p>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Recommend badge */}
-                        {review.would_recommend !== null && review.would_recommend !== undefined && (
-                          <div className="mb-4">
-                            <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium border ${
-                              review.would_recommend
-                                ? "bg-green-50 text-green-700 border-green-200"
-                                : "bg-red-50 text-red-600 border-red-200"
-                            }`}>
-                              {review.would_recommend ? "✓ Recommends" : "✗ Does not recommend"}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Best for */}
-                        {review.best_for?.length > 0 && (
-                          <p className="text-sm text-ink/60 mb-4">
-                            <span className="font-semibold text-ink">Best for:</span>{" "}
-                            {review.best_for.join(", ")}
-                          </p>
-                        )}
-
-                        {/* Pros / Cons */}
-                        {(review.pros || review.cons) && (
-                          <div className="space-y-2 mb-4">
-                            {review.pros && (
-                              <div className="border-l-[3px] border-green-400 pl-3 py-0.5">
-                                <p className="text-[10px] font-semibold text-green-600 uppercase tracking-wider mb-1">Pros</p>
-                                <p className="text-ink/70 text-sm leading-relaxed">{review.pros}</p>
-                              </div>
-                            )}
-                            {review.cons && (
-                              <div className="border-l-[3px] border-red-400 pl-3 py-0.5">
-                                <p className="text-[10px] font-semibold text-red-500 uppercase tracking-wider mb-1">Cons</p>
-                                <p className="text-ink/70 text-sm leading-relaxed">{review.cons}</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Review text */}
-                        {review.review_text && (
-                          <div className="border-l-[3px] border-gold pl-4 mb-4">
-                            <p className="text-ink/65 text-sm leading-relaxed">{review.review_text}</p>
-                          </div>
-                        )}
-
-                        {/* Per-rating breakdown with reasons */}
-                        {ratingFields.some((f) => review[f] != null) && (
-                          <div className="border-t border-slate-100 pt-4 mt-2">
-                            <p className="text-[10px] font-semibold text-ink/40 uppercase tracking-wider mb-3">
-                              Ratings
-                            </p>
-                            <div className="space-y-2">
-                              {ratingFields.map((field) => {
-                                const score = review[field];
-                                if (score == null) return null;
-                                const reason = review.rating_reasons?.[field];
-                                return (
-                                  <div key={field} className="flex items-start gap-2">
-                                    <span className="shrink-0 bg-gold/10 text-ink font-bold rounded-lg px-2 py-0.5 text-xs min-w-[36px] text-center">
-                                      {score}/5
-                                    </span>
-                                    <div className="flex-1 min-w-0">
-                                      <span className="text-ink text-xs font-medium">{getRatingLabel(field)}</span>
-                                      <span className="text-ink/40 text-xs ml-1.5">— {getScoreWord(score)}</span>
-                                      {reason && (
-                                        <p className="text-ink/50 text-xs mt-0.5 italic">"{reason}"</p>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-
-                      </div>
+                      <CompareReviewCard
+                        key={review.id}
+                        review={review}
+                        ratingFields={ratingFields}
+                      />
                     ))}
                   </div>
                 )}
-
               </div>
             ))}
           </div>
