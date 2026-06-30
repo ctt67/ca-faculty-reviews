@@ -305,8 +305,8 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
 
         {/* ── Section 2: Ratings ── */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h2 className="text-lg font-bold text-slate-900 mb-1">Ratings <span className="text-red-500">*</span></h2>
-          <p className="text-slate-500 text-sm mb-5">Click a number for each aspect — 1 = Very Poor, 5 = Excellent.</p>
+          <h2 className="text-lg font-bold text-slate-900 mb-1">Rate Your Experience <span className="text-red-500">*</span></h2>
+          <p className="text-slate-500 text-sm mb-5">Help future CA students make better coaching decisions.</p>
 
           <div className="grid md:grid-cols-2 gap-3">
             {ratingFields.map((field) => {
@@ -315,7 +315,7 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
               return (
                 <div
                   key={field.key}
-                  className={`border rounded-xl p-4 ${hasError ? "border-red-400 bg-red-50" : "border-slate-200"}`}
+                  className={`border rounded-xl p-5 ${hasError ? "border-red-400 bg-red-50" : "border-slate-200"}`}
                 >
                   <div className="mb-2">
                     <div className="flex items-center justify-between">
@@ -342,6 +342,10 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
                       </button>
                     ))}
                   </div>
+                  <div className="flex justify-between mt-1">
+                    <span className="text-[10px] text-slate-300">Poor</span>
+                    <span className="text-[10px] text-slate-300">Excellent</span>
+                  </div>
                   {expandedReasons[field.key] ? (
                     <textarea
                       rows={2}
@@ -355,9 +359,9 @@ export default function ReviewForm({ faculty }: { faculty: { slug: string; facul
                     <button
                       type="button"
                       onClick={() => setExpandedReasons((prev) => ({ ...prev, [field.key]: true }))}
-                      className="mt-2 text-xs text-slate-400 hover:text-slate-600 transition"
+                      className="mt-3 text-xs text-slate-400 hover:text-slate-600 transition flex items-center gap-1"
                     >
-                      + Add reason
+                      💬 Explain your rating <span className="text-slate-300">(optional)</span>
                     </button>
                   )}
                 </div>
