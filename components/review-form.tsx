@@ -58,6 +58,34 @@ export default function ReviewForm({
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [suggestions, setSuggestions] = useState<Array<{ slug: string; faculty_name: string; subject: string }>>([]);
+
+  useEffect(() => {
+    if (!submitted || !user) return;
+    const fetchSuggestions = async () => {
+      const [{ data: candidates }, { data: myReviews }] = await Promise.all([
+        supabase
+          .from("faculties")
+          .select("slug, faculty_name, subject")
+          .eq("level", faculty.level)
+          .neq("subject", faculty.subject)
+          .limit(30),
+        supabase
+          .from("reviews")
+          .select("faculty_slug")
+          .eq("user_id", user.id),
+      ]);
+      const reviewed = new Set((myReviews ?? []).map((r) => r.faculty_slug));
+      const seen = new Set<string>();
+      setSuggestions(
+        (candidates ?? [])
+          .filter((f) => !reviewed.has(f.slug))
+          .filter((f) => { if (seen.has(f.subject)) return false; seen.add(f.subject); return true; })
+          .slice(0, 4)
+      );
+    };
+    fetchSuggestions();
+  }, [submitted, user, faculty.level, faculty.subject]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -237,6 +265,31 @@ export default function ReviewForm({
               Back to {faculty.faculty_name} →
             </a>
           </div>
+
+          {/* Cross-review nudge */}
+          {suggestions.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <p className="text-sm font-semibold text-ink mb-1">Did you also study under…</p>
+              <p className="text-xs text-ink/50 mb-4 leading-relaxed">
+                You reviewed {formatSubjectName(faculty.subject)} — if you took other subjects too, your review helps those students as well.
+              </p>
+              <div className="flex flex-col gap-2">
+                {suggestions.map((s) => (
+                  <a
+                    key={s.slug}
+                    href={`/review/${s.slug}`}
+                    className="flex items-center justify-between px-4 py-3 border border-slate-200 rounded-xl hover:border-gold hover:bg-gold/5 transition group"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-ink">{s.faculty_name}</p>
+                      <p className="text-xs text-ink/45 mt-0.5">{formatSubjectName(s.subject)}</p>
+                    </div>
+                    <span className="text-gold text-sm font-semibold group-hover:translate-x-0.5 transition-transform">Review →</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Share card */}
           <div className="bg-white rounded-xl shadow-sm p-6">
