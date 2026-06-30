@@ -276,15 +276,15 @@ export default function ReviewForm({
               <div className="flex flex-col gap-2">
                 {suggestions.map((s) => (
                   <a
-                    key={s.slug}
-                    href={`/review/${s.slug}`}
+                    key={s.subject}
+                    href={`/${faculty.level.toLowerCase()}/${s.subject.toLowerCase()}`}
                     className="flex items-center justify-between px-4 py-3 border border-slate-200 rounded-xl hover:border-gold hover:bg-gold/5 transition group"
                   >
                     <div>
-                      <p className="text-sm font-semibold text-ink">{s.faculty_name}</p>
-                      <p className="text-xs text-ink/45 mt-0.5">{formatSubjectName(s.subject)}</p>
+                      <p className="text-sm font-semibold text-ink">{formatSubjectName(s.subject)}</p>
+                      <p className="text-xs text-ink/45 mt-0.5">Browse faculties</p>
                     </div>
-                    <span className="text-gold text-sm font-semibold group-hover:translate-x-0.5 transition-transform">Review →</span>
+                    <span className="text-gold text-sm font-semibold group-hover:translate-x-0.5 transition-transform">View →</span>
                   </a>
                 ))}
               </div>
