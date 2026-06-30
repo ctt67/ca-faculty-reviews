@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { formatSubjectName } from "@/lib/format";
 
 export default function ComparePage() {
   const router = useRouter();
@@ -45,41 +46,39 @@ export default function ComparePage() {
 
   const canCompare = faculty1 && faculty2 && faculty1 !== faculty2;
 
-  return (
-    <main className="min-h-screen bg-slate-100">
+  const selectClass =
+    "w-full border border-slate-200 rounded-xl p-3.5 text-ink bg-white focus:outline-none focus:ring-2 focus:ring-navy text-sm";
 
-      <section className="bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-6 py-20">
-          <div className="max-w-4xl">
-            <h1 className="text-5xl md:text-7xl font-extrabold">
-              Compare
-              <span className="text-blue-500"> Faculties</span>
-            </h1>
-            <p className="mt-6 text-xl text-slate-400">
-              Compare two faculties side-by-side before making your decision.
-            </p>
-          </div>
+  return (
+    <main className="min-h-screen">
+
+      {/* Hero */}
+      <section className="bg-navy text-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12 md:py-16">
+          <p className="text-gold uppercase tracking-widest text-xs font-semibold mb-3">Compare</p>
+          <h1 className="font-playfair text-3xl md:text-4xl font-bold text-white">
+            Which faculty is right for you?
+          </h1>
+          <p className="mt-3 text-white/55 text-sm max-w-xl">
+            Pick two faculties from the same subject and compare ratings, teaching styles,
+            and real student reviews side by side.
+          </p>
         </div>
       </section>
 
-      <section className="max-w-2xl mx-auto px-6 py-16">
-
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
-
-          <h2 className="text-xl font-bold text-slate-900 mb-6">
-            Select Faculties to Compare
-          </h2>
+      {/* Form */}
+      <section className="max-w-xl mx-auto px-4 sm:px-6 py-12">
+        <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8">
+          <h2 className="font-playfair text-xl font-bold text-ink mb-6">Select Faculties</h2>
 
           {loading ? (
-            <div className="text-slate-400 text-sm py-8 text-center">Loading faculties...</div>
+            <div className="text-ink/40 text-sm py-8 text-center">Loading…</div>
           ) : (
             <div className="space-y-5">
 
               {/* Level */}
               <div>
-                <label className="block mb-2 text-sm font-semibold text-slate-700">
-                  Level
-                </label>
+                <label className="block mb-1.5 text-sm font-semibold text-ink">Level</label>
                 <select
                   value={level}
                   onChange={(e) => {
@@ -88,9 +87,9 @@ export default function ComparePage() {
                     setFaculty1("");
                     setFaculty2("");
                   }}
-                  className="w-full border border-slate-200 rounded-xl p-3.5 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={selectClass}
                 >
-                  <option value="">Select Level</option>
+                  <option value="">Select level</option>
                   {levels.map((l) => (
                     <option key={l} value={l}>{l}</option>
                   ))}
@@ -100,9 +99,7 @@ export default function ComparePage() {
               {/* Subject */}
               {level && (
                 <div>
-                  <label className="block mb-2 text-sm font-semibold text-slate-700">
-                    Subject
-                  </label>
+                  <label className="block mb-1.5 text-sm font-semibold text-ink">Subject</label>
                   <select
                     value={subject}
                     onChange={(e) => {
@@ -110,11 +107,11 @@ export default function ComparePage() {
                       setFaculty1("");
                       setFaculty2("");
                     }}
-                    className="w-full border border-slate-200 rounded-xl p-3.5 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={selectClass}
                   >
-                    <option value="">Select Subject</option>
+                    <option value="">Select subject</option>
                     {subjects.map((s) => (
-                      <option key={s} value={s}>{s}</option>
+                      <option key={s} value={s}>{formatSubjectName(s)}</option>
                     ))}
                   </select>
                 </div>
@@ -124,37 +121,28 @@ export default function ComparePage() {
               {subject && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block mb-2 text-sm font-semibold text-slate-700">
-                      Faculty 1
-                    </label>
+                    <label className="block mb-1.5 text-sm font-semibold text-ink">Faculty 1</label>
                     <select
                       value={faculty1}
                       onChange={(e) => setFaculty1(e.target.value)}
-                      className="w-full border border-slate-200 rounded-xl p-3.5 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={selectClass}
                     >
                       <option value="">Select</option>
                       {filteredFaculties.map((f) => (
-                        <option key={f.slug} value={f.slug}>
-                          {f.faculty_name}
-                        </option>
+                        <option key={f.slug} value={f.slug}>{f.faculty_name}</option>
                       ))}
                     </select>
                   </div>
-
                   <div>
-                    <label className="block mb-2 text-sm font-semibold text-slate-700">
-                      Faculty 2
-                    </label>
+                    <label className="block mb-1.5 text-sm font-semibold text-ink">Faculty 2</label>
                     <select
                       value={faculty2}
                       onChange={(e) => setFaculty2(e.target.value)}
-                      className="w-full border border-slate-200 rounded-xl p-3.5 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={selectClass}
                     >
                       <option value="">Select</option>
                       {filteredFaculties.map((f) => (
-                        <option key={f.slug} value={f.slug}>
-                          {f.faculty_name}
-                        </option>
+                        <option key={f.slug} value={f.slug}>{f.faculty_name}</option>
                       ))}
                     </select>
                   </div>
@@ -164,15 +152,14 @@ export default function ComparePage() {
               <button
                 onClick={handleCompare}
                 disabled={!canCompare}
-                className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-40 disabled:cursor-not-allowed mt-2"
+                className="w-full bg-gold text-ink py-3.5 rounded-xl font-semibold text-sm hover:opacity-90 transition disabled:opacity-30 disabled:cursor-not-allowed mt-1"
               >
-                Compare Faculties
+                Compare →
               </button>
 
             </div>
           )}
         </div>
-
       </section>
 
     </main>
