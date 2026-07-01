@@ -9,14 +9,12 @@ import {
   PUBLIC_REVIEW_COLUMNS,
   formatSubjectName,
 } from "@/lib/format";
-import ReviewRatingDetails from "@/components/ReviewRatingDetails";
 import ReviewSortControls from "@/components/ReviewSortControls";
 import ReviewFilters from "@/components/ReviewFilters";
 import PageViewTracker from "@/components/PageViewTracker";
 import TrackedLink from "@/components/TrackedLink";
 import ShareButtons from "@/components/ShareButtons";
-import ReviewVote from "@/components/ReviewVote";
-import ReportReview from "@/components/ReportReview";
+import ReviewsLoadMore from "@/components/ReviewsLoadMore";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { generateFacultyMetadata } from "@/lib/seo";
@@ -24,7 +22,7 @@ import { BASE_URL, LEVEL_LABELS } from "@/lib/config";
 
 export const revalidate = 300;
 
-const REVIEWS_PER_PAGE = 10;
+const REVIEWS_PER_PAGE = 5;
 
 function RatingBar({ value }: { value: number }) {
   return (
@@ -66,10 +64,10 @@ export default async function FacultyPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ page?: string; sort?: string; attempt?: string; course_type?: string }>;
+  searchParams: Promise<{ sort?: string; attempt?: string; course_type?: string }>;
 }) {
   const { slug } = await params;
-  const { page: pageParam, sort: sortParam, attempt: attemptParam, course_type: courseTypeParam } = await searchParams;
+  const { sort: sortParam, attempt: attemptParam, course_type: courseTypeParam } = await searchParams;
 
   const filterAttempt    = (attemptParam    ?? "").trim();
   const filterCourseType = (courseTypeParam ?? "").trim();
@@ -80,9 +78,6 @@ export default async function FacultyPage({
 
   const isHelpful = sort === "helpful";
   const HELPFUL_LIMIT = 50;
-
-  const page = Math.max(1, Number(pageParam ?? 1));
-  const offset = (page - 1) * REVIEWS_PER_PAGE;
 
   const { data: faculty } = await supabase
     .from("faculties")
@@ -126,7 +121,7 @@ export default async function FacultyPage({
       .eq("approved", true),
     isHelpful
       ? baseQuery.limit(HELPFUL_LIMIT)
-      : baseQuery.range(offset, offset + REVIEWS_PER_PAGE - 1),
+      : baseQuery.range(0, REVIEWS_PER_PAGE - 1),
   ]);
 
   // Fetch vote counts for current page reviews
@@ -153,7 +148,6 @@ export default async function FacultyPage({
   const allReviews = (allRatingData ?? []) as unknown as Record<string, any>[];
   const totalUnfiltered = allReviews.length;
   const totalReviews = count ?? 0;
-  const totalPages = Math.ceil(totalReviews / REVIEWS_PER_PAGE);
 
   const attempts = [...new Set(allReviews.map((r) => r.attempt).filter(Boolean))].sort() as string[];
   const courseTypes = [...new Set(allReviews.map((r) => r.course_type).filter(Boolean))].sort() as string[];
@@ -162,6 +156,9 @@ export default async function FacultyPage({
 
   const facultyFields = Object.keys(faculty).filter((f) => PUBLIC_FACULTY_FIELDS.has(f));
   const ratingFields = getRatingFields(allReviews);
+
+  const votesObj: Record<string, { up: number; down: number }> = {};
+  voteCounts.forEach((val, key) => { votesObj[String(key)] = val; });
 
   const subjectLabel = formatSubjectName(faculty.subject ?? "");
 
@@ -274,8 +271,8 @@ export default async function FacultyPage({
         <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-14">
           <div className="grid lg:grid-cols-3 gap-8">
 
-            {/* Sidebar — below reviews on mobile, left col on desktop */}
-            <div className="order-2 lg:order-1 lg:col-span-1 space-y-5">
+            {/* Sidebar — ratings on top on mobile, left col on desktop */}
+            <div className="lg:col-span-1 space-y-5">
 
               {/* Faculty Details */}
               {facultyFields.length > 0 && (
@@ -350,8 +347,8 @@ export default async function FacultyPage({
 
             </div>
 
-            {/* Reviews — first on mobile */}
-            <div className="order-1 lg:order-2 lg:col-span-2">
+            {/* Reviews — below ratings on mobile, right col on desktop */}
+            <div className="lg:col-span-2">
 
               <div className="flex items-baseline gap-2 mb-2">
                 <h2 className="font-playfair text-2xl font-bold text-ink">Student Reviews</h2>
@@ -393,149 +390,16 @@ export default async function FacultyPage({
                   <p className="text-ink/30 text-xs mt-5">Takes about 5 minutes. Reviewed within 24 hours.</p>
                 </div>
               ) : (
-                <div className="space-y-5">
-                  {reviews.map((review) => (
-                    <div key={review.id} className="bg-white rounded-xl shadow-sm p-6 sm:p-7">
-
-                      {/* Metadata grid */}
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-5">
-                        {review.course_type && (
-                          <div>
-                            <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium">Course</p>
-                            <p className="text-sm font-medium text-ink mt-0.5">{review.course_type}</p>
-                          </div>
-                        )}
-                        {review.student_type && (
-                          <div>
-                            <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium">Reviewer</p>
-                            <p className="text-sm font-medium text-ink mt-0.5">{review.student_type}</p>
-                          </div>
-                        )}
-                        {review.attempt && (
-                          <div>
-                            <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium">Attempt</p>
-                            <p className="text-sm font-medium text-ink mt-0.5">{review.attempt}</p>
-                          </div>
-                        )}
-                        {review.teacher_style && (
-                          <div>
-                            <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium">Teaching Style</p>
-                            <p className="text-sm font-medium text-ink mt-0.5">{review.teacher_style}</p>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Recommend badge */}
-                      {review.would_recommend !== null && review.would_recommend !== undefined && (
-                        <div className="mb-4">
-                          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium border ${
-                            review.would_recommend
-                              ? "bg-green-50 text-green-700 border-green-200"
-                              : "bg-red-50 text-red-600 border-red-200"
-                          }`}>
-                            {review.would_recommend ? "✓ Recommends this course" : "✗ Does not recommend"}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Best for */}
-                      {review.best_for?.length > 0 && (
-                        <p className="text-sm text-ink/60 mb-4">
-                          <span className="font-semibold text-ink">Best for:</span>{" "}
-                          {review.best_for.join(", ")}
-                        </p>
-                      )}
-
-                      {/* Pros / Cons */}
-                      {(review.pros || review.cons) && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                          {review.pros && (
-                            <div className="border-l-[3px] border-green-400 pl-3 py-0.5">
-                              <p className="text-[10px] font-semibold text-green-600 uppercase tracking-wider mb-1">Pros</p>
-                              <p className="text-ink/70 text-sm leading-relaxed">{review.pros}</p>
-                            </div>
-                          )}
-                          {review.cons && (
-                            <div className="border-l-[3px] border-red-400 pl-3 py-0.5">
-                              <p className="text-[10px] font-semibold text-red-500 uppercase tracking-wider mb-1">Cons</p>
-                              <p className="text-ink/70 text-sm leading-relaxed">{review.cons}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Review text */}
-                      {review.review_text && (
-                        <div className="border-l-[3px] border-gold pl-4">
-                          <p className="text-ink/65 text-sm leading-relaxed">{review.review_text}</p>
-                        </div>
-                      )}
-
-                      <ReviewRatingDetails review={review} />
-
-                      {/* Vote + Report row */}
-                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
-                        <div className="flex items-center gap-3">
-                          <ReviewVote
-                            reviewId={review.id as number}
-                            initialUpvotes={voteCounts.get(review.id as number)?.up ?? 0}
-                            initialDownvotes={voteCounts.get(review.id as number)?.down ?? 0}
-                          />
-                          {review.updated_at && (
-                            <span className="text-[10px] text-ink/30 italic">
-                              Edited {new Date(review.updated_at as string).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                            </span>
-                          )}
-                        </div>
-                        <ReportReview reviewId={review.id as number} />
-                      </div>
-
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Pagination — hidden for helpful sort (all shown at once) */}
-              {!isHelpful && totalPages > 1 && (
-                <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-100">
-                  {(() => {
-                    const buildHref = (p: number) => {
-                      const q = new URLSearchParams();
-                      if (sort !== "newest") q.set("sort", sort);
-                      if (filterAttempt)     q.set("attempt", filterAttempt);
-                      if (filterCourseType)  q.set("course_type", filterCourseType);
-                      q.set("page", String(p));
-                      return `/faculty/${slug}?${q.toString()}`;
-                    };
-                    return (
-                      <>
-                        <a
-                          href={page > 1 ? buildHref(page - 1) : undefined}
-                          aria-disabled={page <= 1}
-                          className={`px-5 py-2.5 rounded-xl border text-sm font-medium transition ${
-                            page <= 1
-                              ? "border-slate-100 text-ink/25 pointer-events-none"
-                              : "border-slate-200 text-ink hover:bg-slate-50"
-                          }`}
-                        >
-                          ← Previous
-                        </a>
-                        <span className="text-sm text-ink/45">Page {page} of {totalPages}</span>
-                        <a
-                          href={page < totalPages ? buildHref(page + 1) : undefined}
-                          aria-disabled={page >= totalPages}
-                          className={`px-5 py-2.5 rounded-xl border text-sm font-medium transition ${
-                            page >= totalPages
-                              ? "border-slate-100 text-ink/25 pointer-events-none"
-                              : "border-slate-200 text-ink hover:bg-slate-50"
-                          }`}
-                        >
-                          Next →
-                        </a>
-                      </>
-                    );
-                  })()}
-                </div>
+                <ReviewsLoadMore
+                  initialReviews={reviews}
+                  initialVotes={votesObj}
+                  total={totalReviews}
+                  slug={slug}
+                  sort={sort}
+                  filterAttempt={filterAttempt}
+                  filterCourseType={filterCourseType}
+                  isHelpful={isHelpful}
+                />
               )}
 
             </div>
