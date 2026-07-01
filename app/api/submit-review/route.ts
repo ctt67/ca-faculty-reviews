@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   const anonClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const { data: allowed, error: rpcError } = await anonClient.rpc("check_review_rate_limit", {
     p_ip_hash: ipHash,
-    p_limit: 3,
+    p_limit: 10,
   });
 
   if (rpcError) {
