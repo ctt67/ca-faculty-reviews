@@ -15,6 +15,7 @@ import PageViewTracker from "@/components/PageViewTracker";
 import TrackedLink from "@/components/TrackedLink";
 import ShareButtons from "@/components/ShareButtons";
 import ReviewsLoadMore from "@/components/ReviewsLoadMore";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { generateFacultyMetadata } from "@/lib/seo";
@@ -375,6 +376,7 @@ export default async function FacultyPage({
 
               {totalReviews === 0 ? (
                 <div className="bg-white rounded-xl border border-slate-100 p-10 sm:p-12 text-center">
+                  <Image src="/oreo.jpg" alt="Oreo" width={72} height={72} className="rounded-full object-cover mx-auto mb-5 border border-gold/20" />
                   <p className="font-playfair text-xl font-bold text-ink mb-2">Be the first to help future CA students</p>
                   <p className="text-ink/55 text-sm leading-relaxed mb-6 max-w-sm mx-auto">
                     Your honest review of {faculty.faculty_name} could help hundreds of students make a better decision about their CA preparation.

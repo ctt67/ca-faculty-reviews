@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -460,6 +461,19 @@ export default function AboutPage() {
               {CONTACT_EMAIL}
             </a>
           </div>
+        </section>
+
+        {/* ── Oreo ── */}
+        <section className="text-center pb-4">
+          <Image
+            src="/oreo.jpg"
+            alt="Oreo, Chief Quality Officer"
+            width={80}
+            height={80}
+            className="rounded-full object-cover mx-auto mb-3 border-2 border-gold/25"
+          />
+          <p className="font-semibold text-ink text-sm">Oreo</p>
+          <p className="text-ink/40 text-xs mt-0.5">Chief Quality Officer</p>
         </section>
 
       </div>

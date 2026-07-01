@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import { Inter, Playfair_Display, Jost } from "next/font/google";
 import "./globals.css";
@@ -107,9 +108,10 @@ export default function RootLayout({
               {/* Brand */}
               <div>
                 <Logo scheme="white" height={28} />
-                <p className="text-white/45 text-xs mt-3 leading-relaxed">
-                  For CA Students by CA Students
-                </p>
+                <div className="flex items-center gap-2 mt-3">
+                  <Image src="/oreo.jpg" alt="Oreo" width={20} height={20} className="rounded-full object-cover border border-white/20 shrink-0" />
+                  <p className="text-white/45 text-xs">For CA Students by CA Students</p>
+                </div>
                 <p className="text-white/30 text-xs mt-1">
                   <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-white/60 transition">{CONTACT_EMAIL}</a>
                 </p>

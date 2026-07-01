@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { getOverallRating } from "@/lib/ratings";
 import { FACULTY_SUMMARY_FIELDS } from "@/lib/faculty-config";
@@ -147,6 +148,7 @@ export default async function SubjectPage({
         )}
         {enrichedFaculties.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-100 p-10 sm:p-12 text-center">
+            <Image src="/oreo.jpg" alt="Oreo" width={72} height={72} className="rounded-full object-cover mx-auto mb-5 border border-gold/20" />
             <p className="font-playfair text-xl font-bold text-ink mb-2">No faculties listed yet</p>
             <p className="text-ink/55 text-sm leading-relaxed mb-6 max-w-sm mx-auto">
               Know a {subjectLabel} faculty who should be here? Request them and we&apos;ll add them.
