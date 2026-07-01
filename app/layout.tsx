@@ -71,7 +71,7 @@ const organizationLd = {
   "@type": "Organization",
   name: SITE_NAME,
   url: BASE_URL,
-  logo: `${BASE_URL}/logo/careviews-mark-navy.svg`,
+  logo: `${BASE_URL}/logo/careviews-mark-navy-1024.png`,
   contactPoint: { "@type": "ContactPoint", email: CONTACT_EMAIL, contactType: "customer support" },
   sameAs: [INSTAGRAM_URL, TELEGRAM_URL],
 };
