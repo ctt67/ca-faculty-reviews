@@ -88,6 +88,13 @@ export default function InsightsClient() {
   const [facultiesWithReviews, setFacultiesWithReviews] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) window.location.href = "/login";
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
     const load = async () => {
       const { data: { user } } = await supabase.auth.getUser();
 

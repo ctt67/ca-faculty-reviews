@@ -35,6 +35,15 @@ export default function AccountClient() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) {
+        window.location.href = `/login?next=/account`;
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
     const init = async () => {
       const { data: { user: u } } = await supabase.auth.getUser();
 
