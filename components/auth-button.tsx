@@ -57,9 +57,13 @@ export default function AuthButton() {
 
             <div className="flex items-center gap-3">
 
-                <span className="text-sm text-slate-300">
+                <a
+                    href="/account"
+                    className="text-sm text-slate-300 hover:text-white transition font-medium"
+                    title="My Reviews"
+                >
                     {user.email?.split("@")[0]}
-                </span>
+                </a>
 
                 <button
                     onClick={signOut}

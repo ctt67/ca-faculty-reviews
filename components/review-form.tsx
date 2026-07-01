@@ -8,6 +8,7 @@ import { CheckCircle2, Share2, Copy, Check } from "lucide-react";
 import { BASE_URL, INSTAGRAM_URL, WHATSAPP_URL, TELEGRAM_URL } from "@/lib/config";
 import { track } from "@/lib/track";
 import { REVIEW_VERSION, detectBrowser, hashUserAgent } from "@/lib/client-meta";
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 const RATING_LABELS: Record<number, string> = {
   1: "Very Poor",
@@ -60,6 +61,7 @@ export default function ReviewForm({
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Array<{ slug: string; faculty_name: string; subject: string }>>([]);
 
   const typingStartedAtRef = useRef<number | null>(null);
@@ -191,6 +193,24 @@ export default function ReviewForm({
       setShowErrors(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
+    }
+
+    // CAPTCHA check — only enforced when the widget is active (key configured)
+    const siteKey = process.env.NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY;
+    if (siteKey && !captchaToken) {
+      setNotification({ type: "error", message: "Please complete the CAPTCHA to continue." });
+      return;
+    }
+    if (captchaToken) {
+      const captchaRes = await fetch("/api/verify-captcha", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: captchaToken }),
+      });
+      if (!captchaRes.ok) {
+        setNotification({ type: "error", message: "CAPTCHA verification failed. Please refresh and try again." });
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -774,6 +794,9 @@ export default function ReviewForm({
           <p className="text-xs text-ink/40 mb-3">
             By submitting, you confirm this is your genuine experience and you are not affiliated with this faculty.
           </p>
+          <div className="mb-4">
+            <TurnstileWidget onSuccess={(token) => setCaptchaToken(token)} />
+          </div>
           <button
             onClick={handleSubmit}
             disabled={submitting}

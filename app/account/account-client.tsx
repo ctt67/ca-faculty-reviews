@@ -1,0 +1,237 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { ratingFields } from "@/lib/rating-config";
+import { formatSubjectName } from "@/lib/format";
+import { LEVEL_LABELS } from "@/lib/config";
+import { CheckCircle2, Clock, Star, BookOpen, Calendar } from "lucide-react";
+
+type ReviewRow = {
+  id: number;
+  faculty_slug: string;
+  faculty_name?: string;
+  level?: string;
+  subject?: string;
+  created_at: string;
+  approved: boolean;
+  pros?: string;
+  cons?: string;
+  course_type?: string;
+  attempt?: string;
+  would_recommend?: boolean;
+  [key: string]: unknown;
+};
+
+function avgRating(review: ReviewRow): number {
+  const vals = ratingFields.map((f) => Number(review[f.key])).filter((v) => v > 0);
+  if (!vals.length) return 0;
+  return Number((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1));
+}
+
+export default function AccountClient() {
+  const [user, setUser] = useState<{ id: string; email?: string; created_at?: string } | null | undefined>(undefined);
+  const [reviews, setReviews] = useState<ReviewRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const init = async () => {
+      const { data: { user: u } } = await supabase.auth.getUser();
+
+      if (!u) {
+        window.location.href = `/login?next=/account`;
+        return;
+      }
+      setUser(u);
+
+      const { data: rows } = await supabase
+        .from("reviews")
+        .select("*")
+        .eq("user_id", u.id)
+        .order("created_at", { ascending: false });
+
+      if (!rows?.length) {
+        setLoading(false);
+        return;
+      }
+
+      const slugs = [...new Set(rows.map((r) => r.faculty_slug as string))];
+      const { data: faculties } = await supabase
+        .from("faculties")
+        .select("slug, faculty_name, level, subject")
+        .in("slug", slugs);
+
+      const fMap = new Map((faculties ?? []).map((f) => [f.slug, f]));
+
+      setReviews(rows.map((r) => ({
+        ...r,
+        faculty_name: fMap.get(r.faculty_slug)?.faculty_name ?? r.faculty_slug,
+        level:        fMap.get(r.faculty_slug)?.level ?? "",
+        subject:      fMap.get(r.faculty_slug)?.subject ?? "",
+      })));
+      setLoading(false);
+    };
+
+    init();
+  }, []);
+
+  if (user === undefined || loading) {
+    return (
+      <main className="min-h-screen bg-parchment flex items-center justify-center">
+        <p className="text-ink/40 text-sm">Loading…</p>
+      </main>
+    );
+  }
+
+  const published = reviews.filter((r) => r.approved);
+  const pending   = reviews.filter((r) => !r.approved);
+
+  const joinDate         = user?.created_at ? new Date(user.created_at) : null;
+  const isEarlyContributor = joinDate ? joinDate < new Date("2025-10-01T00:00:00Z") : false;
+
+  return (
+    <main className="min-h-screen bg-parchment">
+
+      {/* Hero */}
+      <section className="bg-navy text-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 md:py-14">
+
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h1 className="font-playfair text-3xl font-bold text-white">My Contributions</h1>
+              <p className="mt-1.5 text-white/55 text-sm">{user?.email}</p>
+              {joinDate && (
+                <p className="text-white/35 text-xs mt-1">
+                  Member since {joinDate.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}
+                </p>
+              )}
+            </div>
+
+            {isEarlyContributor && (
+              <span className="shrink-0 bg-gold/15 text-gold text-xs font-semibold px-3 py-1.5 rounded-full border border-gold/25">
+                ⭐ Early Contributor
+              </span>
+            )}
+          </div>
+
+          {/* Stats */}
+          <div className="mt-8 grid grid-cols-3 gap-3">
+            {[
+              { label: "Submitted",      value: reviews.length,  Icon: BookOpen     },
+              { label: "Published",      value: published.length, Icon: CheckCircle2 },
+              { label: "Pending Review", value: pending.length,   Icon: Clock        },
+            ].map(({ label, value, Icon }) => (
+              <div key={label} className="bg-white/10 rounded-xl px-3 py-3 sm:px-4 sm:py-4">
+                <Icon size={14} className="text-white/45 mb-1.5" />
+                <p className="text-2xl font-bold text-white">{value}</p>
+                <p className="text-white/45 text-xs mt-0.5">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Reviews */}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-4">
+
+        {reviews.length === 0 ? (
+          <div className="bg-white rounded-xl border border-slate-100 p-10 text-center">
+            <p className="font-playfair text-xl font-bold text-ink mb-2">No reviews yet</p>
+            <p className="text-ink/50 text-sm mb-6 max-w-xs mx-auto">
+              Share your genuine experience to help future CA students make better coaching decisions.
+            </p>
+            <a
+              href="/"
+              className="inline-block bg-gold text-ink px-6 py-3 rounded-xl font-semibold text-sm hover:opacity-90 transition"
+            >
+              Browse Faculties →
+            </a>
+          </div>
+        ) : (
+          reviews.map((review) => {
+            const rating = avgRating(review);
+            const date   = new Date(review.created_at).toLocaleDateString("en-IN", {
+              day: "numeric", month: "short", year: "numeric",
+            });
+
+            return (
+              <div key={review.id} className="bg-white rounded-xl border border-slate-100 p-5 sm:p-6">
+
+                {/* Header */}
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div>
+                    <a
+                      href={`/faculty/${review.faculty_slug}`}
+                      className="font-playfair text-lg font-bold text-ink hover:text-navy transition leading-tight"
+                    >
+                      {review.faculty_name}
+                    </a>
+                    <p className="text-xs text-ink/45 mt-0.5">
+                      {LEVEL_LABELS[review.level ?? ""] ?? review.level}
+                      {review.subject ? ` · ${formatSubjectName(review.subject)}` : ""}
+                      {review.course_type ? ` · ${review.course_type}` : ""}
+                    </p>
+                  </div>
+
+                  <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${
+                    review.approved
+                      ? "bg-green-50 text-green-700"
+                      : "bg-amber-50 text-amber-700"
+                  }`}>
+                    {review.approved ? "✓ Published" : "⏳ Pending Review"}
+                  </span>
+                </div>
+
+                {/* Meta row */}
+                <div className="flex items-center gap-3 mt-3 flex-wrap">
+                  {rating > 0 && (
+                    <span className="flex items-center gap-1">
+                      <Star size={12} className="text-gold fill-gold" />
+                      <span className="text-sm font-bold text-ink">{rating}</span>
+                    </span>
+                  )}
+                  <span className="text-xs text-ink/40 flex items-center gap-1">
+                    <Calendar size={11} />
+                    {date}
+                  </span>
+                  {review.would_recommend !== undefined && (
+                    <span className="text-xs text-ink/45">
+                      {review.would_recommend ? "👍 Recommended" : "👎 Not recommended"}
+                    </span>
+                  )}
+                </div>
+
+                {/* Preview */}
+                {review.pros && (
+                  <p className="mt-3 text-sm text-ink/70 leading-relaxed line-clamp-2">
+                    <span className="font-semibold text-green-600 mr-1">+</span>
+                    {review.pros}
+                  </p>
+                )}
+                {review.cons && (
+                  <p className="mt-1 text-sm text-ink/70 leading-relaxed line-clamp-1">
+                    <span className="font-semibold text-red-500 mr-1">−</span>
+                    {review.cons}
+                  </p>
+                )}
+
+                {/* Footer */}
+                <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-xs text-ink/35">{review.attempt}</span>
+                  <a
+                    href={`/faculty/${review.faculty_slug}`}
+                    className="text-xs font-semibold text-navy hover:underline"
+                  >
+                    View Faculty →
+                  </a>
+                </div>
+
+              </div>
+            );
+          })
+        )}
+
+      </section>
+    </main>
+  );
+}
