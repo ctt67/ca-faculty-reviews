@@ -64,6 +64,8 @@ export default function ReviewForm({
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Array<{ slug: string; faculty_name: string; subject: string }>>([]);
 
+  const DRAFT_KEY = `cv_review_draft_${faculty.slug}`;
+
   const typingStartedAtRef = useRef<number | null>(null);
   const markStarted = () => {
     if (typingStartedAtRef.current === null) {
@@ -71,6 +73,35 @@ export default function ReviewForm({
       track("review_started", { faculty_slug: faculty.slug, subject: faculty.subject, level: faculty.level });
     }
   };
+
+  // Restore draft from localStorage on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const { formData: fd, ratings: r, ratingReasons: rr } = JSON.parse(raw);
+      if (fd) setFormData(fd);
+      if (r && Object.keys(r).length > 0) setRatings(r);
+      if (rr && Object.keys(rr).length > 0) setRatingReasons(rr);
+      const hasContent =
+        (fd && Object.values(fd as Record<string, unknown>).some(
+          (v) => v !== "" && !(Array.isArray(v) && v.length === 0),
+        )) ||
+        (r && Object.keys(r).length > 0);
+      if (hasContent) {
+        setNotification({ type: "success", message: "Draft restored — pick up where you left off." });
+        setTimeout(() => setNotification(null), 4000);
+      }
+    } catch {}
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Save draft on every change
+  useEffect(() => {
+    if (submitted || alreadyReviewed) return;
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ formData, ratings, ratingReasons }));
+    } catch {}
+  }, [formData, ratings, ratingReasons, submitted, alreadyReviewed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!submitted || !user) return;
@@ -279,6 +310,7 @@ export default function ReviewForm({
         return;
       }
 
+      localStorage.removeItem(DRAFT_KEY);
       setSubmitted(true);
       track("review_submitted", {
         faculty_slug: faculty.slug,
