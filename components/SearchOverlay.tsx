@@ -27,7 +27,6 @@ export default function SearchOverlay({ onClose }: { onClose: () => void }) {
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [loadingFaculties, setLoadingFaculties] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
-  const didTrackOpen = useRef(false);
   const didClickResult = useRef(false);
 
   // Load all faculties once on mount
@@ -41,22 +40,7 @@ export default function SearchOverlay({ onClose }: { onClose: () => void }) {
         setLoadingFaculties(false);
       });
 
-    if (!didTrackOpen.current) {
-      track("search_opened");
-      didTrackOpen.current = true;
-    }
-
     inputRef.current?.focus();
-
-    return () => {
-      // fire abandoned if user closes without clicking a result
-      if (!didClickResult.current) {
-        const q = inputRef.current?.value ?? "";
-        if (q.trim()) {
-          track("search_abandoned", { query: q.trim() });
-        }
-      }
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

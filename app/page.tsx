@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { PenLine, ShieldCheck, Ban, Layers, FileText, BarChart2, CircleDollarSign, Check } from "lucide-react";
 import { BASE_URL, SITE_NAME } from "@/lib/config";
 import { supabase } from "@/lib/supabase";
-import PageViewTracker from "@/components/PageViewTracker";
 import TrackedLink from "@/components/TrackedLink";
 import CommunityLinks from "@/components/CommunityLinks";
 import NewsletterSignup from "@/components/NewsletterSignup";
@@ -67,8 +66,6 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen">
-      <PageViewTracker event="homepage_viewed" />
-
       {/* Hero */}
       <section className="bg-navy text-white">
         <div className="max-w-4xl mx-auto px-6 py-12 md:py-16">
