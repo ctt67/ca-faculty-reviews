@@ -5,7 +5,8 @@ import { supabase } from "@/lib/supabase";
 import { ratingFields } from "@/lib/rating-config";
 import { formatSubjectName } from "@/lib/format";
 import { LEVEL_LABELS } from "@/lib/config";
-import { CheckCircle2, Clock, Star, BookOpen, Calendar } from "lucide-react";
+import { CheckCircle2, Clock, Star, BookOpen, Calendar, Pencil } from "lucide-react";
+import EditReviewModal from "@/components/EditReviewModal";
 
 type ReviewRow = {
   id: number;
@@ -14,12 +15,14 @@ type ReviewRow = {
   level?: string;
   subject?: string;
   created_at: string;
+  updated_at?: string;
   approved: boolean;
   pros?: string;
   cons?: string;
+  review_text?: string;
   course_type?: string;
   attempt?: string;
-  would_recommend?: boolean;
+  would_recommend?: boolean | null;
   [key: string]: unknown;
 };
 
@@ -33,6 +36,7 @@ export default function AccountClient() {
   const [user, setUser] = useState<{ id: string; email?: string; created_at?: string } | null | undefined>(undefined);
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -225,14 +229,23 @@ export default function AccountClient() {
                 )}
 
                 {/* Footer */}
-                <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
                   <span className="text-xs text-ink/35">{review.attempt}</span>
-                  <a
-                    href={`/faculty/${review.faculty_slug}`}
-                    className="text-xs font-semibold text-navy hover:underline"
-                  >
-                    View Faculty →
-                  </a>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setEditingId(review.id)}
+                      className="flex items-center gap-1 text-xs font-semibold text-ink/50 hover:text-navy transition"
+                    >
+                      <Pencil size={11} />
+                      Edit
+                    </button>
+                    <a
+                      href={`/faculty/${review.faculty_slug}`}
+                      className="text-xs font-semibold text-navy hover:underline"
+                    >
+                      View Faculty →
+                    </a>
+                  </div>
                 </div>
 
               </div>
@@ -241,6 +254,24 @@ export default function AccountClient() {
         )}
 
       </section>
+
+      {editingId !== null && (() => {
+        const review = reviews.find((r) => r.id === editingId);
+        if (!review) return null;
+        return (
+          <EditReviewModal
+            review={review}
+            facultyName={review.faculty_name ?? review.faculty_slug}
+            onClose={() => setEditingId(null)}
+            onSaved={(updated) => {
+              setReviews((prev) =>
+                prev.map((r) => r.id === editingId ? { ...r, ...updated } : r)
+              );
+            }}
+          />
+        );
+      })()}
+
     </main>
   );
 }

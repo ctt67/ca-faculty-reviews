@@ -475,11 +475,18 @@ export default async function FacultyPage({
 
                       {/* Vote + Report row */}
                       <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
-                        <ReviewVote
-                          reviewId={review.id as number}
-                          initialUpvotes={voteCounts.get(review.id as number)?.up ?? 0}
-                          initialDownvotes={voteCounts.get(review.id as number)?.down ?? 0}
-                        />
+                        <div className="flex items-center gap-3">
+                          <ReviewVote
+                            reviewId={review.id as number}
+                            initialUpvotes={voteCounts.get(review.id as number)?.up ?? 0}
+                            initialDownvotes={voteCounts.get(review.id as number)?.down ?? 0}
+                          />
+                          {review.updated_at && (
+                            <span className="text-[10px] text-ink/30 italic">
+                              Edited {new Date(review.updated_at as string).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                            </span>
+                          )}
+                        </div>
                         <ReportReview reviewId={review.id as number} />
                       </div>
 

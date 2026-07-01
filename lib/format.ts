@@ -31,7 +31,7 @@ export const PUBLIC_FACULTY_FIELDS = new Set(["language", "mode"]);
 // Excludes user_id and anti-spam/analytics metadata (typing_started_at,
 // submitted_at, time_taken_seconds, referrer, utm_source, device_type, ip_hash).
 export const PUBLIC_REVIEW_COLUMNS = [
-  "id", "faculty_slug", "created_at",
+  "id", "faculty_slug", "created_at", "updated_at",
   "attempt", "student_type", "course_type", "teacher_style", "course_progress",
   "class_environment", "actual_duration_hours", "best_for", "would_recommend",
   "pros", "cons", "review_text", "rating_reasons",
