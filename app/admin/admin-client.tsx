@@ -189,9 +189,12 @@ export default function AdminClient() {
   const [adminEmail, setAdminEmail]     = useState("");
   const [reviews, setReviews]           = useState<any[]>([]);
   const [spamMap, setSpamMap]           = useState<Map<number, SpamSignals>>(new Map());
-  const [publishedReviews, setPublishedReviews] = useState<any[]>([]);
-  const [showPublished, setShowPublished]       = useState(false);
-  const [loadingPublished, setLoadingPublished] = useState(false);
+  const [publishedReviews, setPublishedReviews]   = useState<any[]>([]);
+  const [showPublished, setShowPublished]         = useState(false);
+  const [loadingPublished, setLoadingPublished]   = useState(false);
+  const [facultyRequests, setFacultyRequests]     = useState<any[]>([]);
+  const [showRequests, setShowRequests]           = useState(false);
+  const [loadingRequests, setLoadingRequests]     = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -243,11 +246,16 @@ export default function AdminClient() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const logAudit = (action: string, reviewId: number, metadata?: Record<string, unknown>) =>
+  const logAudit = (
+    action: string,
+    entityId: number,
+    metadata?: Record<string, unknown>,
+    entityType = "review",
+  ) =>
     supabase.from("audit_logs").insert({
       action,
-      entity_type: "review",
-      entity_id:   reviewId,
+      entity_type: entityType,
+      entity_id:   entityId,
       admin_email: adminEmail,
       metadata:    metadata ?? null,
     });
@@ -293,6 +301,37 @@ export default function AdminClient() {
       logAudit("hide_review", reviewId, { faculty_slug: review?.faculty_slug }),
     ]);
     setPublishedReviews((prev) => prev.filter((r) => r.id !== reviewId));
+  };
+
+  const loadFacultyRequests = async () => {
+    if (facultyRequests.length > 0) { setShowRequests(true); return; }
+    setLoadingRequests(true);
+    const { data } = await supabase
+      .from("faculty_requests")
+      .select("id, faculty_name, level, subject, institution, notes, requester_email, created_at, status")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
+    setFacultyRequests(data ?? []);
+    setShowRequests(true);
+    setLoadingRequests(false);
+  };
+
+  const markRequestDone = async (reqId: number) => {
+    const req = facultyRequests.find((r) => r.id === reqId);
+    await Promise.all([
+      supabase.from("faculty_requests").update({ status: "done" }).eq("id", reqId),
+      logAudit("faculty_request_done", reqId, { faculty_name: req?.faculty_name }, "faculty_request"),
+    ]);
+    setFacultyRequests((prev) => prev.filter((r) => r.id !== reqId));
+  };
+
+  const dismissRequest = async (reqId: number) => {
+    const req = facultyRequests.find((r) => r.id === reqId);
+    await Promise.all([
+      supabase.from("faculty_requests").update({ status: "dismissed" }).eq("id", reqId),
+      logAudit("faculty_request_dismissed", reqId, { faculty_name: req?.faculty_name }, "faculty_request"),
+    ]);
+    setFacultyRequests((prev) => prev.filter((r) => r.id !== reqId));
   };
 
   if (loading) return <main className="p-10 text-slate-500">Loading...</main>;
@@ -439,6 +478,61 @@ export default function AdminClient() {
             })}
           </div>
         )}
+
+        {/* Faculty Requests */}
+        <div className="mt-10">
+          <button
+            onClick={() => showRequests ? setShowRequests(false) : loadFacultyRequests()}
+            className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition"
+          >
+            {loadingRequests ? "Loading…" : showRequests ? "▲ Hide Faculty Requests" : "▼ Show Faculty Requests"}
+          </button>
+
+          {showRequests && (
+            <div className="space-y-4 mt-5">
+              {facultyRequests.length === 0 && (
+                <p className="text-slate-400 text-sm">No pending faculty requests.</p>
+              )}
+              {facultyRequests.map((req) => (
+                <div key={req.id} className="bg-white rounded-2xl border border-slate-200 p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-slate-900 text-base">{req.faculty_name}</p>
+                      <div className="flex flex-wrap gap-1.5 mt-1.5">
+                        {req.level   && <span className="bg-blue-50 text-blue-700 rounded-full px-2.5 py-0.5 text-xs font-medium">{req.level}</span>}
+                        {req.subject && <span className="bg-slate-100 text-slate-600 rounded-full px-2.5 py-0.5 text-xs font-medium">{req.subject}</span>}
+                        {req.institution && <span className="bg-slate-100 text-slate-600 rounded-full px-2.5 py-0.5 text-xs font-medium">{req.institution}</span>}
+                      </div>
+                      {req.notes && (
+                        <p className="text-xs text-slate-500 mt-2 leading-relaxed">{req.notes}</p>
+                      )}
+                      <div className="flex flex-wrap items-center gap-3 mt-2">
+                        {req.requester_email && (
+                          <p className="text-xs text-slate-400">{req.requester_email}</p>
+                        )}
+                        <p className="text-xs text-slate-400">{new Date(req.created_at).toLocaleDateString("en-IN")}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 shrink-0">
+                      <button
+                        onClick={() => markRequestDone(req.id)}
+                        className="text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg hover:bg-green-100 transition whitespace-nowrap"
+                      >
+                        Mark Added
+                      </button>
+                      <button
+                        onClick={() => dismissRequest(req.id)}
+                        className="text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Published Reviews */}
         <div className="mt-10">
