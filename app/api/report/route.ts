@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+);
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,7 +19,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid reason" }, { status: 400 });
     }
 
-    // Basic rate limit: one report per session per review
+    // One report per session per review
     const { data: existing } = await supabase
       .from("review_reports")
       .select("id")
@@ -22,8 +27,17 @@ export async function POST(req: NextRequest) {
       .eq("session_token", session_token ?? "")
       .maybeSingle();
 
-    if (existing) {
-      return NextResponse.json({ ok: true }); // silently accept
+    if (existing) return NextResponse.json({ ok: true });
+
+    // Broader rate limit: 20 reports per session per 24h
+    if (session_token) {
+      const { data: allowed } = await supabase.rpc("check_rate_limit", {
+        p_table: "review_reports", p_column: "session_token",
+        p_value: session_token, p_limit: 20, p_window_hours: 24,
+      });
+      if (allowed === false) {
+        return NextResponse.json({ error: "Too many reports today." }, { status: 429 });
+      }
     }
 
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;

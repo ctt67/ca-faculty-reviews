@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Flag } from "lucide-react";
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 const REASONS = [
   { value: "fake",          label: "Fake review" },
@@ -24,16 +25,28 @@ export default function ReportReview({ reviewId }: { reviewId: string | number }
   const [open, setOpen]         = useState(false);
   const [reason, setReason]     = useState("");
   const [details, setDetails]   = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [done, setDone]         = useState(false);
+  const [submitting, setSubmitting]   = useState(false);
+  const [done, setDone]               = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const close = () => {
     setOpen(false);
-    setTimeout(() => { setDone(false); setReason(""); setDetails(""); }, 300);
+    setTimeout(() => { setDone(false); setReason(""); setDetails(""); setCaptchaToken(null); }, 300);
   };
 
   const submit = async () => {
     if (!reason || submitting) return;
+
+    const siteKey = process.env.NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY;
+    if (siteKey && !captchaToken) return; // widget not yet solved
+    if (captchaToken) {
+      const cv = await fetch("/api/verify-captcha", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: captchaToken }),
+      });
+      if (!cv.ok) return;
+    }
+
     setSubmitting(true);
     try {
       await fetch("/api/report", {
@@ -116,6 +129,9 @@ export default function ReportReview({ reviewId }: { reviewId: string | number }
                   />
                 )}
 
+                <div className="mb-3">
+                  <TurnstileWidget onSuccess={(t) => setCaptchaToken(t)} />
+                </div>
                 <div className="flex gap-2">
                   <button
                     onClick={close}

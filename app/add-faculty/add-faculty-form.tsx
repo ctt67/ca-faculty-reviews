@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 const LEVELS   = ["CA Final", "CA Intermediate", "CA Foundation"];
 const SUBJECTS: Record<string, string[]> = {
@@ -20,9 +21,10 @@ export default function AddFacultyForm() {
     notes: "",
     email: "",
   });
-  const [submitting, setSubmitting] = useState(false);
-  const [done, setDone]             = useState(false);
-  const [error, setError]           = useState("");
+  const [submitting, setSubmitting]   = useState(false);
+  const [done, setDone]               = useState(false);
+  const [error, setError]             = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm((p) => ({ ...p, [k]: e.target.value, ...(k === "level" ? { subject: "" } : {}) }));
@@ -32,6 +34,17 @@ export default function AddFacultyForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.faculty_name.trim()) { setError("Faculty name is required."); return; }
+
+    const siteKey = process.env.NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY;
+    if (siteKey && !captchaToken) { setError("Please complete the CAPTCHA."); return; }
+    if (captchaToken) {
+      const cv = await fetch("/api/verify-captcha", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: captchaToken }),
+      });
+      if (!cv.ok) { setError("CAPTCHA verification failed. Please try again."); return; }
+    }
+
     setError("");
     setSubmitting(true);
     try {
@@ -160,6 +173,7 @@ export default function AddFacultyForm() {
 
       <div className="pb-8">
         <p className="text-xs text-ink/40 mb-3">We review all requests manually. Most are added within a few days.</p>
+        <div className="mb-4"><TurnstileWidget onSuccess={(t) => setCaptchaToken(t)} /></div>
         <button
           type="submit"
           disabled={submitting}
