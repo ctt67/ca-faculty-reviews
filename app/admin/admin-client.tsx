@@ -401,7 +401,16 @@ export default function AdminClient() {
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2 shrink-0">
-                      <div className="text-xs text-slate-400">{new Date(review.created_at).toLocaleString("en-IN")}</div>
+                      {review.updated_at && (
+                        <span className="bg-purple-50 text-purple-700 border border-purple-200 rounded-full px-3 py-1 text-xs font-semibold">
+                          ✏️ Edited
+                        </span>
+                      )}
+                      <div className="text-xs text-slate-400">
+                        {review.updated_at
+                          ? `Edited ${new Date(review.updated_at).toLocaleString("en-IN")}`
+                          : new Date(review.created_at).toLocaleString("en-IN")}
+                      </div>
                       {signals && <SpamBadge level={signals.level} score={signals.score} />}
                     </div>
                   </div>
