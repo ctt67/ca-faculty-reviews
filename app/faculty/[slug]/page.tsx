@@ -11,6 +11,7 @@ import {
 } from "@/lib/format";
 import ReviewRatingDetails from "@/components/ReviewRatingDetails";
 import ReviewSortControls from "@/components/ReviewSortControls";
+import ReviewFilters from "@/components/ReviewFilters";
 import PageViewTracker from "@/components/PageViewTracker";
 import TrackedLink from "@/components/TrackedLink";
 import ShareButtons from "@/components/ShareButtons";
@@ -65,10 +66,13 @@ export default async function FacultyPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ page?: string; sort?: string }>;
+  searchParams: Promise<{ page?: string; sort?: string; attempt?: string; course_type?: string }>;
 }) {
   const { slug } = await params;
-  const { page: pageParam, sort: sortParam } = await searchParams;
+  const { page: pageParam, sort: sortParam, attempt: attemptParam, course_type: courseTypeParam } = await searchParams;
+
+  const filterAttempt    = (attemptParam    ?? "").trim();
+  const filterCourseType = (courseTypeParam ?? "").trim();
 
   const VALID_SORTS = ["newest", "oldest", "highest", "lowest", "helpful"] as const;
   type Sort = (typeof VALID_SORTS)[number];
@@ -89,6 +93,7 @@ export default async function FacultyPage({
   if (!faculty) notFound();
 
   const ratingColumns = [
+    "attempt", "course_type",
     "understandability", "exam_focus", "study_material_quality", "mock_coverage",
     "coverage_of_questions", "doubt_resolution", "revision_support", "notes_quality",
     "pace_of_teaching", "time_efficiency", "value_for_money", "expectation_match",
@@ -103,12 +108,15 @@ export default async function FacultyPage({
   };
   const { column: orderCol, ascending: orderAsc } = sortConfig[sort];
 
-  const baseQuery = supabase
+  let baseQuery = supabase
     .from("reviews")
     .select(PUBLIC_REVIEW_COLUMNS, { count: "exact" })
     .eq("faculty_slug", slug)
     .eq("approved", true)
     .order(orderCol, { ascending: orderAsc });
+
+  if (filterAttempt)    baseQuery = baseQuery.eq("attempt",     filterAttempt)    as typeof baseQuery;
+  if (filterCourseType) baseQuery = baseQuery.eq("course_type", filterCourseType) as typeof baseQuery;
 
   const [{ data: allRatingData }, { data: pageReviews, count }] = await Promise.all([
     supabase
@@ -142,9 +150,14 @@ export default async function FacultyPage({
       return bNet - aNet;
     });
   }
-  const allReviews = (allRatingData ?? []) as unknown as Record<string, unknown>[];
+  const allReviews = (allRatingData ?? []) as unknown as Record<string, any>[];
+  const totalUnfiltered = allReviews.length;
   const totalReviews = count ?? 0;
   const totalPages = Math.ceil(totalReviews / REVIEWS_PER_PAGE);
+
+  const attempts = [...new Set(allReviews.map((r) => r.attempt).filter(Boolean))].sort() as string[];
+  const courseTypes = [...new Set(allReviews.map((r) => r.course_type).filter(Boolean))].sort() as string[];
+  const hasFilters = filterAttempt || filterCourseType;
   const overallRating = getOverallRating(allReviews);
 
   const facultyFields = Object.keys(faculty).filter((f) => PUBLIC_FACULTY_FIELDS.has(f));
@@ -224,7 +237,7 @@ export default async function FacultyPage({
                   {faculty.faculty_name}
                 </h1>
                 <p className="text-white/50 text-sm mt-2">
-                  {totalReviews} student {totalReviews === 1 ? "review" : "reviews"}
+                  {totalUnfiltered} student {totalUnfiltered === 1 ? "review" : "reviews"}
                 </p>
               </div>
 
@@ -342,13 +355,23 @@ export default async function FacultyPage({
 
               <div className="flex items-baseline gap-2 mb-2">
                 <h2 className="font-playfair text-2xl font-bold text-ink">Student Reviews</h2>
-                <span className="text-ink/35 font-normal text-lg">({totalReviews})</span>
+                <span className="text-ink/35 font-normal text-lg">
+                  ({hasFilters ? `${totalReviews} of ${totalUnfiltered}` : totalReviews})
+                </span>
               </div>
-              {totalReviews > 1 && (
-                <div className="mb-4">
+              {totalUnfiltered > 1 && (
+                <div className="mb-3">
                   <ReviewSortControls slug={slug} current={sort} />
                 </div>
               )}
+              <ReviewFilters
+                slug={slug}
+                sort={sort}
+                currentAttempt={filterAttempt}
+                currentCourseType={filterCourseType}
+                attempts={attempts}
+                courseTypes={courseTypes}
+              />
               <p className="text-ink/45 text-xs mb-7">
                 Reviews represent individual student opinions. Careviews does not endorse any faculty.
               </p>
@@ -468,29 +491,43 @@ export default async function FacultyPage({
               {/* Pagination — hidden for helpful sort (all shown at once) */}
               {!isHelpful && totalPages > 1 && (
                 <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-100">
-                  <a
-                    href={page > 1 ? `/faculty/${slug}?sort=${sort}&page=${page - 1}` : undefined}
-                    aria-disabled={page <= 1}
-                    className={`px-5 py-2.5 rounded-xl border text-sm font-medium transition ${
-                      page <= 1
-                        ? "border-slate-100 text-ink/25 pointer-events-none"
-                        : "border-slate-200 text-ink hover:bg-slate-50"
-                    }`}
-                  >
-                    ← Previous
-                  </a>
-                  <span className="text-sm text-ink/45">Page {page} of {totalPages}</span>
-                  <a
-                    href={page < totalPages ? `/faculty/${slug}?sort=${sort}&page=${page + 1}` : undefined}
-                    aria-disabled={page >= totalPages}
-                    className={`px-5 py-2.5 rounded-xl border text-sm font-medium transition ${
-                      page >= totalPages
-                        ? "border-slate-100 text-ink/25 pointer-events-none"
-                        : "border-slate-200 text-ink hover:bg-slate-50"
-                    }`}
-                  >
-                    Next →
-                  </a>
+                  {(() => {
+                    const buildHref = (p: number) => {
+                      const q = new URLSearchParams();
+                      if (sort !== "newest") q.set("sort", sort);
+                      if (filterAttempt)     q.set("attempt", filterAttempt);
+                      if (filterCourseType)  q.set("course_type", filterCourseType);
+                      q.set("page", String(p));
+                      return `/faculty/${slug}?${q.toString()}`;
+                    };
+                    return (
+                      <>
+                        <a
+                          href={page > 1 ? buildHref(page - 1) : undefined}
+                          aria-disabled={page <= 1}
+                          className={`px-5 py-2.5 rounded-xl border text-sm font-medium transition ${
+                            page <= 1
+                              ? "border-slate-100 text-ink/25 pointer-events-none"
+                              : "border-slate-200 text-ink hover:bg-slate-50"
+                          }`}
+                        >
+                          ← Previous
+                        </a>
+                        <span className="text-sm text-ink/45">Page {page} of {totalPages}</span>
+                        <a
+                          href={page < totalPages ? buildHref(page + 1) : undefined}
+                          aria-disabled={page >= totalPages}
+                          className={`px-5 py-2.5 rounded-xl border text-sm font-medium transition ${
+                            page >= totalPages
+                              ? "border-slate-100 text-ink/25 pointer-events-none"
+                              : "border-slate-200 text-ink hover:bg-slate-50"
+                          }`}
+                        >
+                          Next →
+                        </a>
+                      </>
+                    );
+                  })()}
                 </div>
               )}
 
