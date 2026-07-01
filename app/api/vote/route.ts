@@ -22,17 +22,20 @@ export async function POST(req: NextRequest) {
     const ipHash = rawIp ? hashIp(rawIp) : null;
 
     if (vote_type === null) {
-      // Toggle off — remove the vote
-      await supabase
+      const { error } = await supabase
         .from("review_votes")
         .delete()
         .eq("review_id", review_id)
         .eq("session_token", session_token);
+      if (error) {
+        console.error("vote delete error", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
     } else {
       if (!["up", "down"].includes(vote_type)) {
         return NextResponse.json({ error: "Invalid vote_type" }, { status: 400 });
       }
-      await supabase.from("review_votes").upsert(
+      const { error } = await supabase.from("review_votes").upsert(
         {
           review_id,
           session_token,
@@ -42,6 +45,10 @@ export async function POST(req: NextRequest) {
         },
         { onConflict: "review_id,session_token" }
       );
+      if (error) {
+        console.error("vote upsert error", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
     }
 
     return NextResponse.json({ ok: true });
