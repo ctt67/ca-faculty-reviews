@@ -184,10 +184,11 @@ function Cell({ label, value, flag, note }: { label: string; value: string; flag
 // ── Main admin component ──────────────────────────────────────────────────────
 
 export default function AdminClient() {
-  const [loading, setLoading]   = useState(true);
+  const [loading, setLoading]       = useState(true);
   const [authorized, setAuthorized] = useState(false);
-  const [reviews, setReviews]   = useState<any[]>([]);
-  const [spamMap, setSpamMap]   = useState<Map<number, SpamSignals>>(new Map());
+  const [adminEmail, setAdminEmail] = useState("");
+  const [reviews, setReviews]       = useState<any[]>([]);
+  const [spamMap, setSpamMap]       = useState<Map<number, SpamSignals>>(new Map());
 
   useEffect(() => {
     const load = async () => {
@@ -200,6 +201,7 @@ export default function AdminClient() {
       }
 
       setAuthorized(true);
+      setAdminEmail(user.email ?? ADMIN_EMAIL);
 
       const { data } = await supabase
         .from("reviews")
@@ -238,16 +240,31 @@ export default function AdminClient() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const logAudit = (action: string, reviewId: number, metadata?: Record<string, unknown>) =>
+    supabase.from("audit_logs").insert({
+      action,
+      entity_type: "review",
+      entity_id:   reviewId,
+      admin_email: adminEmail,
+      metadata:    metadata ?? null,
+    });
+
   const approveReview = async (reviewId: number) => {
     const review = reviews.find((r) => r.id === reviewId);
-    await supabase.from("reviews").update({ approved: true }).eq("id", reviewId);
+    await Promise.all([
+      supabase.from("reviews").update({ approved: true }).eq("id", reviewId),
+      logAudit("approve_review", reviewId, { faculty_slug: review?.faculty_slug }),
+    ]);
     track("review_published", { review_id: reviewId, faculty_slug: review?.faculty_slug, time_taken_seconds: review?.time_taken_seconds });
     setReviews(reviews.filter((r) => r.id !== reviewId));
   };
 
   const rejectReview = async (reviewId: number) => {
     const review = reviews.find((r) => r.id === reviewId);
-    await supabase.from("reviews").delete().eq("id", reviewId);
+    await Promise.all([
+      supabase.from("reviews").delete().eq("id", reviewId),
+      logAudit("reject_review", reviewId, { faculty_slug: review?.faculty_slug }),
+    ]);
     track("review_rejected", { review_id: reviewId, faculty_slug: review?.faculty_slug, time_taken_seconds: review?.time_taken_seconds });
     setReviews(reviews.filter((r) => r.id !== reviewId));
   };
