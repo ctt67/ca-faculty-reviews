@@ -52,16 +52,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // ── Subject pages ─────────────────────────────────────────────────────────
+  // Build subject key → latest review date across all faculties in that subject
+  const subjectLastReview = new Map<string, Date>();
+  for (const f of facultyList) {
+    const key = `${f.level.toLowerCase()}-${f.subject.toLowerCase()}`;
+    const d = lastReviewDate.get(f.slug);
+    if (d) {
+      const existing = subjectLastReview.get(key);
+      if (!existing || d > existing) subjectLastReview.set(key, d);
+    }
+  }
+
   const uniqueSubjects = [
     ...new Map(facultyList.map((f) => [`${f.level}-${f.subject}`, f])).values(),
   ];
 
-  const subjectPages: MetadataRoute.Sitemap = uniqueSubjects.map((f) => ({
-    url: `${BASE_URL}/${f.level.toLowerCase()}/${f.subject.toLowerCase()}`,
-    lastModified: SITE_LAUNCH,
-    changeFrequency: "weekly" as const,
-    priority: 0.85,
-  }));
+  const subjectPages: MetadataRoute.Sitemap = uniqueSubjects.map((f) => {
+    const key = `${f.level.toLowerCase()}-${f.subject.toLowerCase()}`;
+    return {
+      url: `${BASE_URL}/${f.level.toLowerCase()}/${f.subject.toLowerCase()}`,
+      lastModified: subjectLastReview.get(key) ?? SITE_LAUNCH,
+      changeFrequency: "weekly" as const,
+      priority: 0.85,
+    };
+  });
 
   // ── Compare pages — same subject/level, both faculties have reviews ────────
   const comparePages: MetadataRoute.Sitemap = [];
