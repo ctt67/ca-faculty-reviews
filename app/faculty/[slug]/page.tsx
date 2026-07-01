@@ -12,9 +12,13 @@ import {
 import ReviewRatingDetails from "@/components/ReviewRatingDetails";
 import PageViewTracker from "@/components/PageViewTracker";
 import TrackedLink from "@/components/TrackedLink";
+import ShareButtons from "@/components/ShareButtons";
+import ReviewVote from "@/components/ReviewVote";
+import ReportReview from "@/components/ReportReview";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { generateFacultyMetadata } from "@/lib/seo";
+import { BASE_URL, LEVEL_LABELS } from "@/lib/config";
 
 export const revalidate = 300;
 
@@ -97,6 +101,19 @@ export default async function FacultyPage({
       .range(offset, offset + REVIEWS_PER_PAGE - 1),
   ]);
 
+  // Fetch vote counts for current page reviews
+  const reviewIds = ((pageReviews ?? []) as unknown as Array<{ id: string }>).map((r) => r.id).filter(Boolean);
+  const { data: voteData } = reviewIds.length
+    ? await supabase.from("review_votes").select("review_id, vote_type").in("review_id", reviewIds)
+    : { data: [] };
+  const voteCounts = new Map<string, { up: number; down: number }>();
+  for (const v of voteData ?? []) {
+    const entry = voteCounts.get(v.review_id) ?? { up: 0, down: 0 };
+    if (v.vote_type === "up") entry.up++;
+    else entry.down++;
+    voteCounts.set(v.review_id, entry);
+  }
+
   const reviews = (pageReviews ?? []) as unknown as Record<string, any>[];
   const allReviews = (allRatingData ?? []) as unknown as Record<string, unknown>[];
   const totalReviews = count ?? 0;
@@ -108,25 +125,39 @@ export default async function FacultyPage({
 
   const subjectLabel = formatSubjectName(faculty.subject ?? "");
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Person",
-    name: faculty.faculty_name,
-    jobTitle: `${faculty.subject} Educator`,
-    knowsAbout: faculty.subject,
-    ...(faculty.website ? { url: faculty.website } : {}),
-    ...(totalReviews > 0
-      ? {
-          aggregateRating: {
-            "@type": "AggregateRating",
-            ratingValue: overallRating.toFixed(1),
-            reviewCount: totalReviews,
-            bestRating: "5",
-            worstRating: "1",
-          },
-        }
-      : {}),
-  };
+  const levelLabel = LEVEL_LABELS[faculty.level?.toLowerCase() ?? ""] ?? faculty.level ?? "";
+
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      name: faculty.faculty_name,
+      jobTitle: `${subjectLabel} Educator`,
+      knowsAbout: faculty.subject,
+      ...(faculty.website ? { url: faculty.website } : {}),
+      ...(totalReviews > 0
+        ? {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: overallRating.toFixed(1),
+              reviewCount: totalReviews,
+              bestRating: "5",
+              worstRating: "1",
+            },
+          }
+        : {}),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home",          item: BASE_URL },
+        { "@type": "ListItem", position: 2, name: levelLabel,      item: `${BASE_URL}/${faculty.level?.toLowerCase()}` },
+        { "@type": "ListItem", position: 3, name: subjectLabel,    item: `${BASE_URL}/${faculty.level?.toLowerCase()}/${faculty.subject?.toLowerCase()}` },
+        { "@type": "ListItem", position: 4, name: faculty.faculty_name, item: `${BASE_URL}/faculty/${faculty.slug}` },
+      ],
+    },
+  ];
 
   return (
     <>
@@ -134,6 +165,7 @@ export default async function FacultyPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+
       <PageViewTracker event="faculty_page_viewed" properties={{ faculty_slug: faculty.slug, subject: faculty.subject, level: faculty.level }} />
       <main className="min-h-screen">
 
@@ -189,6 +221,12 @@ export default async function FacultyPage({
                 )}
               </div>
             </div>
+
+            {/* Share row */}
+            <div className="mt-6 pt-5 border-t border-white/10">
+              <ShareButtons facultySlug={faculty.slug} facultyName={faculty.faculty_name} />
+            </div>
+
           </div>
         </section>
 
@@ -284,8 +322,20 @@ export default async function FacultyPage({
               </p>
 
               {totalReviews === 0 ? (
-                <div className="bg-white rounded-xl border border-slate-100 p-12 text-center text-ink/40">
-                  No reviews yet for this faculty.
+                <div className="bg-white rounded-xl border border-slate-100 p-10 sm:p-12 text-center">
+                  <p className="font-playfair text-xl font-bold text-ink mb-2">Be the first to help future CA students</p>
+                  <p className="text-ink/55 text-sm leading-relaxed mb-6 max-w-sm mx-auto">
+                    Your honest review of {faculty.faculty_name} could help hundreds of students make a better decision about their CA preparation.
+                  </p>
+                  <TrackedLink
+                    href={`/review/${faculty.slug}`}
+                    event="write_review_clicked"
+                    properties={{ faculty_slug: faculty.slug, source: "empty_state" }}
+                    className="inline-block bg-gold text-ink px-6 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition"
+                  >
+                    Write the First Review →
+                  </TrackedLink>
+                  <p className="text-ink/30 text-xs mt-5">Takes about 5 minutes. Reviewed within 24 hours.</p>
                 </div>
               ) : (
                 <div className="space-y-5">
@@ -367,6 +417,16 @@ export default async function FacultyPage({
                       )}
 
                       <ReviewRatingDetails review={review} />
+
+                      {/* Vote + Report row */}
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+                        <ReviewVote
+                          reviewId={review.id as string}
+                          initialUpvotes={voteCounts.get(review.id as string)?.up ?? 0}
+                          initialDownvotes={voteCounts.get(review.id as string)?.down ?? 0}
+                        />
+                        <ReportReview reviewId={review.id as string} />
+                      </div>
 
                     </div>
                   ))}

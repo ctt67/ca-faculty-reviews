@@ -30,11 +30,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // ── Static pages ──────────────────────────────────────────────────────────
   const staticPages: MetadataRoute.Sitemap = [
-    { url: BASE_URL,                lastModified: new Date(),   changeFrequency: "daily",  priority: 1    },
-    { url: `${BASE_URL}/final`,     lastModified: SITE_LAUNCH,  changeFrequency: "weekly", priority: 0.9  },
-    { url: `${BASE_URL}/inter`,     lastModified: SITE_LAUNCH,  changeFrequency: "weekly", priority: 0.9  },
-    { url: `${BASE_URL}/foundation`,lastModified: SITE_LAUNCH,  changeFrequency: "weekly", priority: 0.9  },
-    { url: `${BASE_URL}/compare`,   lastModified: SITE_LAUNCH,  changeFrequency: "weekly", priority: 0.75 },
+    { url: BASE_URL,                             lastModified: new Date(),   changeFrequency: "daily",   priority: 1    },
+    { url: `${BASE_URL}/final`,                  lastModified: SITE_LAUNCH,  changeFrequency: "weekly",  priority: 0.9  },
+    { url: `${BASE_URL}/inter`,                  lastModified: SITE_LAUNCH,  changeFrequency: "weekly",  priority: 0.9  },
+    { url: `${BASE_URL}/foundation`,             lastModified: SITE_LAUNCH,  changeFrequency: "weekly",  priority: 0.9  },
+    { url: `${BASE_URL}/compare`,                lastModified: SITE_LAUNCH,  changeFrequency: "weekly",  priority: 0.75 },
+    { url: `${BASE_URL}/about`,                  lastModified: SITE_LAUNCH,  changeFrequency: "monthly", priority: 0.6  },
+    { url: `${BASE_URL}/add-faculty`,            lastModified: SITE_LAUNCH,  changeFrequency: "monthly", priority: 0.5  },
+    { url: `${BASE_URL}/guidelines`,             lastModified: SITE_LAUNCH,  changeFrequency: "monthly", priority: 0.4  },
+    { url: `${BASE_URL}/community-guidelines`,   lastModified: SITE_LAUNCH,  changeFrequency: "monthly", priority: 0.4  },
+    { url: `${BASE_URL}/privacy`,                lastModified: SITE_LAUNCH,  changeFrequency: "monthly", priority: 0.3  },
+    { url: `${BASE_URL}/terms`,                  lastModified: SITE_LAUNCH,  changeFrequency: "monthly", priority: 0.3  },
   ];
 
   // ── Faculty pages — lastModified from actual review dates ─────────────────

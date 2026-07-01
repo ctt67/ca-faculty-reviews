@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { getOverallRating } from "@/lib/ratings";
 import { FACULTY_SUMMARY_FIELDS } from "@/lib/faculty-config";
-import { LEVEL_LABELS } from "@/lib/config";
+import { LEVEL_LABELS, BASE_URL } from "@/lib/config";
 import { formatSubjectName, PUBLIC_REVIEW_COLUMNS } from "@/lib/format";
 import type { Metadata } from "next";
 import { generateSubjectMetadata } from "@/lib/seo";
@@ -62,8 +62,19 @@ export default async function SubjectPage({
   const levelLabel = LEVEL_LABELS[level.toLowerCase()] ?? level.toUpperCase();
   const subjectLabel = formatSubjectName(subject);
 
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home",       item: BASE_URL },
+      { "@type": "ListItem", position: 2, name: levelLabel,   item: `${BASE_URL}/${level.toLowerCase()}` },
+      { "@type": "ListItem", position: 3, name: subjectLabel, item: `${BASE_URL}/${level.toLowerCase()}/${subject.toLowerCase()}` },
+    ],
+  };
+
   return (
     <main className="min-h-screen">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
 
       {/* Hero */}
       <section className="bg-navy text-white">
@@ -87,8 +98,17 @@ export default async function SubjectPage({
       {/* Faculty grid */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-14">
         {enrichedFaculties.length === 0 ? (
-          <div className="bg-white rounded-xl border border-slate-100 p-12 text-center text-ink/40">
-            No faculties found for this subject yet.
+          <div className="bg-white rounded-xl border border-slate-100 p-10 sm:p-12 text-center">
+            <p className="font-playfair text-xl font-bold text-ink mb-2">No faculties listed yet</p>
+            <p className="text-ink/55 text-sm leading-relaxed mb-6 max-w-sm mx-auto">
+              Know a {subjectLabel} faculty who should be here? Request them and we&apos;ll add them.
+            </p>
+            <a
+              href={`/add-faculty`}
+              className="inline-block bg-gold text-ink px-6 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition"
+            >
+              Request a Faculty →
+            </a>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -202,6 +222,23 @@ export default async function SubjectPage({
             })}
           </div>
         )}
+
+        {/* Add Faculty CTA */}
+        {enrichedFaculties.length > 0 && (
+          <div className="mt-10 pt-8 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-ink">Can&apos;t find your faculty?</p>
+              <p className="text-xs text-ink/50 mt-0.5">Help grow the platform — request a faculty and we&apos;ll add them.</p>
+            </div>
+            <a
+              href="/add-faculty"
+              className="shrink-0 border border-slate-300 text-ink px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 transition"
+            >
+              + Request a Faculty
+            </a>
+          </div>
+        )}
+
       </section>
 
     </main>

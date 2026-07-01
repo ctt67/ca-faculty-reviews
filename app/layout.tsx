@@ -7,7 +7,7 @@ import CommunityLinks from "@/components/CommunityLinks";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import CommunityFloat from "@/components/CommunityFloat";
 import { Analytics } from "@vercel/analytics/next";
-import { CONTACT_EMAIL } from "@/lib/config";
+import { CONTACT_EMAIL, BASE_URL, SITE_NAME, INSTAGRAM_URL, TELEGRAM_URL } from "@/lib/config";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -66,6 +66,23 @@ export const metadata: Metadata = {
   },
 };
 
+const organizationLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: SITE_NAME,
+  url: BASE_URL,
+  logo: `${BASE_URL}/logo/careviews-mark-navy.svg`,
+  contactPoint: { "@type": "ContactPoint", email: CONTACT_EMAIL, contactType: "customer support" },
+  sameAs: [INSTAGRAM_URL, TELEGRAM_URL],
+};
+
+const websiteLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE_NAME,
+  url: BASE_URL,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -77,6 +94,7 @@ export default function RootLayout({
       className={`${inter.variable} ${playfairDisplay.variable} ${jost.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-parchment text-ink">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationLd, websiteLd]) }} />
 
         <Navbar />
 
@@ -106,6 +124,14 @@ export default function RootLayout({
                   <a href="/foundation" className="text-white/55 hover:text-white text-sm transition">Foundation</a>
                   <a href="/compare"    className="text-white/55 hover:text-white text-sm transition">Compare</a>
                   <a href="/about"      className="text-white/55 hover:text-white text-sm transition">About</a>
+                  <a href="/add-faculty" className="text-white/55 hover:text-white text-sm transition">Request a Faculty</a>
+                </nav>
+                <p className="text-white/35 text-[10px] font-semibold uppercase tracking-widest mt-6 mb-3">Legal</p>
+                <nav className="flex flex-col gap-2">
+                  <a href="/guidelines"           className="text-white/40 hover:text-white/70 text-xs transition">Review Guidelines</a>
+                  <a href="/community-guidelines" className="text-white/40 hover:text-white/70 text-xs transition">Community Guidelines</a>
+                  <a href="/privacy"              className="text-white/40 hover:text-white/70 text-xs transition">Privacy Policy</a>
+                  <a href="/terms"                className="text-white/40 hover:text-white/70 text-xs transition">Terms of Service</a>
                 </nav>
               </div>
 
