@@ -18,7 +18,7 @@ export default function ReviewVote({
   initialUpvotes = 0,
   initialDownvotes = 0,
 }: {
-  reviewId: string;
+  reviewId: string | number;
   initialUpvotes?: number;
   initialDownvotes?: number;
 }) {

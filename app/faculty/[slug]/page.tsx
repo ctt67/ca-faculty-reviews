@@ -102,11 +102,11 @@ export default async function FacultyPage({
   ]);
 
   // Fetch vote counts for current page reviews
-  const reviewIds = ((pageReviews ?? []) as unknown as Array<{ id: string }>).map((r) => r.id).filter(Boolean);
+  const reviewIds = ((pageReviews ?? []) as unknown as Array<{ id: number }>).map((r) => r.id).filter(Boolean);
   const { data: voteData } = reviewIds.length
     ? await supabase.from("review_votes").select("review_id, vote_type").in("review_id", reviewIds)
     : { data: [] };
-  const voteCounts = new Map<string, { up: number; down: number }>();
+  const voteCounts = new Map<number, { up: number; down: number }>();
   for (const v of voteData ?? []) {
     const entry = voteCounts.get(v.review_id) ?? { up: 0, down: 0 };
     if (v.vote_type === "up") entry.up++;
@@ -421,11 +421,11 @@ export default async function FacultyPage({
                       {/* Vote + Report row */}
                       <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
                         <ReviewVote
-                          reviewId={review.id as string}
-                          initialUpvotes={voteCounts.get(review.id as string)?.up ?? 0}
-                          initialDownvotes={voteCounts.get(review.id as string)?.down ?? 0}
+                          reviewId={review.id as number}
+                          initialUpvotes={voteCounts.get(review.id as number)?.up ?? 0}
+                          initialDownvotes={voteCounts.get(review.id as number)?.down ?? 0}
                         />
-                        <ReportReview reviewId={review.id as string} />
+                        <ReportReview reviewId={review.id as number} />
                       </div>
 
                     </div>

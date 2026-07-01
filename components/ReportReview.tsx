@@ -20,7 +20,7 @@ function getSessionToken(): string {
   return token;
 }
 
-export default function ReportReview({ reviewId }: { reviewId: string }) {
+export default function ReportReview({ reviewId }: { reviewId: string | number }) {
   const [open, setOpen]         = useState(false);
   const [reason, setReason]     = useState("");
   const [details, setDetails]   = useState("");
