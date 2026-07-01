@@ -170,9 +170,9 @@ export default function ReviewForm({
   };
 
   const handleSubmit = async () => {
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
 
-    if (!currentUser) {
+    if (!session) {
       window.location.href = `/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
       return;
     }
@@ -195,7 +195,7 @@ export default function ReviewForm({
       return;
     }
 
-    // CAPTCHA check — only enforced when the widget is active (key configured)
+    // CAPTCHA check
     const siteKey = process.env.NEXT_PUBLIC_CF_TURNSTILE_SITE_KEY;
     if (siteKey && !captchaToken) {
       setNotification({ type: "error", message: "Please complete the CAPTCHA to continue." });
@@ -216,52 +216,58 @@ export default function ReviewForm({
     setSubmitting(true);
 
     try {
-      const submittedAt = new Date();
+      const submittedAt    = new Date();
       const typingStartedAt = typingStartedAtRef.current ? new Date(typingStartedAtRef.current) : null;
       const timeTakenSeconds = typingStartedAt
         ? Math.round((submittedAt.getTime() - typingStartedAt.getTime()) / 1000)
         : null;
-      const utmSource = new URLSearchParams(window.location.search).get("utm_source");
-      const deviceType = /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop";
 
-      const [meta, userAgentHash] = await Promise.all([
-        fetch("/api/review-meta").then((r) => r.json()).catch(() => ({ ip_hash: null, country: null })),
-        hashUserAgent(navigator.userAgent),
-      ]);
+      const userAgentHash = await hashUserAgent(navigator.userAgent);
 
-      const { error } = await supabase.from("reviews").insert([{
-        faculty_slug: faculty.slug,
-        user_id: currentUser.id,
-        attempt: formData.attempt,
-        student_type: formData.student_type || null,
-        course_type: formData.course_type,
-        teacher_style: formData.teacher_style,
-        course_progress: formData.course_progress,
-        class_environment: formData.class_environment,
+      const reviewData = {
+        faculty_slug:          faculty.slug,
+        attempt:               formData.attempt,
+        student_type:          formData.student_type || null,
+        course_type:           formData.course_type,
+        teacher_style:         formData.teacher_style,
+        course_progress:       formData.course_progress,
+        class_environment:     formData.class_environment,
         actual_duration_hours: formData.actual_duration_hours ? Number(formData.actual_duration_hours) : null,
-        best_for: formData.best_for.length > 0 ? formData.best_for : null,
-        would_recommend: formData.would_recommend === "Yes",
-        pros: formData.pros,
-        cons: formData.cons,
-        review_text: formData.review_text || null,
-        approved: false,
-        rating_reasons: Object.keys(ratingReasons).length > 0 ? ratingReasons : null,
+        best_for:              formData.best_for.length > 0 ? formData.best_for : null,
+        would_recommend:       formData.would_recommend === "Yes",
+        pros:                  formData.pros,
+        cons:                  formData.cons,
+        review_text:           formData.review_text || null,
+        rating_reasons:        Object.keys(ratingReasons).length > 0 ? ratingReasons : null,
         ...ratings,
-        typing_started_at: typingStartedAt?.toISOString() ?? null,
-        submitted_at: submittedAt.toISOString(),
+        typing_started_at:  typingStartedAt?.toISOString() ?? null,
+        submitted_at:       submittedAt.toISOString(),
         time_taken_seconds: timeTakenSeconds,
-        referrer: document.referrer || null,
-        utm_source: utmSource,
-        device_type: deviceType,
-        ip_hash: meta.ip_hash ?? null,
-        country: meta.country ?? null,
-        user_agent_hash: userAgentHash,
-        browser: detectBrowser(navigator.userAgent),
-        review_version: REVIEW_VERSION,
-      }]);
+        referrer:           document.referrer || null,
+        utm_source:         new URLSearchParams(window.location.search).get("utm_source"),
+        device_type:        /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop",
+        user_agent_hash:    userAgentHash,
+        browser:            detectBrowser(navigator.userAgent),
+        review_version:     REVIEW_VERSION,
+        // user_id, ip_hash, country, approved — set server-side
+      };
 
-      if (error) {
-        if (JSON.stringify(error).includes("unique_user_faculty_review")) {
+      const res = await fetch("/api/submit-review", {
+        method: "POST",
+        headers: {
+          "Content-Type":  "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ reviewData }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 429) {
+          setNotification({ type: "error", message: data.message ?? "Too many submissions today. Try again tomorrow." });
+          return;
+        }
+        if (res.status === 409) {
           setAlreadyReviewed(true);
           return;
         }
@@ -272,8 +278,8 @@ export default function ReviewForm({
       setSubmitted(true);
       track("review_submitted", {
         faculty_slug: faculty.slug,
-        subject: faculty.subject,
-        level: faculty.level,
+        subject:      faculty.subject,
+        level:        faculty.level,
         time_taken_seconds: timeTakenSeconds,
       });
 
