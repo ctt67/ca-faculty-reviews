@@ -6,6 +6,9 @@ import { formatSubjectName, PUBLIC_REVIEW_COLUMNS } from "@/lib/format";
 import SubjectSortControls from "@/components/SubjectSortControls";
 import type { Metadata } from "next";
 import { generateSubjectMetadata } from "@/lib/seo";
+import { notFound } from "next/navigation";
+
+const RESERVED = new Set(["admin", "api", "account", "login", "compare", "review", "add-faculty", "about", "privacy", "terms", "guidelines", "community-guidelines", "sitemap.xml", "robots.txt"]);
 
 export const revalidate = 300;
 
@@ -26,6 +29,8 @@ export default async function SubjectPage({
   searchParams: Promise<{ sort?: string }>;
 }) {
   const { level, subject } = await params;
+  if (RESERVED.has(level) || RESERVED.has(subject)) notFound();
+
   const { sort: sortParam } = await searchParams;
 
   const VALID_SORTS = ["most_reviewed", "highest_rated", "recent", "az", "za"] as const;

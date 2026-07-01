@@ -2,6 +2,9 @@ import { supabase } from "@/lib/supabase";
 import type { Metadata } from "next";
 import { generateLevelMetadata } from "@/lib/seo";
 import { LEVEL_LABELS } from "@/lib/config";
+import { notFound } from "next/navigation";
+
+const RESERVED = new Set(["admin", "api", "account", "login", "compare", "review", "add-faculty", "about", "privacy", "terms", "guidelines", "community-guidelines"]);
 
 export const revalidate = 3600;
 
@@ -20,6 +23,7 @@ export default async function LevelPage({
   params: Promise<{ level: string }>;
 }) {
   const { level } = await params;
+  if (RESERVED.has(level)) notFound();
 
   const { data: faculties, error } = await supabase
     .from("faculties")
