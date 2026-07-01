@@ -109,7 +109,7 @@ export default function RootLayout({
               <div>
                 <Logo scheme="white" height={28} />
                 <div className="flex items-center gap-2 mt-3">
-                  <Image src="/oreo.jpg" alt="Oreo" width={20} height={20} className="rounded-full object-cover border border-white/20 shrink-0" />
+                  <Image src="/20260101_200053.jpg" alt="Oreo" width={20} height={20} className="rounded-full object-cover border border-white/20 shrink-0" />
                   <p className="text-white/45 text-xs">For CA Students by CA Students</p>
                 </div>
                 <p className="text-white/30 text-xs mt-1">

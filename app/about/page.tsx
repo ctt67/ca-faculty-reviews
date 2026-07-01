@@ -466,7 +466,7 @@ export default function AboutPage() {
         {/* ── Oreo ── */}
         <section className="text-center pb-4">
           <Image
-            src="/oreo.jpg"
+            src="/20260101_200053.jpg"
             alt="Oreo, Chief Quality Officer"
             width={80}
             height={80}

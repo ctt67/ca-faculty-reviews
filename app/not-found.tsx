@@ -10,7 +10,7 @@ export default function NotFound() {
   return (
     <main className="min-h-[70vh] flex flex-col items-center justify-center px-6 text-center">
       <Image
-        src="/oreo.jpg"
+        src="/20260101_200053.jpg"
         alt="Oreo"
         width={120}
         height={120}
