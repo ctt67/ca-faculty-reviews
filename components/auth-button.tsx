@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
+import { User as UserIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { signInWithGoogle } from "@/lib/auth";
 
@@ -59,15 +60,15 @@ export default function AuthButton() {
 
                 <a
                     href="/account"
-                    className="text-sm text-slate-300 hover:text-white transition font-medium"
-                    title="My Reviews"
+                    className="flex items-center gap-1.5 text-sm font-medium text-white/70 hover:text-white transition"
                 >
-                    {user.email?.split("@")[0]}
+                    <UserIcon size={15} />
+                    My Reviews
                 </a>
 
                 <button
                     onClick={signOut}
-                    className="text-slate-400 hover:text-white text-sm font-medium transition"
+                    className="text-white/40 hover:text-white text-sm font-medium transition"
                 >
                     Logout
                 </button>
