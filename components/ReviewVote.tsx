@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { hashUserAgent } from "@/lib/client-meta";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
 
 function getSessionToken(): string {
@@ -13,6 +14,15 @@ function getSessionToken(): string {
   return token;
 }
 
+async function sendVote(review_id: string | number, session_token: string, vote_type: "up" | "down" | null) {
+  const uaHash = await hashUserAgent(navigator.userAgent);
+  await fetch("/api/vote", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ review_id, session_token, vote_type, user_agent_hash: uaHash }),
+  });
+}
+
 export default function ReviewVote({
   reviewId,
   initialUpvotes = 0,
@@ -22,10 +32,10 @@ export default function ReviewVote({
   initialUpvotes?: number;
   initialDownvotes?: number;
 }) {
-  const [upvotes, setUpvotes]   = useState(initialUpvotes);
+  const [upvotes, setUpvotes]     = useState(initialUpvotes);
   const [downvotes, setDownvotes] = useState(initialDownvotes);
-  const [myVote, setMyVote]     = useState<"up" | "down" | null>(null);
-  const [loading, setLoading]   = useState(false);
+  const [myVote, setMyVote]       = useState<"up" | "down" | null>(null);
+  const [loading, setLoading]     = useState(false);
 
   useEffect(() => {
     const token = getSessionToken();
@@ -47,19 +57,12 @@ export default function ReviewVote({
 
     if (myVote === type) {
       // Toggle off
-      await supabase
-        .from("review_votes")
-        .delete()
-        .eq("review_id", reviewId)
-        .eq("session_token", token);
+      await sendVote(reviewId, token, null);
       if (type === "up") setUpvotes((v) => Math.max(0, v - 1));
       else setDownvotes((v) => Math.max(0, v - 1));
       setMyVote(null);
     } else {
-      await supabase.from("review_votes").upsert(
-        { review_id: reviewId, session_token: token, vote_type: type },
-        { onConflict: "review_id,session_token" }
-      );
+      await sendVote(reviewId, token, type);
       if (type === "up") {
         setUpvotes((v) => v + 1);
         if (myVote === "down") setDownvotes((v) => Math.max(0, v - 1));
