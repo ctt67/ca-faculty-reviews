@@ -184,11 +184,14 @@ function Cell({ label, value, flag, note }: { label: string; value: string; flag
 // ── Main admin component ──────────────────────────────────────────────────────
 
 export default function AdminClient() {
-  const [loading, setLoading]       = useState(true);
-  const [authorized, setAuthorized] = useState(false);
-  const [adminEmail, setAdminEmail] = useState("");
-  const [reviews, setReviews]       = useState<any[]>([]);
-  const [spamMap, setSpamMap]       = useState<Map<number, SpamSignals>>(new Map());
+  const [loading, setLoading]           = useState(true);
+  const [authorized, setAuthorized]     = useState(false);
+  const [adminEmail, setAdminEmail]     = useState("");
+  const [reviews, setReviews]           = useState<any[]>([]);
+  const [spamMap, setSpamMap]           = useState<Map<number, SpamSignals>>(new Map());
+  const [publishedReviews, setPublishedReviews] = useState<any[]>([]);
+  const [showPublished, setShowPublished]       = useState(false);
+  const [loadingPublished, setLoadingPublished] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -267,6 +270,29 @@ export default function AdminClient() {
     ]);
     track("review_rejected", { review_id: reviewId, faculty_slug: review?.faculty_slug, time_taken_seconds: review?.time_taken_seconds });
     setReviews(reviews.filter((r) => r.id !== reviewId));
+  };
+
+  const loadPublished = async () => {
+    if (publishedReviews.length > 0) { setShowPublished(true); return; }
+    setLoadingPublished(true);
+    const { data } = await supabase
+      .from("reviews")
+      .select("id, faculty_slug, pros, cons, created_at, attempt, course_type, would_recommend")
+      .eq("approved", true)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    setPublishedReviews(data ?? []);
+    setShowPublished(true);
+    setLoadingPublished(false);
+  };
+
+  const hideReview = async (reviewId: number) => {
+    const review = publishedReviews.find((r) => r.id === reviewId);
+    await Promise.all([
+      supabase.from("reviews").update({ approved: false }).eq("id", reviewId),
+      logAudit("hide_review", reviewId, { faculty_slug: review?.faculty_slug }),
+    ]);
+    setPublishedReviews((prev) => prev.filter((r) => r.id !== reviewId));
   };
 
   if (loading) return <main className="p-10 text-slate-500">Loading...</main>;
@@ -413,6 +439,49 @@ export default function AdminClient() {
             })}
           </div>
         )}
+
+        {/* Published Reviews */}
+        <div className="mt-10">
+          <button
+            onClick={() => showPublished ? setShowPublished(false) : loadPublished()}
+            className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition"
+          >
+            {loadingPublished ? "Loading…" : showPublished ? "▲ Hide Published Reviews" : "▼ Show Published Reviews (hide/unpublish)"}
+          </button>
+
+          {showPublished && (
+            <div className="space-y-4 mt-5">
+              {publishedReviews.length === 0 && (
+                <p className="text-slate-400 text-sm">No published reviews.</p>
+              )}
+              {publishedReviews.map((review) => (
+                <div key={review.id} className="bg-white rounded-2xl border border-slate-200 p-5 flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <a
+                      href={`/faculty/${review.faculty_slug}`}
+                      target="_blank"
+                      className="font-semibold text-slate-900 text-sm hover:underline"
+                    >
+                      {review.faculty_slug}
+                    </a>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {review.attempt} · {review.course_type} · {new Date(review.created_at).toLocaleDateString("en-IN")}
+                    </p>
+                    {review.pros && (
+                      <p className="text-xs text-slate-600 mt-2 line-clamp-1">+ {review.pros}</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => hideReview(review.id)}
+                    className="shrink-0 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition"
+                  >
+                    Hide
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
       </section>
     </main>
