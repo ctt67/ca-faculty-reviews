@@ -9,6 +9,8 @@ interface Props {
 }
 
 export default function ReviewRatingDetails({ review }: Props) {
+    const [expanded, setExpanded] = useState(false);
+
     if (!review.rating_reasons) return null;
 
     const row = review as unknown as Record<string, unknown>;
@@ -26,8 +28,6 @@ export default function ReviewRatingDetails({ review }: Props) {
         );
 
     if (entries.length === 0) return null;
-
-    const [expanded, setExpanded] = useState(false);
 
     return (
         <div className="mt-8 border-t border-slate-100 pt-5">

@@ -21,6 +21,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { faculty1: faculty1Slug, faculty2: faculty2Slug } = await params;
 
+  // Non-canonical order — page will redirect, so suppress indexing of this variant
+  if (faculty1Slug > faculty2Slug) {
+    return { robots: { index: false, follow: true } };
+  }
+
   const [{ data: faculty1 }, { data: faculty2 }] = await Promise.all([
     supabase.from("faculties").select("faculty_name, subject, level").eq("slug", faculty1Slug).single(),
     supabase.from("faculties").select("faculty_name, subject, level").eq("slug", faculty2Slug).single(),

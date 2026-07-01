@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createHash } from "crypto";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,14 +41,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+    const rawIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+    const ipHash = rawIp
+      ? createHash("sha256").update("careviews-ip-salt-v1" + rawIp).digest("hex")
+      : null;
 
     const { error } = await supabase.from("review_reports").insert({
       review_id,
       reason,
       details: details ?? null,
       session_token: session_token ?? null,
-      ip_hash: ip,
+      ip_hash: ipHash,
     });
 
     if (error) {

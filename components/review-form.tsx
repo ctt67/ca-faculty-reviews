@@ -214,6 +214,7 @@ export default function ReviewForm({
       !formData.attempt ||
       !formData.course_progress ||
       !formData.course_type ||
+      !formData.student_type ||
       !formData.teacher_style ||
       !formData.class_environment ||
       !formData.would_recommend ||

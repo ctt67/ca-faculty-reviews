@@ -108,7 +108,7 @@ export default function InsightsClient() {
       const since = new Date(Date.now() - LOOKBACK_DAYS * DAY).toISOString();
 
       const [{ data: reviewData }, { data: eventData }, { data: facultyData }] = await Promise.all([
-        supabase.from("reviews").select("*").order("created_at", { ascending: false }),
+        supabase.from("reviews").select("*").order("created_at", { ascending: false }).limit(10000),
         supabase
           .from("analytics_events")
           .select("*")

@@ -192,6 +192,11 @@ export default function AdminClient() {
   const [publishedReviews, setPublishedReviews]   = useState<any[]>([]);
   const [showPublished, setShowPublished]         = useState(false);
   const [loadingPublished, setLoadingPublished]   = useState(false);
+  const [rejectedReviews, setRejectedReviews]     = useState<any[]>([]);
+  const [showRejected, setShowRejected]           = useState(false);
+  const [loadingRejected, setLoadingRejected]     = useState(false);
+  const [editingRejected, setEditingRejected]     = useState<number | null>(null);
+  const [editDraft, setEditDraft]                 = useState<{ pros: string; cons: string; review_text: string }>({ pros: "", cons: "", review_text: "" });
   const [facultyRequests, setFacultyRequests]     = useState<any[]>([]);
   const [showRequests, setShowRequests]           = useState(false);
   const [loadingRequests, setLoadingRequests]     = useState(false);
@@ -213,6 +218,7 @@ export default function AdminClient() {
         .from("reviews")
         .select("*")
         .eq("approved", false)
+        .or("rejected.is.null,rejected.eq.false")
         .order("created_at", { ascending: false });
 
       const loaded = data ?? [];
@@ -242,7 +248,9 @@ export default function AdminClient() {
     };
 
     load();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => load());
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") load();
+    });
     return () => subscription.unsubscribe();
   }, []);
 
@@ -273,11 +281,48 @@ export default function AdminClient() {
   const rejectReview = async (reviewId: number) => {
     const review = reviews.find((r) => r.id === reviewId);
     await Promise.all([
-      supabase.from("reviews").delete().eq("id", reviewId),
+      supabase.from("reviews").update({ rejected: true }).eq("id", reviewId),
       logAudit("reject_review", reviewId, { faculty_slug: review?.faculty_slug }),
     ]);
     track("review_rejected", { review_id: reviewId, faculty_slug: review?.faculty_slug, time_taken_seconds: review?.time_taken_seconds });
     setReviews(reviews.filter((r) => r.id !== reviewId));
+  };
+
+  const loadRejected = async () => {
+    if (rejectedReviews.length > 0) { setShowRejected(true); return; }
+    setLoadingRejected(true);
+    const { data } = await supabase
+      .from("reviews")
+      .select("*")
+      .eq("rejected", true)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    setRejectedReviews(data ?? []);
+    setShowRejected(true);
+    setLoadingRejected(false);
+  };
+
+  const approveRejected = async (reviewId: number, overrides?: { pros?: string; cons?: string; review_text?: string }) => {
+    const review = rejectedReviews.find((r) => r.id === reviewId);
+    const update: Record<string, unknown> = { approved: true, rejected: false };
+    if (overrides?.pros !== undefined)        update.pros        = overrides.pros;
+    if (overrides?.cons !== undefined)        update.cons        = overrides.cons;
+    if (overrides?.review_text !== undefined) update.review_text = overrides.review_text;
+    await Promise.all([
+      supabase.from("reviews").update(update).eq("id", reviewId),
+      logAudit("approve_rejected_review", reviewId, { faculty_slug: review?.faculty_slug }),
+    ]);
+    setRejectedReviews((prev) => prev.filter((r) => r.id !== reviewId));
+    setEditingRejected(null);
+  };
+
+  const permDeleteReview = async (reviewId: number) => {
+    const review = rejectedReviews.find((r) => r.id === reviewId);
+    await Promise.all([
+      supabase.from("reviews").delete().eq("id", reviewId),
+      logAudit("permanent_delete_review", reviewId, { faculty_slug: review?.faculty_slug }),
+    ]);
+    setRejectedReviews((prev) => prev.filter((r) => r.id !== reviewId));
   };
 
   const loadPublished = async () => {
@@ -487,6 +532,153 @@ export default function AdminClient() {
             })}
           </div>
         )}
+
+        {/* Rejected Reviews */}
+        <div className="mt-10">
+          <button
+            onClick={() => showRejected ? setShowRejected(false) : loadRejected()}
+            className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition"
+          >
+            {loadingRejected ? "Loading…" : showRejected ? "▲ Hide Rejected Reviews" : "▼ Show Rejected Reviews"}
+          </button>
+
+          {showRejected && (
+            <div className="space-y-5 mt-5">
+              {rejectedReviews.length === 0 && (
+                <p className="text-slate-400 text-sm">No rejected reviews.</p>
+              )}
+              {rejectedReviews.map((review) => {
+                const isEditing = editingRejected === review.id;
+                return (
+                  <div key={review.id} className="bg-white rounded-3xl border border-red-100 shadow-sm p-7">
+
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-4 mb-5">
+                      <div>
+                        <a href={`/faculty/${review.faculty_slug}`} className="text-xl font-bold text-blue-600 hover:underline">
+                          {review.faculty_slug}
+                        </a>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {review.teacher_style && <span className="bg-blue-50 text-blue-700 rounded-full px-3 py-1 text-xs font-medium">{review.teacher_style}</span>}
+                          {review.attempt       && <span className="bg-slate-100 text-slate-600 rounded-full px-3 py-1 text-xs font-medium">{review.attempt}</span>}
+                          {review.course_type   && <span className="bg-slate-100 text-slate-600 rounded-full px-3 py-1 text-xs font-medium">{review.course_type}</span>}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="bg-red-50 text-red-700 border border-red-200 rounded-full px-3 py-1 text-xs font-semibold">Rejected</span>
+                        <div className="text-xs text-slate-400 mt-1">{new Date(review.created_at).toLocaleString("en-IN")}</div>
+                      </div>
+                    </div>
+
+                    {/* Pros / Cons / Review */}
+                    {!isEditing && (
+                      <>
+                        <div className="grid md:grid-cols-2 gap-4 mb-4">
+                          {review.pros && (
+                            <div className="bg-green-50 border border-green-100 rounded-xl p-4">
+                              <p className="text-xs font-semibold text-green-700 mb-1">PROS</p>
+                              <p className="text-slate-700 text-sm">{review.pros}</p>
+                            </div>
+                          )}
+                          {review.cons && (
+                            <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+                              <p className="text-xs font-semibold text-red-600 mb-1">CONS</p>
+                              <p className="text-slate-700 text-sm">{review.cons}</p>
+                            </div>
+                          )}
+                        </div>
+                        {review.review_text && (
+                          <div className="bg-slate-50 rounded-xl p-4 mb-5">
+                            <p className="text-xs font-semibold text-slate-500 mb-2">REVIEW</p>
+                            <p className="text-slate-800 text-sm leading-relaxed">{review.review_text}</p>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* Inline edit form */}
+                    {isEditing && (
+                      <div className="space-y-3 mb-5">
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Pros</label>
+                          <textarea
+                            rows={3}
+                            value={editDraft.pros}
+                            onChange={(e) => setEditDraft((d) => ({ ...d, pros: e.target.value }))}
+                            className="mt-1 w-full border border-slate-200 rounded-xl p-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-navy resize-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Cons</label>
+                          <textarea
+                            rows={3}
+                            value={editDraft.cons}
+                            onChange={(e) => setEditDraft((d) => ({ ...d, cons: e.target.value }))}
+                            className="mt-1 w-full border border-slate-200 rounded-xl p-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-navy resize-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Review Text</label>
+                          <textarea
+                            rows={4}
+                            value={editDraft.review_text}
+                            onChange={(e) => setEditDraft((d) => ({ ...d, review_text: e.target.value }))}
+                            className="mt-1 w-full border border-slate-200 rounded-xl p-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-navy resize-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex flex-wrap gap-3 pt-2 border-t border-slate-100">
+                      {!isEditing ? (
+                        <>
+                          <button
+                            onClick={() => approveRejected(review.id)}
+                            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition"
+                          >
+                            Approve As-Is
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingRejected(review.id);
+                              setEditDraft({ pros: review.pros ?? "", cons: review.cons ?? "", review_text: review.review_text ?? "" });
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition"
+                          >
+                            Edit & Approve
+                          </button>
+                          <button
+                            onClick={() => { if (confirm("Permanently delete this review? This cannot be undone.")) permDeleteReview(review.id); }}
+                            className="text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 px-5 py-2.5 rounded-xl text-sm transition"
+                          >
+                            Delete Permanently
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => approveRejected(review.id, editDraft)}
+                            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition"
+                          >
+                            Save & Approve
+                          </button>
+                          <button
+                            onClick={() => setEditingRejected(null)}
+                            className="border border-slate-200 text-slate-600 px-5 py-2.5 rounded-xl text-sm hover:bg-slate-50 transition"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* Faculty Requests */}
         <div className="mt-10">

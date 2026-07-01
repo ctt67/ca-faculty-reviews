@@ -19,7 +19,7 @@ export default function ReviewHomePage() {
     const load = async () => {
       const { data } = await supabase
         .from("faculties")
-        .select("*")
+        .select("slug, faculty_name, level, subject")
         .eq("active", true);
       setFaculties((data as Faculty[]) ?? []);
       setLoading(false);

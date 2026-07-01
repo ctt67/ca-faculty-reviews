@@ -19,7 +19,7 @@ export default function ComparePage() {
   useEffect(() => {
     const loadFaculties = async () => {
       const [{ data: facultyData }, { data: reviewData }] = await Promise.all([
-        supabase.from("faculties").select("*").eq("active", true),
+        supabase.from("faculties").select("slug, faculty_name, level, subject").eq("active", true),
         supabase.from("reviews").select("faculty_slug").eq("approved", true),
       ]);
       setFaculties(facultyData ?? []);

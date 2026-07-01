@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   const ipHash  = hashIp(rawIp);
   const country = req.headers.get("x-vercel-ip-country") ?? null;
 
-  // 3. Rate limit — 3 reviews per IP per 24h
+  // 3. Rate limit — 10 reviews per IP per 24h
   const anonClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const { data: allowed, error: rpcError } = await anonClient.rpc("check_review_rate_limit", {
     p_ip_hash: ipHash,
