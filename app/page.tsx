@@ -199,7 +199,7 @@ export default async function HomePage() {
               Your coaching experience is worth sharing.
             </h2>
             <p className="text-ink/55 text-sm mt-1.5 max-w-md leading-relaxed">
-              CA coaching costs ₹40,000+. One honest review from you could save a future aspirant from a costly mistake.
+              CA coaching costs thousands of rupees. One honest review from you could save a future aspirant from a costly mistake.
             </p>
           </div>
           <TrackedLink
