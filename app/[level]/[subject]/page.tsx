@@ -137,6 +137,14 @@ export default async function SubjectPage({
 
       {/* Faculty grid */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-14">
+        {enrichedFaculties.length > 0 && (
+          <p className="text-sm text-ink/50 mb-6">
+            Studied {subjectLabel}?{" "}
+            <a href="/review" className="text-gold font-semibold hover:underline">
+              Write a review →
+            </a>
+          </p>
+        )}
         {enrichedFaculties.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-100 p-10 sm:p-12 text-center">
             <p className="font-playfair text-xl font-bold text-ink mb-2">No faculties listed yet</p>
@@ -164,7 +172,7 @@ export default async function SubjectPage({
                   href={`/faculty/${faculty.slug}`}
                   className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all group block"
                 >
-                  <div className="h-[3px] bg-navy" />
+                  <div className={`h-[3px] ${hasReviews ? "bg-navy" : "bg-gold"}`} />
                   <div className="p-6 sm:p-7">
 
                     {/* Name + Rating */}
@@ -221,8 +229,8 @@ export default async function SubjectPage({
                         </p>
                       </div>
                     ) : (
-                      <p className="mt-5 text-ink/35 text-sm italic">
-                        No reviews yet. Be the first to review.
+                      <p className="mt-5 text-gold text-sm font-semibold">
+                        Be the first to review →
                       </p>
                     )}
 

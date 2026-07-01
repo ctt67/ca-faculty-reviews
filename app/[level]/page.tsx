@@ -98,6 +98,14 @@ export default async function LevelPage({
             ))}
           </div>
         )}
+        {subjects.length > 0 && (
+          <p className="text-sm text-ink/45 mt-8 text-center">
+            Studied under a {levelLabel} faculty?{" "}
+            <a href="/review" className="text-gold font-semibold hover:underline">
+              Write a review →
+            </a>
+          </p>
+        )}
       </section>
 
     </main>
