@@ -190,6 +190,29 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Write a review strip */}
+      <section className="max-w-6xl mx-auto px-6 py-6">
+        <div className="bg-parchment border border-gold/25 rounded-2xl px-8 py-7 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <div>
+            <p className="text-xs font-semibold tracking-widest text-gold uppercase mb-2">For CA Students</p>
+            <h2 className="font-playfair text-xl font-bold text-ink">
+              Your coaching experience is worth sharing.
+            </h2>
+            <p className="text-ink/55 text-sm mt-1.5 max-w-md leading-relaxed">
+              CA coaching costs ₹40,000+. One honest review from you could save a future aspirant from a costly mistake.
+            </p>
+          </div>
+          <TrackedLink
+            href="/review"
+            event="write_review_clicked"
+            properties={{ source: "homepage_strip" }}
+            className="shrink-0 bg-gold text-ink px-6 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition whitespace-nowrap"
+          >
+            Write a Review →
+          </TrackedLink>
+        </div>
+      </section>
+
       {/* How it works */}
       <section className="max-w-6xl mx-auto px-6 py-10 pb-16">
         <div className="mb-8">
