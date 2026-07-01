@@ -10,6 +10,7 @@ import {
   formatSubjectName,
 } from "@/lib/format";
 import ReviewRatingDetails from "@/components/ReviewRatingDetails";
+import ReviewSortControls from "@/components/ReviewSortControls";
 import PageViewTracker from "@/components/PageViewTracker";
 import TrackedLink from "@/components/TrackedLink";
 import ShareButtons from "@/components/ShareButtons";
@@ -64,10 +65,17 @@ export default async function FacultyPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; sort?: string }>;
 }) {
   const { slug } = await params;
-  const { page: pageParam } = await searchParams;
+  const { page: pageParam, sort: sortParam } = await searchParams;
+
+  const VALID_SORTS = ["newest", "oldest", "highest", "lowest", "helpful"] as const;
+  type Sort = (typeof VALID_SORTS)[number];
+  const sort: Sort = VALID_SORTS.includes(sortParam as Sort) ? (sortParam as Sort) : "newest";
+
+  const isHelpful = sort === "helpful";
+  const HELPFUL_LIMIT = 50;
 
   const page = Math.max(1, Number(pageParam ?? 1));
   const offset = (page - 1) * REVIEWS_PER_PAGE;
@@ -86,19 +94,31 @@ export default async function FacultyPage({
     "pace_of_teaching", "time_efficiency", "value_for_money", "expectation_match",
   ].join(", ");
 
+  const sortConfig: Record<Sort, { column: string; ascending: boolean }> = {
+    newest:  { column: "created_at",     ascending: false },
+    oldest:  { column: "created_at",     ascending: true  },
+    highest: { column: "overall_rating", ascending: false },
+    lowest:  { column: "overall_rating", ascending: true  },
+    helpful: { column: "created_at",     ascending: false },
+  };
+  const { column: orderCol, ascending: orderAsc } = sortConfig[sort];
+
+  const baseQuery = supabase
+    .from("reviews")
+    .select(PUBLIC_REVIEW_COLUMNS, { count: "exact" })
+    .eq("faculty_slug", slug)
+    .eq("approved", true)
+    .order(orderCol, { ascending: orderAsc });
+
   const [{ data: allRatingData }, { data: pageReviews, count }] = await Promise.all([
     supabase
       .from("reviews")
       .select(ratingColumns)
       .eq("faculty_slug", slug)
       .eq("approved", true),
-    supabase
-      .from("reviews")
-      .select(PUBLIC_REVIEW_COLUMNS, { count: "exact" })
-      .eq("faculty_slug", slug)
-      .eq("approved", true)
-      .order("created_at", { ascending: false })
-      .range(offset, offset + REVIEWS_PER_PAGE - 1),
+    isHelpful
+      ? baseQuery.limit(HELPFUL_LIMIT)
+      : baseQuery.range(offset, offset + REVIEWS_PER_PAGE - 1),
   ]);
 
   // Fetch vote counts for current page reviews
@@ -114,7 +134,14 @@ export default async function FacultyPage({
     voteCounts.set(v.review_id, entry);
   }
 
-  const reviews = (pageReviews ?? []) as unknown as Record<string, any>[];
+  let reviews = (pageReviews ?? []) as unknown as Record<string, any>[];
+  if (isHelpful) {
+    reviews = [...reviews].sort((a, b) => {
+      const aNet = (voteCounts.get(a.id as number)?.up ?? 0) - (voteCounts.get(a.id as number)?.down ?? 0);
+      const bNet = (voteCounts.get(b.id as number)?.up ?? 0) - (voteCounts.get(b.id as number)?.down ?? 0);
+      return bNet - aNet;
+    });
+  }
   const allReviews = (allRatingData ?? []) as unknown as Record<string, unknown>[];
   const totalReviews = count ?? 0;
   const totalPages = Math.ceil(totalReviews / REVIEWS_PER_PAGE);
@@ -317,6 +344,11 @@ export default async function FacultyPage({
                 <h2 className="font-playfair text-2xl font-bold text-ink">Student Reviews</h2>
                 <span className="text-ink/35 font-normal text-lg">({totalReviews})</span>
               </div>
+              {totalReviews > 1 && (
+                <div className="mb-4">
+                  <ReviewSortControls slug={slug} current={sort} />
+                </div>
+              )}
               <p className="text-ink/45 text-xs mb-7">
                 Reviews represent individual student opinions. Careviews does not endorse any faculty.
               </p>
@@ -433,11 +465,11 @@ export default async function FacultyPage({
                 </div>
               )}
 
-              {/* Pagination */}
-              {totalPages > 1 && (
+              {/* Pagination — hidden for helpful sort (all shown at once) */}
+              {!isHelpful && totalPages > 1 && (
                 <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-100">
                   <a
-                    href={page > 1 ? `/faculty/${slug}?page=${page - 1}` : undefined}
+                    href={page > 1 ? `/faculty/${slug}?sort=${sort}&page=${page - 1}` : undefined}
                     aria-disabled={page <= 1}
                     className={`px-5 py-2.5 rounded-xl border text-sm font-medium transition ${
                       page <= 1
@@ -449,7 +481,7 @@ export default async function FacultyPage({
                   </a>
                   <span className="text-sm text-ink/45">Page {page} of {totalPages}</span>
                   <a
-                    href={page < totalPages ? `/faculty/${slug}?page=${page + 1}` : undefined}
+                    href={page < totalPages ? `/faculty/${slug}?sort=${sort}&page=${page + 1}` : undefined}
                     aria-disabled={page >= totalPages}
                     className={`px-5 py-2.5 rounded-xl border text-sm font-medium transition ${
                       page >= totalPages
