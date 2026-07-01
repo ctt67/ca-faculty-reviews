@@ -267,6 +267,10 @@ export default function ReviewForm({
           setNotification({ type: "error", message: data.message ?? "Too many submissions today. Try again tomorrow." });
           return;
         }
+        if (res.status === 422) {
+          setNotification({ type: "error", message: data.message ?? "Your review contains language that isn't allowed. Please revise and resubmit." });
+          return;
+        }
         if (res.status === 409) {
           setAlreadyReviewed(true);
           return;

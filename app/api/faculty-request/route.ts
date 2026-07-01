@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { sanitizeText } from "@/lib/sanitize";
 
 export async function POST(req: NextRequest) {
   try {
     const { faculty_name, level, subject, institution, course_url, notes, email } = await req.json();
 
-    if (!faculty_name?.trim()) {
+    const cleanName = sanitizeText(faculty_name ?? "");
+    if (!cleanName) {
       return NextResponse.json({ error: "Faculty name required" }, { status: 400 });
     }
 
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
 
     const { error } = await supabase.from("faculty_requests").insert({
-      faculty_name: faculty_name.trim(),
+      faculty_name: cleanName,
       level:        level || null,
       subject:      subject || null,
-      institution:  institution?.trim() || null,
+      institution:  institution ? sanitizeText(institution) || null : null,
       course_url:   course_url?.trim() || null,
-      notes:        notes?.trim() || null,
+      notes:        notes ? sanitizeText(notes) || null : null,
       requester_email: email?.trim() || null,
       ip_hash:      ip,
       status:       "pending",

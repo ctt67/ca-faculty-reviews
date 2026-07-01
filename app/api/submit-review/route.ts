@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createHash } from "crypto";
+import { sanitizeFields } from "@/lib/sanitize";
+import { moderateReviewText } from "@/lib/moderate";
 
 const SUPABASE_URL     = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -54,12 +56,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const reviewData = body.reviewData;
+  let reviewData = body.reviewData;
   if (!reviewData?.faculty_slug) {
     return NextResponse.json({ error: "Missing faculty_slug" }, { status: 400 });
   }
 
-  // 5. Insert — user_id and server metadata are set here, never from client
+  // 5. Sanitize + moderate text fields
+  reviewData = sanitizeFields(reviewData, ["pros", "cons", "review_text"]);
+
+  const { ok: contentOk } = moderateReviewText(
+    reviewData.pros as string,
+    reviewData.cons as string,
+    reviewData.review_text as string | null,
+  );
+  if (!contentOk) {
+    return NextResponse.json(
+      { error: "content_flagged", message: "Your review contains language that isn't allowed. Please revise and resubmit." },
+      { status: 422 },
+    );
+  }
+
+  // 6. Insert — user_id and server metadata are set here, never from client
   const { error } = await userClient.from("reviews").insert([{
     ...reviewData,
     user_id: user.id,
