@@ -3,6 +3,7 @@ import { getOverallRating } from "@/lib/ratings";
 import { FACULTY_SUMMARY_FIELDS } from "@/lib/faculty-config";
 import { LEVEL_LABELS, BASE_URL } from "@/lib/config";
 import { formatSubjectName, PUBLIC_REVIEW_COLUMNS } from "@/lib/format";
+import SubjectSortControls from "@/components/SubjectSortControls";
 import type { Metadata } from "next";
 import { generateSubjectMetadata } from "@/lib/seo";
 
@@ -19,10 +20,17 @@ export async function generateMetadata({
 
 export default async function SubjectPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ level: string; subject: string }>;
+  searchParams: Promise<{ sort?: string }>;
 }) {
   const { level, subject } = await params;
+  const { sort: sortParam } = await searchParams;
+
+  const VALID_SORTS = ["most_reviewed", "highest_rated", "recent", "az", "za"] as const;
+  type Sort = (typeof VALID_SORTS)[number];
+  const sort: Sort = VALID_SORTS.includes(sortParam as Sort) ? (sortParam as Sort) : "most_reviewed";
 
   const { data: subjectFaculties, error } = await supabase
     .from("faculties")
@@ -51,13 +59,37 @@ export default async function SubjectPage({
 
   const allReviews = (rawReviews ?? []) as unknown as Record<string, any>[];
 
-  // Enrich with review data and sort by review count descending
-  const enrichedFaculties = (subjectFaculties ?? [])
-    .map((faculty) => {
-      const facultyReviews = allReviews?.filter((r) => r.faculty_slug === faculty.slug) ?? [];
-      return { faculty, facultyReviews };
-    })
-    .sort((a, b) => b.facultyReviews.length - a.facultyReviews.length);
+  // Enrich with computed sort keys
+  const enrichedFaculties = (subjectFaculties ?? []).map((faculty) => {
+    const facultyReviews = allReviews?.filter((r) => r.faculty_slug === faculty.slug) ?? [];
+    const overallRating = getOverallRating(facultyReviews as unknown as Record<string, unknown>[]);
+    const latestReview = facultyReviews.reduce<string | null>((max, r) => {
+      if (!r.created_at) return max;
+      return !max || r.created_at > max ? r.created_at : max;
+    }, null);
+    return { faculty, facultyReviews, overallRating, latestReview };
+  });
+
+  switch (sort) {
+    case "highest_rated":
+      enrichedFaculties.sort((a, b) => b.overallRating - a.overallRating);
+      break;
+    case "recent":
+      enrichedFaculties.sort((a, b) => {
+        if (!a.latestReview) return 1;
+        if (!b.latestReview) return -1;
+        return b.latestReview.localeCompare(a.latestReview);
+      });
+      break;
+    case "az":
+      enrichedFaculties.sort((a, b) => a.faculty.faculty_name.localeCompare(b.faculty.faculty_name));
+      break;
+    case "za":
+      enrichedFaculties.sort((a, b) => b.faculty.faculty_name.localeCompare(a.faculty.faculty_name));
+      break;
+    default:
+      enrichedFaculties.sort((a, b) => b.facultyReviews.length - a.facultyReviews.length);
+  }
 
   const levelLabel = LEVEL_LABELS[level.toLowerCase()] ?? level.toUpperCase();
   const subjectLabel = formatSubjectName(subject);
@@ -92,6 +124,9 @@ export default async function SubjectPage({
             {enrichedFaculties.length}{" "}
             {enrichedFaculties.length === 1 ? "faculty" : "faculties"} · Compare reviews, ratings and student experiences.
           </p>
+          {enrichedFaculties.length > 1 && (
+            <SubjectSortControls level={level} subject={subject} current={sort} />
+          )}
         </div>
       </section>
 
@@ -112,10 +147,7 @@ export default async function SubjectPage({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {enrichedFaculties.map(({ faculty, facultyReviews }) => {
-              const overallRating = getOverallRating(
-                facultyReviews as unknown as Record<string, unknown>[]
-              );
+            {enrichedFaculties.map(({ faculty, facultyReviews, overallRating }) => {
               const hasReviews = facultyReviews.length > 0;
               const bestFor = hasReviews ? facultyReviews[0]?.best_for?.[0] : null;
               const teachingStyle = hasReviews ? facultyReviews[0]?.teacher_style : null;
