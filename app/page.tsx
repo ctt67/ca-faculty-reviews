@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { PenLine, ShieldCheck, Ban, Layers, FileText, BarChart2, CircleDollarSign, Check } from "lucide-react";
+import { PenLine, ShieldCheck, Ban, Layers, FileText, BarChart2, CircleDollarSign, Check, BookOpen, SlidersHorizontal } from "lucide-react";
 import { BASE_URL, SITE_NAME } from "@/lib/config";
 import { supabase } from "@/lib/supabase";
 import TrackedLink from "@/components/TrackedLink";
@@ -184,6 +184,42 @@ export default async function HomePage() {
                 <div className="mt-6 text-gold text-sm font-semibold group-hover:underline">
                   Browse Faculties →
                 </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Learn: guide + ratings */}
+      <section className="max-w-6xl mx-auto px-6 py-4">
+        <div className="grid sm:grid-cols-2 gap-5">
+          {[
+            {
+              href: "/guide",
+              icon: BookOpen,
+              title: "The Buying Guide",
+              desc: "20 chapters on choosing CA coaching — format, notes, validity, demo bias and every check before you pay.",
+            },
+            {
+              href: "/ratings",
+              icon: SlidersHorizontal,
+              title: "Ratings, Explained",
+              desc: "What our 10 rating dimensions actually measure, and how to use them when comparing faculties.",
+            },
+          ].map(({ href, icon: Icon, title, desc }) => (
+            <Link
+              key={href}
+              href={href}
+              className="bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-lg transition-shadow p-5 flex items-start gap-4 group"
+            >
+              <div className="w-9 h-9 bg-parchment rounded-lg flex items-center justify-center shrink-0">
+                <Icon size={17} className="text-navy" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-ink text-sm group-hover:text-navy">
+                  {title} <span className="text-gold group-hover:underline">→</span>
+                </h3>
+                <p className="text-ink/55 text-xs mt-1 leading-relaxed">{desc}</p>
               </div>
             </Link>
           ))}
