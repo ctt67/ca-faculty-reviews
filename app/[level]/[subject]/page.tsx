@@ -309,6 +309,12 @@ export default async function SubjectPage({
           </div>
         )}
 
+        {enrichedFaculties.length > 0 && (
+          <p className="text-ink/40 text-xs mt-8">
+            Ratings are computed from approved student reviews and represent individual student opinions. Careviews does not rank, recommend, or endorse any faculty.
+          </p>
+        )}
+
         {/* Add Faculty CTA */}
         {enrichedFaculties.length > 0 && (
           <div className="mt-10 pt-8 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
