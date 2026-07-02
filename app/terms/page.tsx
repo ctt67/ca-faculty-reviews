@@ -117,9 +117,9 @@ export default function TermsPage() {
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h2 className="font-playfair font-bold text-ink mb-3">10. Governing Law</h2>
+            <h2 className="font-playfair font-bold text-ink mb-3">10. Governing Law &amp; Jurisdiction</h2>
             <p className="text-ink/65 text-sm leading-relaxed">
-              These terms are governed by the laws of India. Disputes shall be subject to the jurisdiction of courts in India.
+              These terms are governed by the laws of India. Subject to applicable law, disputes arising out of or relating to these terms or the platform shall be subject to the exclusive jurisdiction of the competent courts at Sirsa, Haryana, India.
             </p>
           </div>
 
