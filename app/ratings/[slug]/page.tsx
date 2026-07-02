@@ -195,10 +195,10 @@ export default async function RatingDimensionPage({
         {topFaculties.length > 0 && (
           <>
             <h2 className="font-playfair text-xl font-bold text-ink mb-1">
-              Highest-rated for {dim.label}
+              Rated highest by students for {dim.label}
             </h2>
             <p className="text-ink/45 text-xs mb-4">
-              Computed from approved student reviews · minimum {MIN_REVIEWS} ratings · updates as reviews come in
+              Arithmetic averages of student-submitted ratings · minimum {MIN_REVIEWS} ratings · not a Careviews endorsement · updates as reviews come in
             </p>
             <div className="space-y-2.5 mb-8">
               {topFaculties.map((f, i) => (

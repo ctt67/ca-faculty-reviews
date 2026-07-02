@@ -73,7 +73,7 @@ export async function GET() {
     "",
     "## Rating dimensions explained",
     "",
-    `Careviews rates every faculty across 10 dimensions. Each has a dedicated explainer with definitions, buying checks, and live top-rated faculties: [Ratings Explained](${BASE_URL}/ratings).`,
+    `Students rate every faculty on Careviews across 10 dimensions. Each dimension has a dedicated explainer with definitions, buying checks, and the faculties students currently rate highest: [Ratings Explained](${BASE_URL}/ratings).`,
     "",
   );
   for (const d of RATING_DIMENSIONS) {

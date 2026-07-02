@@ -305,12 +305,26 @@ export default function AdminClient() {
   const approveRejected = async (reviewId: number, overrides?: { pros?: string; cons?: string; review_text?: string }) => {
     const review = rejectedReviews.find((r) => r.id === reviewId);
     const update: Record<string, unknown> = { approved: true, rejected: false };
+    const wasRedacted =
+      overrides !== undefined &&
+      (overrides.pros !== review?.pros ||
+        overrides.cons !== review?.cons ||
+        overrides.review_text !== review?.review_text);
     if (overrides?.pros !== undefined)        update.pros        = overrides.pros;
     if (overrides?.cons !== undefined)        update.cons        = overrides.cons;
     if (overrides?.review_text !== undefined) update.review_text = overrides.review_text;
     await Promise.all([
       supabase.from("reviews").update(update).eq("id", reviewId),
-      logAudit("approve_rejected_review", reviewId, { faculty_slug: review?.faculty_slug }),
+      // Preserve the pre-redaction text — legal audit trail (moderation is redaction-only)
+      logAudit(wasRedacted ? "approve_rejected_review_redacted" : "approve_rejected_review", reviewId, {
+        faculty_slug: review?.faculty_slug,
+        ...(wasRedacted
+          ? {
+              original: { pros: review?.pros, cons: review?.cons, review_text: review?.review_text },
+              published: { pros: update.pros, cons: update.cons, review_text: update.review_text },
+            }
+          : {}),
+      }),
     ]);
     setRejectedReviews((prev) => prev.filter((r) => r.id !== reviewId));
     setEditingRejected(null);
@@ -599,6 +613,9 @@ export default function AdminClient() {
                     {/* Inline edit form */}
                     {isEditing && (
                       <div className="space-y-3 mb-5">
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 leading-relaxed">
+                          <b>Redaction only.</b> Remove PII, abuse, or unverifiable allegations — never rewrite, add to, or change the meaning of what the student wrote. Editing makes Careviews the author of this content. Original text is preserved in the audit log.
+                        </div>
                         <div>
                           <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Pros</label>
                           <textarea

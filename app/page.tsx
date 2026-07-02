@@ -105,7 +105,7 @@ export default async function HomePage() {
 
           {/* Social proof */}
           <div className="mt-6 inline-flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-full px-4 py-2">
-            <span className="text-gold text-sm tracking-wide">★★★★★</span>
+            <span className="text-gold text-sm">★</span>
             <span className="text-white/75 text-xs font-medium">{reviewCount} student {reviewCount === 1 ? "review" : "reviews"}</span>
             <span className="text-white/25 text-xs">·</span>
             <span className="text-white/50 text-xs">Growing every week</span>

@@ -17,7 +17,7 @@ export default function TermsPage() {
             ← About
           </a>
           <h1 className="font-playfair text-3xl md:text-4xl font-bold text-white">Terms of Service</h1>
-          <p className="text-white/50 text-sm mt-3">Last updated: July 2025</p>
+          <p className="text-white/50 text-sm mt-3">Last updated: July 2026</p>
         </div>
       </section>
 
@@ -51,14 +51,17 @@ export default function TermsPage() {
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="font-playfair font-bold text-ink mb-3">3. Moderation</h2>
             <p className="text-ink/65 text-sm leading-relaxed">
-              All reviews are manually moderated before going live. We reserve the right to reject, edit, or remove any review that violates these terms or our Review Guidelines, at our sole discretion, without prior notice. Repeated violations may result in account suspension.
+              All reviews are screened against these terms and our Review Guidelines before going live. We reserve the right to reject any review, or to redact it (remove specific portions such as personal information, abusive language, or unverifiable factual allegations) at our sole discretion, without prior notice. We do not rewrite, add to, or alter the meaning of review content — moderation is limited to compliance screening and redaction. Repeated violations may result in account suspension.
             </p>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h2 className="font-playfair font-bold text-ink mb-3">4. No Endorsement or Guarantee</h2>
+            <h2 className="font-playfair font-bold text-ink mb-3">4. No Endorsement or Guarantee; Intermediary Status</h2>
+            <p className="text-ink/65 text-sm leading-relaxed mb-3">
+              Reviews on Careviews represent individual student opinions and experiences, and are the statements of their authors — not of Careviews. Careviews functions as an intermediary under the Information Technology Act, 2000 with respect to user-submitted content. Careviews does not endorse, recommend, or verify claims made by reviewers. We do not guarantee the accuracy, completeness, or usefulness of any review.
+            </p>
             <p className="text-ink/65 text-sm leading-relaxed">
-              Reviews on Careviews represent individual student opinions and experiences. Careviews does not endorse, recommend, or verify claims made by reviewers. We do not guarantee the accuracy, completeness, or usefulness of any review. Faculty ratings and rankings should be used as one input among many when making educational decisions.
+              Aggregate ratings, rankings, and computed statistics displayed on the platform are arithmetic summaries of scores submitted by student reviewers, generated automatically without editorial adjustment. They are not opinions, recommendations, or assessments made by Careviews, and should be used as one input among many when making educational decisions.
             </p>
           </div>
 
@@ -89,24 +92,49 @@ export default function TermsPage() {
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h2 className="font-playfair font-bold text-ink mb-3">8. Governing Law</h2>
+            <h2 className="font-playfair font-bold text-ink mb-3">8. Indemnity</h2>
+            <p className="text-ink/65 text-sm leading-relaxed">
+              You are solely responsible for the content you submit. You agree to indemnify and hold harmless Careviews and its operator from any claim, demand, loss, or damage (including reasonable legal costs) arising out of content you submit, your breach of these terms, or your violation of any law or third-party right.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="font-playfair font-bold text-ink mb-3">9. Grievance Redressal &amp; Content Removal</h2>
+            <p className="text-ink/65 text-sm leading-relaxed mb-3">
+              In accordance with the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021, the Grievance Officer for Careviews is:
+            </p>
+            <p className="text-ink/65 text-sm leading-relaxed mb-3">
+              <span className="font-semibold text-ink">Rohan Garg</span> — Grievance Officer<br />
+              Email: <a href={`mailto:${CONTACT_EMAIL}`} className="text-navy font-medium hover:underline">{CONTACT_EMAIL}</a> (subject line: &quot;Grievance&quot;)
+            </p>
+            <ul className="space-y-2 text-ink/65 text-sm leading-relaxed list-disc list-inside">
+              <li>Complaints are acknowledged within 24 hours of receipt.</li>
+              <li>Complaints are resolved within 15 days of receipt.</li>
+              <li>Content found to violate these terms or applicable law is removed or redacted; where a complaint concerns a review of a specific faculty, the contested review may be temporarily unpublished while under assessment.</li>
+              <li>We comply with valid orders of courts and government agencies within the timelines prescribed by law.</li>
+              <li>If you are a faculty member or institute and believe a review about you is false or unlawful, email the URL of the review, the specific statements you dispute, and the basis of your complaint.</li>
+            </ul>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="font-playfair font-bold text-ink mb-3">10. Governing Law</h2>
             <p className="text-ink/65 text-sm leading-relaxed">
               These terms are governed by the laws of India. Disputes shall be subject to the jurisdiction of courts in India.
             </p>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h2 className="font-playfair font-bold text-ink mb-3">9. Changes to Terms</h2>
+            <h2 className="font-playfair font-bold text-ink mb-3">11. Changes to Terms</h2>
             <p className="text-ink/65 text-sm leading-relaxed">
               We may update these terms at any time. Continued use after updates constitutes acceptance. Material changes will be communicated via our community channels.
             </p>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h2 className="font-playfair font-bold text-ink mb-3">10. Contact</h2>
+            <h2 className="font-playfair font-bold text-ink mb-3">12. Contact</h2>
             <p className="text-ink/65 text-sm leading-relaxed">
               For questions, complaints about content, or takedown requests, email{" "}
-              <a href={`mailto:${CONTACT_EMAIL}`} className="text-navy font-medium hover:underline">{CONTACT_EMAIL}</a>.
+              <a href={`mailto:${CONTACT_EMAIL}`} className="text-navy font-medium hover:underline">{CONTACT_EMAIL}</a>, or use the grievance process in Section 9.
             </p>
           </div>
 

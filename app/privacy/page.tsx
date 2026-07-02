@@ -17,7 +17,7 @@ export default function PrivacyPage() {
             ← About
           </a>
           <h1 className="font-playfair text-3xl md:text-4xl font-bold text-white">Privacy Policy</h1>
-          <p className="text-white/50 text-sm mt-3">Last updated: July 2025</p>
+          <p className="text-white/50 text-sm mt-3">Last updated: July 2026</p>
         </div>
       </section>
 
@@ -75,9 +75,19 @@ export default function PrivacyPage() {
 
         <h2 className="font-playfair text-xl font-bold text-ink mt-10 mb-4">Your rights</h2>
         <p className="text-ink/70 text-sm leading-relaxed mb-3">
-          You can request deletion of your account, email subscription, or any review you submitted. Email us at{" "}
+          You can request access to, correction of, or deletion of your account, email subscription, or any review you submitted. Email us at{" "}
           <a href={`mailto:${CONTACT_EMAIL}`} className="text-navy font-medium">{CONTACT_EMAIL}</a>{" "}
-          with the subject &quot;Delete my data&quot;. We will process requests within 14 days.
+          with the subject &quot;Delete my data&quot; or &quot;Data request&quot;. We will process requests within 14 days.
+        </p>
+
+        <h2 className="font-playfair text-xl font-bold text-ink mt-10 mb-4">Data retention</h2>
+        <p className="text-ink/70 text-sm leading-relaxed">
+          Analytics events are automatically deleted after 90 days. Reviews and account data are retained while your account exists, or until you request deletion. Anti-spam signals (hashed identifiers) are retained as long as the associated review exists.
+        </p>
+
+        <h2 className="font-playfair text-xl font-bold text-ink mt-10 mb-4">Minors</h2>
+        <p className="text-ink/70 text-sm leading-relaxed">
+          If you are under 18, please use Careviews and submit content only with the consent of a parent or guardian. We do not knowingly collect personal data from children, and we collect no date-of-birth or age information.
         </p>
 
         <h2 className="font-playfair text-xl font-bold text-ink mt-10 mb-4">Cookies</h2>

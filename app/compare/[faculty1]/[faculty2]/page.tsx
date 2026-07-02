@@ -107,8 +107,8 @@ export default async function CompareResultPage({
     const totalR = faculty1Reviews.length + faculty2Reviews.length;
     const lead = w1 > w2 ? faculty1.faculty_name : w2 > w1 ? faculty2.faculty_name : null;
     verdict = lead
-      ? `Based on ${totalR} approved student reviews on Careviews, ${lead} currently rates higher on ${Math.max(w1, w2)} of ${ratingFields.length} rating dimensions${ties > 0 ? ` (${ties} tied)` : ""}.`
-      : `Based on ${totalR} approved student reviews on Careviews, these two faculties are currently evenly matched across the ${ratingFields.length} rating dimensions.`;
+      ? `Across ${totalR} approved student reviews on Careviews, students currently rate ${lead} higher on ${Math.max(w1, w2)} of ${ratingFields.length} rating dimensions${ties > 0 ? ` (${ties} tied)` : ""}.`
+      : `Across ${totalR} approved student reviews on Careviews, students currently rate these two faculties evenly across the ${ratingFields.length} rating dimensions.`;
   }
 
   return (
@@ -135,7 +135,7 @@ export default async function CompareResultPage({
             <div className="bg-white/8 border border-white/10 rounded-xl px-5 py-4">
               {faculty1Rating > faculty2Rating && faculty1Reviews.length > 0 && faculty2Reviews.length > 0 && (
                 <span className="inline-block bg-green-400/15 text-green-300 border border-green-400/20 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide mb-2">
-                  Higher Rated
+                  Rated Higher by Students
                 </span>
               )}
               <h1 className="font-playfair text-lg sm:text-2xl font-bold text-white leading-tight">
@@ -172,7 +172,7 @@ export default async function CompareResultPage({
             <div className="bg-white/8 border border-white/10 rounded-xl px-5 py-4">
               {faculty2Rating > faculty1Rating && faculty1Reviews.length > 0 && faculty2Reviews.length > 0 && (
                 <span className="inline-block bg-green-400/15 text-green-300 border border-green-400/20 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide mb-2">
-                  Higher Rated
+                  Rated Higher by Students
                 </span>
               )}
               <h1 className="font-playfair text-lg sm:text-2xl font-bold text-white leading-tight">

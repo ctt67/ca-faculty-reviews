@@ -216,7 +216,7 @@ export default async function FacultyPage({
     .slice(0, 5)
     .map((r) => ({
       "@type": "Review",
-      author: { "@type": "Person", name: "Verified CA Student" },
+      author: { "@type": "Person", name: "CA Student (Careviews reviewer)" },
       reviewBody: String(r.review_text || r.pros).slice(0, 500),
       ...(r.created_at ? { datePublished: String(r.created_at).slice(0, 10) } : {}),
     }));
@@ -413,7 +413,7 @@ export default async function FacultyPage({
                     )}
                     {glance.strongest && (
                       <div>
-                        <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium mb-1">Rated strongest on</p>
+                        <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium mb-1">Students rate highest</p>
                         <p className="text-sm font-medium text-ink">
                           {getDimensionByKey(glance.strongest.field) ? (
                             <a href={`/ratings/${getDimensionByKey(glance.strongest.field)!.slug}`} className="hover:underline decoration-dotted underline-offset-2">
@@ -426,7 +426,7 @@ export default async function FacultyPage({
                     )}
                     {glance.weakest && glance.strongest && glance.weakest.field !== glance.strongest.field && (
                       <div>
-                        <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium mb-1">Rated weakest on</p>
+                        <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium mb-1">Students rate lowest</p>
                         <p className="text-sm font-medium text-ink">
                           {getDimensionByKey(glance.weakest.field) ? (
                             <a href={`/ratings/${getDimensionByKey(glance.weakest.field)!.slug}`} className="hover:underline decoration-dotted underline-offset-2">

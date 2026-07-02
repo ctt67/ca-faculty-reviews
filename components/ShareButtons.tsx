@@ -15,7 +15,7 @@ export default function ShareButtons({
   const [copied, setCopied] = useState(false);
   const pageUrl = `${BASE_URL}/faculty/${facultySlug}`;
 
-  const waText = `Check out ${facultyName} on Careviews — verified student reviews and honest ratings.\n${pageUrl}?utm_source=whatsapp`;
+  const waText = `Check out ${facultyName} on Careviews — genuine student reviews and honest ratings.\n${pageUrl}?utm_source=whatsapp`;
   const tgUrl  = `https://t.me/share/url?url=${encodeURIComponent(`${pageUrl}?utm_source=telegram`)}&text=${encodeURIComponent(`Check out ${facultyName} on Careviews`)}`;
   const waUrl  = `https://wa.me/?text=${encodeURIComponent(waText)}`;
 

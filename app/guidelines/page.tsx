@@ -65,6 +65,8 @@ export default function GuidelinesPage() {
                 { icon: "🚫", text: "Fake reviews — submitting reviews for faculties you haven't studied under." },
                 { icon: "🚫", text: "Competitor attacks — writing negative reviews as a smear campaign." },
                 { icon: "🚫", text: "Revealing private information — personal details about the faculty not relevant to students." },
+                { icon: "🚫", text: "Unverifiable factual allegations — claims of fraud, cheating, paper leaks, fake results, criminal conduct, or personal misconduct. We cannot verify these, so we cannot publish them. If you believe a law has been broken, report it to the appropriate authority — a review is not the place for it." },
+                { icon: "🚫", text: "Comments on a faculty's personal life, character, appearance, religion, or anything beyond their teaching and course." },
               ].map((item) => (
                 <div key={item.text} className="flex gap-3">
                   <span className="shrink-0">{item.icon}</span>
@@ -100,10 +102,20 @@ export default function GuidelinesPage() {
             </div>
           </div>
 
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="font-playfair font-bold text-ink mb-3">Opinions vs. allegations</h2>
+            <p className="text-sm text-ink/65 leading-relaxed mb-2">
+              <span className="font-semibold text-ink">&quot;The teaching pace didn&apos;t work for me and I fell behind&quot;</span> is your experience — publishable.
+            </p>
+            <p className="text-sm text-ink/65 leading-relaxed">
+              <span className="font-semibold text-ink">&quot;This faculty fakes their results&quot;</span> is a factual accusation neither you nor we can prove — not publishable, however strongly you feel it. Describe what you experienced, not what you suspect.
+            </p>
+          </div>
+
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
             <p className="text-amber-900 text-sm font-semibold mb-1">Moderation timeline</p>
             <p className="text-amber-800 text-sm leading-relaxed">
-              Reviews are manually reviewed, typically within 24 hours. Borderline reviews may take longer. You&apos;ll see a &quot;pending approval&quot; notice until your review goes live.
+              Reviews are manually reviewed, typically within 24 hours. Borderline reviews may take longer. You&apos;ll see a &quot;pending approval&quot; notice until your review goes live. Moderation is limited to guideline compliance — we never alter the meaning of what you wrote.
             </p>
           </div>
 

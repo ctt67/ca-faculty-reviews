@@ -155,7 +155,7 @@ export default async function SubjectPage({
             )}
             {topRated && topRated.facultyReviews.length >= 3 && (
               <>
-                . Currently top-rated: {topRated.faculty.faculty_name} ({topRated.overallRating}★
+                . Students currently rate {topRated.faculty.faculty_name} highest ({topRated.overallRating}★
                 {" "}from {topRated.facultyReviews.length} reviews)
               </>
             )}
