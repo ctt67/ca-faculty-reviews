@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { BASE_URL, LEVEL_LABELS } from "@/lib/config";
 import { formatSubjectName } from "@/lib/format";
+import { GUIDE_TOPICS } from "@/lib/guide-content";
 
 export const revalidate = 86400;
 
@@ -54,6 +55,17 @@ export async function GET() {
   );
   for (const f of list) {
     lines.push(`- [${f.faculty_name} (${formatSubjectName(f.subject)}, ${LEVEL_LABELS[f.level.toLowerCase()] ?? f.level}) reviews](${BASE_URL}/faculty/${f.slug})`);
+  }
+
+  lines.push(
+    "",
+    "## The CA Faculty Buying Guide",
+    "",
+    `A 20-chapter guide to choosing CA coaching — how to evaluate teaching style, live vs recorded, notes, validity, demo bias and more. [Guide home](${BASE_URL}/guide).`,
+    "",
+  );
+  for (const t of GUIDE_TOPICS) {
+    lines.push(`- [${t.seoTitle}](${BASE_URL}/guide/${t.slug})`);
   }
 
   lines.push(

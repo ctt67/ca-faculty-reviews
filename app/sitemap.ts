@@ -1,8 +1,10 @@
 import type { MetadataRoute } from "next";
 import { supabase } from "@/lib/supabase";
 import { BASE_URL } from "@/lib/config";
+import { GUIDE_TOPICS } from "@/lib/guide-content";
 
 const SITE_LAUNCH = new Date("2025-01-01");
+const GUIDE_LAUNCH = new Date("2026-07-02");
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Single query for faculties — need slug, level, subject for subject pages + compare pairs
@@ -35,6 +37,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/inter`,                  lastModified: SITE_LAUNCH,  changeFrequency: "weekly",  priority: 0.9  },
     { url: `${BASE_URL}/foundation`,             lastModified: SITE_LAUNCH,  changeFrequency: "weekly",  priority: 0.9  },
     { url: `${BASE_URL}/compare`,                lastModified: SITE_LAUNCH,  changeFrequency: "weekly",  priority: 0.75 },
+    { url: `${BASE_URL}/guide`,                  lastModified: GUIDE_LAUNCH, changeFrequency: "monthly", priority: 0.85 },
+    ...GUIDE_TOPICS.map((t) => ({
+      url: `${BASE_URL}/guide/${t.slug}`,
+      lastModified: GUIDE_LAUNCH,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
     { url: `${BASE_URL}/about`,                  lastModified: SITE_LAUNCH,  changeFrequency: "monthly", priority: 0.6  },
     { url: `${BASE_URL}/add-faculty`,            lastModified: SITE_LAUNCH,  changeFrequency: "monthly", priority: 0.5  },
     { url: `${BASE_URL}/guidelines`,             lastModified: SITE_LAUNCH,  changeFrequency: "monthly", priority: 0.4  },

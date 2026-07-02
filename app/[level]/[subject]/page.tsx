@@ -170,12 +170,20 @@ export default async function SubjectPage({
       {/* Faculty grid */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-14">
         {enrichedFaculties.length > 0 && (
-          <p className="text-sm text-ink/50 mb-6">
-            Studied {subjectLabel}?{" "}
-            <a href="/review" className="text-gold font-semibold hover:underline">
-              Write a review →
-            </a>
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
+            <p className="text-sm text-ink/50">
+              Studied {subjectLabel}?{" "}
+              <a href="/review" className="text-gold font-semibold hover:underline">
+                Write a review →
+              </a>
+            </p>
+            <p className="text-sm text-ink/50">
+              First time buying?{" "}
+              <a href="/guide" className="text-gold font-semibold hover:underline">
+                Read the Buying Guide →
+              </a>
+            </p>
+          </div>
         )}
         {enrichedFaculties.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-100 p-10 sm:p-12 text-center">
