@@ -1,0 +1,46 @@
+{
+  "keywords": [
+    "which faculty",
+    "best faculty",
+    "kaun sa faculty",
+    "kiski classes",
+    "konsi classes",
+    "should i take",
+    "worth it",
+    "confused between",
+    "kaisa hai",
+    "kaise hai",
+    "kaisi hai",
+    "pendrive classes",
+    "fast track",
+    "regular batch",
+    "recommend",
+    "review chahiye",
+    "honest review",
+    "classes lene",
+    "lecture quality",
+    "validity kitni",
+    "doubt support"
+  ],
+  "youtube": {
+    "api_key": "GET_FROM_console.cloud.google.com",
+    "search_queries": [
+      "best faculty CA final",
+      "best faculty CA inter",
+      "CA final FR faculty comparison",
+      "CA final AFM faculty",
+      "CA inter law faculty",
+      "which faculty CA final",
+      "CA classes comparison",
+      "how to choose CA faculty"
+    ],
+    "exclude_channel_ids": [],
+    "max_video_age_days": 14,
+    "max_videos_per_query": 10,
+    "comments_per_video": 50
+  },
+  "notify": {
+    "bot_token": "GET_FROM_@BotFather",
+    "chat_id": "GET_FROM_@userinfobot"
+  }
+}
