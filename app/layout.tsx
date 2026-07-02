@@ -126,6 +126,7 @@ export default function RootLayout({
                   <a href="/foundation" className="text-white/55 hover:text-white text-sm transition">Foundation</a>
                   <a href="/compare"    className="text-white/55 hover:text-white text-sm transition">Compare</a>
                   <a href="/guide"      className="text-white/55 hover:text-white text-sm transition">Buying Guide</a>
+                  <a href="/ratings"    className="text-white/55 hover:text-white text-sm transition">Ratings Explained</a>
                   <a href="/about"      className="text-white/55 hover:text-white text-sm transition">About</a>
                   <a href="/add-faculty" className="text-white/55 hover:text-white text-sm transition">Request a Faculty</a>
                 </nav>

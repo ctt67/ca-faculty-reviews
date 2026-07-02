@@ -101,9 +101,12 @@ function Block({ b }: { b: GuideBlock }) {
             {b.label}
           </p>
           <p className="text-ink/70 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: b.html }} />
-          <p className="text-xs mt-3">
+          <p className="text-xs mt-3 flex flex-wrap gap-x-4 gap-y-1">
+            <Link href="/ratings" className="text-gold font-semibold hover:underline">
+              What these ratings measure →
+            </Link>
             <Link href="/final" className="text-gold font-semibold hover:underline">
-              Check these ratings on faculty pages →
+              Check them on faculty pages →
             </Link>
           </p>
         </div>
@@ -224,10 +227,15 @@ export default async function GuideTopicPage({
           ) : (
             <span />
           )}
-          {next && (
+          {next ? (
             <Link href={`/guide/${next.slug}`} className="bg-white rounded-xl border border-slate-100 p-4 hover:shadow-md transition block sm:text-right">
               <p className="text-[10px] text-ink/35 uppercase tracking-wider font-medium mb-1">Next →</p>
               <p className="text-sm font-semibold text-ink">{next.title}</p>
+            </Link>
+          ) : (
+            <Link href="/checklist" className="bg-white rounded-xl border border-gold/40 p-4 hover:shadow-md transition block sm:text-right">
+              <p className="text-[10px] text-gold uppercase tracking-wider font-semibold mb-1">Finish →</p>
+              <p className="text-sm font-semibold text-ink">The Final Buying Checklist</p>
             </Link>
           )}
         </nav>

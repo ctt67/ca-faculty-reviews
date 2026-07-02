@@ -68,6 +68,12 @@ export default function GuideHubPage() {
             >
               Start Reading
             </a>
+            <Link
+              href="/checklist"
+              className="border border-white/25 text-white font-medium px-6 py-3 rounded-lg hover:bg-white/5 transition text-sm"
+            >
+              Open the Checklist
+            </Link>
             <TrackedLink
               href="/ca-faculty-buying-guide.pdf"
               event="guide_pdf_downloaded"

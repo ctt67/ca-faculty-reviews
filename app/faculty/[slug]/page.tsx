@@ -20,6 +20,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { generateFacultyMetadata } from "@/lib/seo";
 import { BASE_URL, LEVEL_LABELS } from "@/lib/config";
+import { getDimensionByKey } from "@/lib/rating-dimensions";
 
 export const revalidate = 300;
 
@@ -89,7 +90,7 @@ export default async function FacultyPage({
   if (!faculty) notFound();
 
   const ratingColumns = [
-    "attempt", "course_type",
+    "attempt", "course_type", "best_for", "would_recommend",
     "understandability", "exam_focus", "study_material_quality", "mock_coverage",
     "coverage_of_questions", "doubt_resolution", "revision_support", "notes_quality",
     "pace_of_teaching", "time_efficiency", "value_for_money", "expectation_match",
@@ -170,6 +171,40 @@ export default async function FacultyPage({
 
   const votesObj: Record<string, { up: number; down: number }> = {};
   voteCounts.forEach((val, key) => { votesObj[String(key)] = val; });
+
+  // "At a glance" — computed only from structured review fields, min 3 reviews
+  const AT_A_GLANCE_MIN = 3;
+  let glance: {
+    recRate: number | null;
+    recCount: number;
+    topBestFor: Array<[string, number]>;
+    strongest: { field: string; avg: number } | null;
+    weakest: { field: string; avg: number } | null;
+  } | null = null;
+  if (totalUnfiltered >= AT_A_GLANCE_MIN) {
+    const recPool = allReviews.filter((r) => r.would_recommend !== null && r.would_recommend !== undefined);
+    const recRate = recPool.length >= AT_A_GLANCE_MIN
+      ? Math.round((100 * recPool.filter((r) => r.would_recommend).length) / recPool.length)
+      : null;
+    const bestForCounts = new Map<string, number>();
+    for (const r of allReviews) {
+      for (const b of (r.best_for ?? []) as string[]) {
+        bestForCounts.set(b, (bestForCounts.get(b) ?? 0) + 1);
+      }
+    }
+    const topBestFor = [...bestForCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
+    const dimAvgs = getRatingFields(allReviews)
+      .map((field) => ({ field, avg: getAverageMetric(allReviews, field) }))
+      .filter((d) => d.avg > 0)
+      .sort((a, b) => b.avg - a.avg);
+    glance = {
+      recRate,
+      recCount: recPool.length,
+      topBestFor,
+      strongest: dimAvgs[0] ?? null,
+      weakest: dimAvgs.length > 1 ? dimAvgs[dimAvgs.length - 1] : null,
+    };
+  }
 
   const subjectLabel = formatSubjectName(faculty.subject ?? "");
 
@@ -345,6 +380,67 @@ export default async function FacultyPage({
                 </a>
               )}
 
+              {/* At a Glance — computed from structured review fields */}
+              {glance && (
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <h2 className="font-playfair text-base font-bold text-ink mb-1">At a Glance</h2>
+                  <p className="text-ink/40 text-[10px] mb-4">
+                    Computed from {totalUnfiltered} approved student {totalUnfiltered === 1 ? "review" : "reviews"} on Careviews
+                  </p>
+                  <div className="space-y-3.5">
+                    {glance.recRate !== null && (
+                      <div>
+                        <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium mb-1">Would recommend</p>
+                        <p className="text-sm text-ink">
+                          <span className={`font-bold text-lg ${glance.recRate >= 70 ? "text-green-600" : glance.recRate >= 40 ? "text-ink" : "text-red-500"}`}>
+                            {glance.recRate}%
+                          </span>{" "}
+                          <span className="text-ink/50 text-xs">of {glance.recCount} reviewers</span>
+                        </p>
+                      </div>
+                    )}
+                    {glance.topBestFor.length > 0 && (
+                      <div>
+                        <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium mb-1.5">Students most often tag it best for</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {glance.topBestFor.map(([tag, n]) => (
+                            <span key={tag} className="bg-parchment text-ink/70 px-2.5 py-1 rounded-full text-xs font-medium">
+                              {tag} <span className="text-ink/35">×{n}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {glance.strongest && (
+                      <div>
+                        <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium mb-1">Rated strongest on</p>
+                        <p className="text-sm font-medium text-ink">
+                          {getDimensionByKey(glance.strongest.field) ? (
+                            <a href={`/ratings/${getDimensionByKey(glance.strongest.field)!.slug}`} className="hover:underline decoration-dotted underline-offset-2">
+                              {getRatingLabel(glance.strongest.field)}
+                            </a>
+                          ) : getRatingLabel(glance.strongest.field)}{" "}
+                          <span className="text-green-600 font-semibold">({glance.strongest.avg})</span>
+                        </p>
+                      </div>
+                    )}
+                    {glance.weakest && glance.strongest && glance.weakest.field !== glance.strongest.field && (
+                      <div>
+                        <p className="text-[10px] text-ink/40 uppercase tracking-wider font-medium mb-1">Rated weakest on</p>
+                        <p className="text-sm font-medium text-ink">
+                          {getDimensionByKey(glance.weakest.field) ? (
+                            <a href={`/ratings/${getDimensionByKey(glance.weakest.field)!.slug}`} className="hover:underline decoration-dotted underline-offset-2">
+                              {getRatingLabel(glance.weakest.field)}
+                            </a>
+                          ) : getRatingLabel(glance.weakest.field)}{" "}
+                          <span className="text-red-500 font-semibold">({glance.weakest.avg})</span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Ratings Summary */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="font-playfair text-base font-bold text-ink mb-5">Ratings Breakdown</h2>
@@ -352,15 +448,24 @@ export default async function FacultyPage({
                   <p className="text-ink/40 text-sm">No ratings yet.</p>
                 ) : (
                   <div className="space-y-4">
-                    {ratingFields.map((field) => (
-                      <div key={field}>
-                        <div className="mb-1.5">
-                          <p className="text-ink text-xs font-semibold">{getRatingLabel(field)}</p>
-                          <p className="text-ink/45 text-[10px] leading-tight">{getRatingHint(field)}</p>
+                    {ratingFields.map((field) => {
+                      const dim = getDimensionByKey(field);
+                      return (
+                        <div key={field}>
+                          <div className="mb-1.5">
+                            {dim ? (
+                              <a href={`/ratings/${dim.slug}`} className="text-ink text-xs font-semibold hover:text-navy hover:underline decoration-dotted underline-offset-2">
+                                {getRatingLabel(field)}
+                              </a>
+                            ) : (
+                              <p className="text-ink text-xs font-semibold">{getRatingLabel(field)}</p>
+                            )}
+                            <p className="text-ink/45 text-[10px] leading-tight">{getRatingHint(field)}</p>
+                          </div>
+                          <RatingBar value={getAverageMetric(allReviews, field)} />
                         </div>
-                        <RatingBar value={getAverageMetric(allReviews, field)} />
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

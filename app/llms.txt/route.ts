@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { BASE_URL, LEVEL_LABELS } from "@/lib/config";
 import { formatSubjectName } from "@/lib/format";
 import { GUIDE_TOPICS } from "@/lib/guide-content";
+import { RATING_DIMENSIONS } from "@/lib/rating-dimensions";
 
 export const revalidate = 86400;
 
@@ -66,6 +67,17 @@ export async function GET() {
   );
   for (const t of GUIDE_TOPICS) {
     lines.push(`- [${t.seoTitle}](${BASE_URL}/guide/${t.slug})`);
+  }
+
+  lines.push(
+    "",
+    "## Rating dimensions explained",
+    "",
+    `Careviews rates every faculty across 10 dimensions. Each has a dedicated explainer with definitions, buying checks, and live top-rated faculties: [Ratings Explained](${BASE_URL}/ratings).`,
+    "",
+  );
+  for (const d of RATING_DIMENSIONS) {
+    lines.push(`- [${d.label} — ${d.seoTitle}](${BASE_URL}/ratings/${d.slug})`);
   }
 
   lines.push(

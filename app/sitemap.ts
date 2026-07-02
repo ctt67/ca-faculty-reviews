@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { supabase } from "@/lib/supabase";
 import { BASE_URL } from "@/lib/config";
 import { GUIDE_TOPICS } from "@/lib/guide-content";
+import { RATING_DIMENSIONS } from "@/lib/rating-dimensions";
 
 const SITE_LAUNCH = new Date("2025-01-01");
 const GUIDE_LAUNCH = new Date("2026-07-02");
@@ -43,6 +44,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: GUIDE_LAUNCH,
       changeFrequency: "monthly" as const,
       priority: 0.8,
+    })),
+    { url: `${BASE_URL}/checklist`,              lastModified: GUIDE_LAUNCH, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE_URL}/ratings`,                lastModified: GUIDE_LAUNCH, changeFrequency: "monthly", priority: 0.8 },
+    ...RATING_DIMENSIONS.map((d) => ({
+      url: `${BASE_URL}/ratings/${d.slug}`,
+      lastModified: GUIDE_LAUNCH,
+      changeFrequency: "weekly" as const,
+      priority: 0.75,
     })),
     { url: `${BASE_URL}/about`,                  lastModified: SITE_LAUNCH,  changeFrequency: "monthly", priority: 0.6  },
     { url: `${BASE_URL}/add-faculty`,            lastModified: SITE_LAUNCH,  changeFrequency: "monthly", priority: 0.5  },

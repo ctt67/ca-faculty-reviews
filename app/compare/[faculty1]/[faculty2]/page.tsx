@@ -13,6 +13,7 @@ import CompareReviewCard from "@/components/compare/CompareReviewCard";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { generateCompareMetadata } from "@/lib/seo";
+import { getDimensionByKey } from "@/lib/rating-dimensions";
 
 export async function generateMetadata({
   params,
@@ -91,6 +92,24 @@ export default async function CompareResultPage({
     if (v2 > v1) return "right";
     return "tie";
   };
+
+  // Computed verdict — unique data sentence, only when both sides have reviews
+  let verdict: string | null = null;
+  if (faculty1Reviews.length > 0 && faculty2Reviews.length > 0 && ratingFields.length > 0) {
+    let w1 = 0, w2 = 0, ties = 0;
+    for (const f of ratingFields) {
+      const v1 = getAverageMetric(faculty1Reviews, f);
+      const v2 = getAverageMetric(faculty2Reviews, f);
+      if (v1 > v2) w1++;
+      else if (v2 > v1) w2++;
+      else ties++;
+    }
+    const totalR = faculty1Reviews.length + faculty2Reviews.length;
+    const lead = w1 > w2 ? faculty1.faculty_name : w2 > w1 ? faculty2.faculty_name : null;
+    verdict = lead
+      ? `Based on ${totalR} approved student reviews on Careviews, ${lead} currently rates higher on ${Math.max(w1, w2)} of ${ratingFields.length} rating dimensions${ties > 0 ? ` (${ties} tied)` : ""}.`
+      : `Based on ${totalR} approved student reviews on Careviews, these two faculties are currently evenly matched across the ${ratingFields.length} rating dimensions.`;
+  }
 
   return (
     <main className="min-h-screen">
@@ -228,6 +247,9 @@ export default async function CompareResultPage({
         {hasAnyReviews && ratingFields.length > 0 && (
           <div>
             <h2 className="font-playfair text-2xl font-bold text-ink mb-1">Ratings Comparison</h2>
+            {verdict && (
+              <p className="text-ink/70 text-sm mb-1.5 max-w-2xl leading-relaxed">{verdict}</p>
+            )}
             <p className="text-ink/45 text-xs mb-6">
               Calculated from approved reviews. Differences may reflect review volume, not just faculty quality.
             </p>
@@ -256,7 +278,13 @@ export default async function CompareResultPage({
                     <div key={field} className="grid grid-cols-3 border-b border-slate-100 last:border-b-0">
                       {/* Metric label + hint */}
                       <div className="px-5 py-4">
-                        <p className="text-sm font-semibold text-ink">{getRatingLabel(field)}</p>
+                        {getDimensionByKey(field) ? (
+                          <a href={`/ratings/${getDimensionByKey(field)!.slug}`} className="text-sm font-semibold text-ink hover:text-navy hover:underline decoration-dotted underline-offset-2">
+                            {getRatingLabel(field)}
+                          </a>
+                        ) : (
+                          <p className="text-sm font-semibold text-ink">{getRatingLabel(field)}</p>
+                        )}
                         <p className="text-[10px] text-ink/40 mt-0.5 leading-tight">{getRatingHint(field)}</p>
                       </div>
 
@@ -327,6 +355,19 @@ export default async function CompareResultPage({
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Guide CTA */}
+        <div className="bg-navy rounded-2xl px-7 py-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+          <div>
+            <h2 className="font-playfair text-lg font-bold text-white">Ratings are half the decision.</h2>
+            <p className="text-white/55 text-sm mt-1">
+              The Buying Guide covers the other half — format, validity, demo bias and every check before you pay.
+            </p>
+          </div>
+          <a href="/guide" className="shrink-0 bg-gold text-ink px-5 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition">
+            Read the Buying Guide →
+          </a>
         </div>
 
       </section>
