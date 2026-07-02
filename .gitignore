@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# watcher tool — secrets and state stay local
+tools/watcher/config.json
+tools/watcher/yt_state.json
+tools/watcher/__pycache__/
