@@ -138,6 +138,16 @@ export default async function FacultyPage({
     voteCounts.set(v.review_id, entry);
   }
 
+  // Same-subject peers for internal linking (SEO + discovery)
+  const { data: peerFaculties } = await supabase
+    .from("faculties")
+    .select("slug, faculty_name")
+    .ilike("subject", faculty.subject ?? "")
+    .ilike("level", faculty.level ?? "")
+    .eq("active", true)
+    .neq("slug", slug)
+    .limit(6);
+
   let reviews = (pageReviews ?? []) as unknown as Record<string, any>[];
   if (isHelpful) {
     reviews = [...reviews].sort((a, b) => {
@@ -165,6 +175,17 @@ export default async function FacultyPage({
 
   const levelLabel = LEVEL_LABELS[faculty.level?.toLowerCase() ?? ""] ?? faculty.level ?? "";
 
+  // Course carries the rating — Google shows review stars for Course, not Person.
+  const reviewSnippets = allReviews
+    .filter((r) => r.review_text || r.pros)
+    .slice(0, 5)
+    .map((r) => ({
+      "@type": "Review",
+      author: { "@type": "Person", name: "Verified CA Student" },
+      reviewBody: String(r.review_text || r.pros).slice(0, 500),
+      ...(r.created_at ? { datePublished: String(r.created_at).slice(0, 10) } : {}),
+    }));
+
   const jsonLd = [
     {
       "@context": "https://schema.org",
@@ -173,18 +194,30 @@ export default async function FacultyPage({
       jobTitle: `${subjectLabel} Educator`,
       knowsAbout: faculty.subject,
       ...(faculty.website ? { url: faculty.website } : {}),
-      ...(totalReviews > 0
-        ? {
-            aggregateRating: {
-              "@type": "AggregateRating",
-              ratingValue: overallRating.toFixed(1),
-              reviewCount: totalReviews,
-              bestRating: "5",
-              worstRating: "1",
-            },
-          }
-        : {}),
     },
+    ...(totalReviews > 0
+      ? [{
+          "@context": "https://schema.org",
+          "@type": "Course",
+          name: `${subjectLabel} by ${faculty.faculty_name} (${levelLabel})`,
+          description: `${levelLabel} ${subjectLabel} coaching by ${faculty.faculty_name}, rated by CA students on Careviews.`,
+          provider: { "@type": "Person", name: faculty.faculty_name },
+          offers: { "@type": "Offer", category: "Paid" },
+          hasCourseInstance: {
+            "@type": "CourseInstance",
+            courseMode: "Online",
+            courseWorkload: "PT100H",
+          },
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: overallRating.toFixed(1),
+            reviewCount: totalReviews,
+            bestRating: "5",
+            worstRating: "1",
+          },
+          ...(reviewSnippets.length > 0 ? { review: reviewSnippets } : {}),
+        }]
+      : []),
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
@@ -406,6 +439,37 @@ export default async function FacultyPage({
 
             </div>
           </div>
+
+          {/* Other faculties — internal links for discovery + SEO */}
+          {(peerFaculties?.length ?? 0) > 0 && (
+            <div className="mt-12 pt-8 border-t border-slate-200">
+              <h2 className="font-playfair text-xl font-bold text-ink mb-1">
+                Other {levelLabel} {subjectLabel} Faculties
+              </h2>
+              <p className="text-ink/50 text-sm mb-5">
+                Compare {faculty.faculty_name} with other {subjectLabel} faculties before you decide.
+              </p>
+              <div className="flex flex-wrap gap-2.5">
+                {peerFaculties!.map((p) => {
+                  const [s1, s2] = [faculty.slug, p.slug].sort();
+                  return (
+                    <span key={p.slug} className="inline-flex items-stretch rounded-xl border border-slate-200 bg-white overflow-hidden text-sm">
+                      <a href={`/faculty/${p.slug}`} className="px-4 py-2.5 font-medium text-ink hover:bg-slate-50 transition">
+                        {p.faculty_name}
+                      </a>
+                      <a
+                        href={`/compare/${s1}/${s2}`}
+                        className="px-3 py-2.5 border-l border-slate-100 text-gold font-semibold hover:bg-slate-50 transition"
+                        title={`Compare ${faculty.faculty_name} vs ${p.faculty_name}`}
+                      >
+                        vs
+                      </a>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </section>
 
       </main>

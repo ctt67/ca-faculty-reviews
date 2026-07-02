@@ -110,9 +110,30 @@ export default async function SubjectPage({
     ],
   };
 
+  // Ranked list schema — tells Google this page is a ranked list of faculties
+  const itemListLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `Best ${levelLabel} ${subjectLabel} Faculty — Student Reviews`,
+    numberOfItems: enrichedFaculties.length,
+    itemListElement: enrichedFaculties.map(({ faculty }, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: faculty.faculty_name,
+      url: `${BASE_URL}/faculty/${faculty.slug}`,
+    })),
+  };
+
+  // Computed intro stats — unique, data-driven text per subject page
+  const totalSubjectReviews = allReviews.length;
+  const rated = enrichedFaculties.filter((f) => f.facultyReviews.length > 0);
+  const topRated = rated.length > 0
+    ? [...rated].sort((a, b) => b.overallRating - a.overallRating)[0]
+    : null;
+
   return (
     <main className="min-h-screen">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([breadcrumbLd, itemListLd]) }} />
 
       {/* Hero */}
       <section className="bg-navy text-white">
@@ -126,9 +147,19 @@ export default async function SubjectPage({
           <h1 className="font-playfair text-3xl md:text-4xl font-bold text-white">
             {subjectLabel}
           </h1>
-          <p className="text-white/55 text-sm mt-3">
-            {enrichedFaculties.length}{" "}
-            {enrichedFaculties.length === 1 ? "faculty" : "faculties"} · Compare reviews, ratings and student experiences.
+          <p className="text-white/55 text-sm mt-3 max-w-2xl leading-relaxed">
+            Compare {enrichedFaculties.length} {levelLabel} {subjectLabel}{" "}
+            {enrichedFaculties.length === 1 ? "faculty" : "faculties"}
+            {totalSubjectReviews > 0 && (
+              <> ranked by {totalSubjectReviews} genuine student {totalSubjectReviews === 1 ? "review" : "reviews"}</>
+            )}
+            {topRated && topRated.facultyReviews.length >= 3 && (
+              <>
+                . Currently top-rated: {topRated.faculty.faculty_name} ({topRated.overallRating}★
+                {" "}from {topRated.facultyReviews.length} reviews)
+              </>
+            )}
+            . Independent — no paid rankings.
           </p>
           {enrichedFaculties.length > 1 && (
             <SubjectSortControls level={level} subject={subject} current={sort} />
