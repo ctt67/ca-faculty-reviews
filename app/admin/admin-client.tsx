@@ -203,11 +203,12 @@ export default function AdminClient() {
   const [showAddFaculty, setShowAddFaculty]       = useState(false);
   const [addingFaculty, setAddingFaculty]         = useState(false);
   const [addFacultyMsg, setAddFacultyMsg]         = useState<{ ok: boolean; text: string; slug?: string } | null>(null);
-  const [existingSubjects, setExistingSubjects]   = useState<string[]>([]);
-  const [existingLevels, setExistingLevels]       = useState<string[]>([]);
   const [facultyDraft, setFacultyDraft]           = useState({
     faculty_name: "", level: "", subject: "", website: "", language: "", mode: "",
   });
+  const [toMailRequests, setToMailRequests]       = useState<any[]>([]);
+  const [showToMail, setShowToMail]               = useState(false);
+  const [loadingToMail, setLoadingToMail]         = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -376,22 +377,49 @@ export default function AdminClient() {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
 
-  const openAddFaculty = async (prefill?: { faculty_name?: string; level?: string; subject?: string }) => {
+  // Canonical subjects per level. Spellings MUST match existing DB rows
+  // (e.g. "Auditing" not "Audit", "Maths" not "Mathematics") — a different
+  // string creates a separate subject page.
+  const SUBJECTS_BY_LEVEL: Record<string, string[]> = {
+    foundation: ["Accounts", "Law", "Economics", "Maths"],
+    inter: ["Accounts", "Auditing", "Costing", "DT", "IDT", "Taxation", "Law", "FM", "SM", "FM-SM"],
+    final: ["FR", "AFM", "Auditing", "DT", "IDT", "IBS", "Law", "Cost"],
+  };
+  const subjectOptions = SUBJECTS_BY_LEVEL[facultyDraft.level.toLowerCase()] ?? [];
+
+  const openAddFaculty = (prefill?: { faculty_name?: string; level?: string; subject?: string }) => {
     setAddFacultyMsg(null);
     if (prefill) {
+      const level = (prefill.level ?? "").trim();
+      const options = SUBJECTS_BY_LEVEL[level.toLowerCase()] ?? [];
+      // only prefill subject if it matches a canonical option (case-insensitive)
+      const subject = options.find((s) => s.toLowerCase() === (prefill.subject ?? "").trim().toLowerCase()) ?? "";
       setFacultyDraft((d) => ({
         ...d,
         faculty_name: prefill.faculty_name ?? "",
-        level: prefill.level ?? "",
-        subject: prefill.subject ?? "",
+        level,
+        subject,
       }));
     }
     setShowAddFaculty(true);
-    if (existingSubjects.length === 0) {
-      const { data } = await supabase.from("faculties").select("subject, level").eq("active", true);
-      setExistingSubjects([...new Set((data ?? []).map((f) => f.subject))].sort());
-      setExistingLevels([...new Set((data ?? []).map((f) => f.level))].sort());
-    }
+  };
+
+  const requestMailto = (req: any) => {
+    const slug = facultySlug(req.faculty_name, req.subject ?? "");
+    const subject = encodeURIComponent(`${req.faculty_name} is now on Careviews`);
+    const body = encodeURIComponent(
+`Hi!
+
+You asked us to add ${req.faculty_name}${req.subject ? ` (${req.subject})` : ""} to Careviews — they're live now:
+https://careviews.in/faculty/${slug}
+
+Since you requested them, you clearly know their classes — an honest 5-minute review would make you their first reviewer and help the next student deciding:
+https://careviews.in/review/${slug}
+
+Thanks for helping build this,
+Rohan — Careviews (careviews.in)`
+    );
+    return `mailto:${req.requester_email}?subject=${subject}&body=${body}`;
   };
 
   const addFaculty = async () => {
@@ -442,11 +470,38 @@ export default function AdminClient() {
 
   const markRequestDone = async (reqId: number) => {
     const req = facultyRequests.find((r) => r.id === reqId);
+    // Requests with a notify-me email go to the To-Mail bucket instead of vanishing
+    const nextStatus = req?.requester_email ? "to_mail" : "done";
     await Promise.all([
-      supabase.from("faculty_requests").update({ status: "done" }).eq("id", reqId),
-      logAudit("faculty_request_done", reqId, { faculty_name: req?.faculty_name }, "faculty_request"),
+      supabase.from("faculty_requests").update({ status: nextStatus }).eq("id", reqId),
+      logAudit(`faculty_request_${nextStatus}`, reqId, { faculty_name: req?.faculty_name }, "faculty_request"),
     ]);
     setFacultyRequests((prev) => prev.filter((r) => r.id !== reqId));
+    if (req?.requester_email) {
+      setToMailRequests((prev) => [req, ...prev.filter((r) => r.id !== reqId)]);
+    }
+  };
+
+  const loadToMail = async () => {
+    if (toMailRequests.length > 0) { setShowToMail(true); return; }
+    setLoadingToMail(true);
+    const { data } = await supabase
+      .from("faculty_requests")
+      .select("id, faculty_name, level, subject, requester_email, created_at, status")
+      .eq("status", "to_mail")
+      .order("created_at", { ascending: false });
+    setToMailRequests(data ?? []);
+    setShowToMail(true);
+    setLoadingToMail(false);
+  };
+
+  const markMailed = async (reqId: number) => {
+    const req = toMailRequests.find((r) => r.id === reqId);
+    await Promise.all([
+      supabase.from("faculty_requests").update({ status: "done" }).eq("id", reqId),
+      logAudit("faculty_request_mailed", reqId, { faculty_name: req?.faculty_name }, "faculty_request"),
+    ]);
+    setToMailRequests((prev) => prev.filter((r) => r.id !== reqId));
   };
 
   const dismissRequest = async (reqId: number) => {
@@ -785,29 +840,28 @@ export default function AdminClient() {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-slate-500 block mb-1">Level *</label>
-                  <input
+                  <select
                     value={facultyDraft.level}
-                    onChange={(e) => setFacultyDraft((d) => ({ ...d, level: e.target.value }))}
-                    placeholder="e.g. Final"
-                    list="cv-levels"
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
-                  />
-                  <datalist id="cv-levels">
-                    {existingLevels.map((l) => <option key={l} value={l} />)}
-                  </datalist>
+                    onChange={(e) => setFacultyDraft((d) => ({ ...d, level: e.target.value, subject: "" }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  >
+                    <option value="">Select level…</option>
+                    <option value="Final">Final</option>
+                    <option value="Inter">Inter</option>
+                    <option value="Foundation">Foundation</option>
+                  </select>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate-500 block mb-1">Subject * <span className="text-slate-400">(match existing spelling)</span></label>
-                  <input
+                  <label className="text-xs font-medium text-slate-500 block mb-1">Subject *</label>
+                  <select
                     value={facultyDraft.subject}
                     onChange={(e) => setFacultyDraft((d) => ({ ...d, subject: e.target.value }))}
-                    placeholder="e.g. AFM"
-                    list="cv-subjects"
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
-                  />
-                  <datalist id="cv-subjects">
-                    {existingSubjects.map((s) => <option key={s} value={s} />)}
-                  </datalist>
+                    disabled={!facultyDraft.level}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-300 disabled:bg-slate-50 disabled:text-slate-400"
+                  >
+                    <option value="">{facultyDraft.level ? "Select subject…" : "Pick level first"}</option>
+                    {subjectOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label className="text-xs font-medium text-slate-500 block mb-1">Website</label>
@@ -911,30 +965,12 @@ export default function AdminClient() {
                       >
                         Add as Faculty ↑
                       </button>
-                      {req.requester_email && (
-                        <a
-                          href={`mailto:${req.requester_email}?subject=${encodeURIComponent(`${req.faculty_name} is now on Careviews`)}&body=${encodeURIComponent(
-`Hi!
-
-You asked us to add ${req.faculty_name}${req.subject ? ` (${req.subject})` : ""} to Careviews — they're live now:
-https://careviews.in/faculty/${facultySlug(req.faculty_name, req.subject ?? "")}
-
-Since you requested them, you clearly know their classes — an honest 5-minute review would make you their first reviewer and help the next student deciding:
-https://careviews.in/review/${facultySlug(req.faculty_name, req.subject ?? "")}
-
-Thanks for helping build this,
-Rohan — Careviews (careviews.in)`
-                          )}`}
-                          className="text-xs font-medium text-violet-700 bg-violet-50 border border-violet-200 px-3 py-1.5 rounded-lg hover:bg-violet-100 transition whitespace-nowrap text-center"
-                        >
-                          ✉ Notify Requester
-                        </a>
-                      )}
                       <button
                         onClick={() => markRequestDone(req.id)}
                         className="text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg hover:bg-green-100 transition whitespace-nowrap"
+                        title={req.requester_email ? "Moves to the To-Mail bucket" : "Marks done"}
                       >
-                        Mark Added
+                        Mark Added{req.requester_email ? " → ✉" : ""}
                       </button>
                       <button
                         onClick={() => dismissRequest(req.id)}
@@ -943,6 +979,50 @@ Rohan — Careviews (careviews.in)`
                         Dismiss
                       </button>
                     </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* To Mail — added faculties whose requester asked to be notified */}
+        <div className="mt-10">
+          <button
+            onClick={() => showToMail ? setShowToMail(false) : loadToMail()}
+            className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition"
+          >
+            {loadingToMail ? "Loading…" : showToMail ? "▲ Hide To-Mail" : "▼ Show To-Mail (requesters waiting for notify email)"}
+          </button>
+
+          {showToMail && (
+            <div className="space-y-3 mt-5">
+              {toMailRequests.length === 0 && (
+                <p className="text-slate-400 text-sm">No one waiting to be notified.</p>
+              )}
+              {toMailRequests.map((req) => (
+                <div key={req.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-900 text-sm">
+                      {req.faculty_name}
+                      {req.subject && <span className="text-slate-400 font-normal"> · {req.subject}</span>}
+                      {req.level && <span className="text-slate-400 font-normal"> · {req.level}</span>}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5">{req.requester_email}</p>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <a
+                      href={requestMailto(req)}
+                      className="text-xs font-medium text-violet-700 bg-violet-50 border border-violet-200 px-3 py-1.5 rounded-lg hover:bg-violet-100 transition whitespace-nowrap"
+                    >
+                      ✉ Notify
+                    </a>
+                    <button
+                      onClick={() => markMailed(req.id)}
+                      className="text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg hover:bg-green-100 transition whitespace-nowrap"
+                    >
+                      Mark Mailed
+                    </button>
                   </div>
                 </div>
               ))}

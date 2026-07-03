@@ -4,6 +4,7 @@ import { ratingFields } from "./rating-config";
 // Add new abbreviations here as subjects are added to the DB.
 const SUBJECT_ABBREVIATIONS = new Set([
   "afm", "fr", "dt", "idt", "sfm", "sm", "isca", "eis", "sbl", "mcs", "ma", "bcr",
+  "fm", "fm-sm", "ibs",
 ]);
 
 export function formatSubjectName(subject: string): string {
