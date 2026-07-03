@@ -91,6 +91,7 @@ export default async function FacultyPage({
 
   const ratingColumns = [
     "attempt", "course_type", "best_for", "would_recommend",
+    "review_text", "pros", "created_at",
     "understandability", "exam_focus", "study_material_quality", "mock_coverage",
     "coverage_of_questions", "doubt_resolution", "revision_support", "notes_quality",
     "pace_of_teaching", "time_efficiency", "value_for_money", "expectation_match",
@@ -211,13 +212,20 @@ export default async function FacultyPage({
   const levelLabel = LEVEL_LABELS[faculty.level?.toLowerCase() ?? ""] ?? faculty.level ?? "";
 
   // Course carries the rating — Google shows review stars for Course, not Person.
+  // Each Review needs author + reviewRating (required for review snippets).
   const reviewSnippets = allReviews
-    .filter((r) => r.review_text || r.pros)
+    .filter((r) => (r.review_text || r.pros) && getOverallRating([r]) > 0)
     .slice(0, 5)
     .map((r) => ({
       "@type": "Review",
       author: { "@type": "Person", name: "CA Student (Careviews reviewer)" },
       reviewBody: String(r.review_text || r.pros).slice(0, 500),
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: getOverallRating([r]).toFixed(1),
+        bestRating: "5",
+        worstRating: "1",
+      },
       ...(r.created_at ? { datePublished: String(r.created_at).slice(0, 10) } : {}),
     }));
 
@@ -236,12 +244,10 @@ export default async function FacultyPage({
           "@type": "Course",
           name: `${subjectLabel} by ${faculty.faculty_name} (${levelLabel})`,
           description: `${levelLabel} ${subjectLabel} coaching by ${faculty.faculty_name}, rated by CA students on Careviews.`,
-          provider: { "@type": "Person", name: faculty.faculty_name },
-          offers: { "@type": "Offer", category: "Paid" },
-          hasCourseInstance: {
-            "@type": "CourseInstance",
-            courseMode: "Online",
-            courseWorkload: "PT100H",
+          provider: {
+            "@type": "Organization",
+            name: faculty.faculty_name,
+            ...(faculty.website ? { url: faculty.website } : {}),
           },
           aggregateRating: {
             "@type": "AggregateRating",
