@@ -17,6 +17,7 @@ type ReviewRow = {
   created_at: string;
   updated_at?: string | null;
   approved: boolean;
+  rejected?: boolean | null;
   pros?: string;
   cons?: string;
   review_text?: string;
@@ -71,11 +72,21 @@ function ReviewCard({
         <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${
           review.approved
             ? "bg-green-50 text-green-700"
+            : review.rejected
+            ? "bg-red-50 text-red-600"
             : "bg-amber-50 text-amber-700"
         }`}>
-          {review.approved ? "✓ Published" : "⏳ Pending Review"}
+          {review.approved ? "✓ Published" : review.rejected ? "✗ Needs changes" : "⏳ Pending Review"}
         </span>
       </div>
+
+      {!review.approved && review.rejected && (
+        <p className="text-xs text-red-500/80 mt-2 leading-relaxed">
+          This review didn&apos;t pass moderation — usually a{" "}
+          <a href="/guidelines" className="underline underline-offset-2 hover:text-red-600">Review Guidelines</a>{" "}
+          issue (personal remarks, unverifiable claims, or identifying details). Edit it below and it&apos;ll be reviewed again.
+        </p>
+      )}
 
       {/* Meta row */}
       <div className="flex items-center gap-3 mt-3 flex-wrap">

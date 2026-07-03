@@ -195,8 +195,6 @@ export default function AdminClient() {
   const [rejectedReviews, setRejectedReviews]     = useState<any[]>([]);
   const [showRejected, setShowRejected]           = useState(false);
   const [loadingRejected, setLoadingRejected]     = useState(false);
-  const [editingRejected, setEditingRejected]     = useState<number | null>(null);
-  const [editDraft, setEditDraft]                 = useState<{ pros: string; cons: string; review_text: string }>({ pros: "", cons: "", review_text: "" });
   const [facultyRequests, setFacultyRequests]     = useState<any[]>([]);
   const [showRequests, setShowRequests]           = useState(false);
   const [loadingRequests, setLoadingRequests]     = useState(false);
@@ -311,32 +309,16 @@ export default function AdminClient() {
     setLoadingRejected(false);
   };
 
-  const approveRejected = async (reviewId: number, overrides?: { pros?: string; cons?: string; review_text?: string }) => {
+  // Moderation is approve/reject only — Careviews never edits review content.
+  // A rejected review is visible to its author in /account, who can revise
+  // and resubmit (edit resets rejected + re-enters the pending queue).
+  const approveRejected = async (reviewId: number) => {
     const review = rejectedReviews.find((r) => r.id === reviewId);
-    const update: Record<string, unknown> = { approved: true, rejected: false };
-    const wasRedacted =
-      overrides !== undefined &&
-      (overrides.pros !== review?.pros ||
-        overrides.cons !== review?.cons ||
-        overrides.review_text !== review?.review_text);
-    if (overrides?.pros !== undefined)        update.pros        = overrides.pros;
-    if (overrides?.cons !== undefined)        update.cons        = overrides.cons;
-    if (overrides?.review_text !== undefined) update.review_text = overrides.review_text;
     await Promise.all([
-      supabase.from("reviews").update(update).eq("id", reviewId),
-      // Preserve the pre-redaction text — legal audit trail (moderation is redaction-only)
-      logAudit(wasRedacted ? "approve_rejected_review_redacted" : "approve_rejected_review", reviewId, {
-        faculty_slug: review?.faculty_slug,
-        ...(wasRedacted
-          ? {
-              original: { pros: review?.pros, cons: review?.cons, review_text: review?.review_text },
-              published: { pros: update.pros, cons: update.cons, review_text: update.review_text },
-            }
-          : {}),
-      }),
+      supabase.from("reviews").update({ approved: true, rejected: false }).eq("id", reviewId),
+      logAudit("approve_rejected_review", reviewId, { faculty_slug: review?.faculty_slug }),
     ]);
     setRejectedReviews((prev) => prev.filter((r) => r.id !== reviewId));
-    setEditingRejected(null);
   };
 
   const permDeleteReview = async (reviewId: number) => {
@@ -687,7 +669,6 @@ Rohan — Careviews (careviews.in)`
                 <p className="text-slate-400 text-sm">No rejected reviews.</p>
               )}
               {rejectedReviews.map((review) => {
-                const isEditing = editingRejected === review.id;
                 return (
                   <div key={review.id} className="bg-white rounded-3xl border border-red-100 shadow-sm p-7">
 
@@ -710,109 +691,44 @@ Rohan — Careviews (careviews.in)`
                     </div>
 
                     {/* Pros / Cons / Review */}
-                    {!isEditing && (
-                      <>
-                        <div className="grid md:grid-cols-2 gap-4 mb-4">
-                          {review.pros && (
-                            <div className="bg-green-50 border border-green-100 rounded-xl p-4">
-                              <p className="text-xs font-semibold text-green-700 mb-1">PROS</p>
-                              <p className="text-slate-700 text-sm">{review.pros}</p>
-                            </div>
-                          )}
-                          {review.cons && (
-                            <div className="bg-red-50 border border-red-100 rounded-xl p-4">
-                              <p className="text-xs font-semibold text-red-600 mb-1">CONS</p>
-                              <p className="text-slate-700 text-sm">{review.cons}</p>
-                            </div>
-                          )}
+                    <div className="grid md:grid-cols-2 gap-4 mb-4">
+                      {review.pros && (
+                        <div className="bg-green-50 border border-green-100 rounded-xl p-4">
+                          <p className="text-xs font-semibold text-green-700 mb-1">PROS</p>
+                          <p className="text-slate-700 text-sm">{review.pros}</p>
                         </div>
-                        {review.review_text && (
-                          <div className="bg-slate-50 rounded-xl p-4 mb-5">
-                            <p className="text-xs font-semibold text-slate-500 mb-2">REVIEW</p>
-                            <p className="text-slate-800 text-sm leading-relaxed">{review.review_text}</p>
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {/* Inline edit form */}
-                    {isEditing && (
-                      <div className="space-y-3 mb-5">
-                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 leading-relaxed">
-                          <b>Redaction only.</b> Remove PII, abuse, or unverifiable allegations — never rewrite, add to, or change the meaning of what the student wrote. Editing makes Careviews the author of this content. Original text is preserved in the audit log.
+                      )}
+                      {review.cons && (
+                        <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+                          <p className="text-xs font-semibold text-red-600 mb-1">CONS</p>
+                          <p className="text-slate-700 text-sm">{review.cons}</p>
                         </div>
-                        <div>
-                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Pros</label>
-                          <textarea
-                            rows={3}
-                            value={editDraft.pros}
-                            onChange={(e) => setEditDraft((d) => ({ ...d, pros: e.target.value }))}
-                            className="mt-1 w-full border border-slate-200 rounded-xl p-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-navy resize-none"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Cons</label>
-                          <textarea
-                            rows={3}
-                            value={editDraft.cons}
-                            onChange={(e) => setEditDraft((d) => ({ ...d, cons: e.target.value }))}
-                            className="mt-1 w-full border border-slate-200 rounded-xl p-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-navy resize-none"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Review Text</label>
-                          <textarea
-                            rows={4}
-                            value={editDraft.review_text}
-                            onChange={(e) => setEditDraft((d) => ({ ...d, review_text: e.target.value }))}
-                            className="mt-1 w-full border border-slate-200 rounded-xl p-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-navy resize-none"
-                          />
-                        </div>
+                      )}
+                    </div>
+                    {review.review_text && (
+                      <div className="bg-slate-50 rounded-xl p-4 mb-5">
+                        <p className="text-xs font-semibold text-slate-500 mb-2">REVIEW</p>
+                        <p className="text-slate-800 text-sm leading-relaxed">{review.review_text}</p>
                       </div>
                     )}
 
-                    {/* Actions */}
+                    {/* Actions — approve/reject only; the reviewer revises via their account */}
+                    <p className="text-xs text-slate-400 mb-3">
+                      The reviewer sees this as &quot;needs changes&quot; in their account and can revise &amp; resubmit — Careviews never edits review content.
+                    </p>
                     <div className="flex flex-wrap gap-3 pt-2 border-t border-slate-100">
-                      {!isEditing ? (
-                        <>
-                          <button
-                            onClick={() => approveRejected(review.id)}
-                            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition"
-                          >
-                            Approve As-Is
-                          </button>
-                          <button
-                            onClick={() => {
-                              setEditingRejected(review.id);
-                              setEditDraft({ pros: review.pros ?? "", cons: review.cons ?? "", review_text: review.review_text ?? "" });
-                            }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition"
-                          >
-                            Edit & Approve
-                          </button>
-                          <button
-                            onClick={() => { if (confirm("Permanently delete this review? This cannot be undone.")) permDeleteReview(review.id); }}
-                            className="text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 px-5 py-2.5 rounded-xl text-sm transition"
-                          >
-                            Delete Permanently
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => approveRejected(review.id, editDraft)}
-                            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition"
-                          >
-                            Save & Approve
-                          </button>
-                          <button
-                            onClick={() => setEditingRejected(null)}
-                            className="border border-slate-200 text-slate-600 px-5 py-2.5 rounded-xl text-sm hover:bg-slate-50 transition"
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      )}
+                      <button
+                        onClick={() => approveRejected(review.id)}
+                        className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition"
+                      >
+                        Approve As-Is
+                      </button>
+                      <button
+                        onClick={() => { if (confirm("Permanently delete this review? This cannot be undone.")) permDeleteReview(review.id); }}
+                        className="text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 px-5 py-2.5 rounded-xl text-sm transition"
+                      >
+                        Delete Permanently
+                      </button>
                     </div>
 
                   </div>

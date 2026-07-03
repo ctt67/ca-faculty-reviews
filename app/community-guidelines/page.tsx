@@ -75,7 +75,7 @@ export default function CommunityGuidelinesPage() {
         <div className="bg-navy rounded-xl p-6 text-white">
           <h2 className="font-playfair font-bold text-lg mb-2">Violations</h2>
           <p className="text-white/60 text-sm leading-relaxed mb-4">
-            Violating these guidelines may result in review removal, content editing, account suspension, or a permanent ban — depending on severity and pattern. We don&apos;t issue warnings for serious violations.
+            Violating these guidelines may result in a review being declined or removed, account suspension, or a permanent ban — depending on severity and pattern. Declined reviews are returned to their author to revise and resubmit; we never edit review content ourselves. We don&apos;t issue warnings for serious violations.
           </p>
           <p className="text-white/60 text-sm">
             To report a violation:{" "}

@@ -64,6 +64,8 @@ export async function PATCH(req: NextRequest) {
       would_recommend:  would_recommend ?? null,
       ...ratings,
       approved:         false,
+      // A revised review re-enters the pending queue even if it was rejected
+      rejected:         false,
       updated_at:       new Date().toISOString(),
     })
     .eq("id", review_id)

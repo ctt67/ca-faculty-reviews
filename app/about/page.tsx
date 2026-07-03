@@ -53,8 +53,8 @@ const HOW_REVIEWS_WORK = [
     desc: "Careviews does not write or influence review content. Every review reflects the individual student's experience.",
   },
   {
-    title: "Minimal editing",
-    desc: "Careviews does not edit review opinions. Content is only touched in cases where moderation policy requires it — typically to remove identifying information.",
+    title: "Never edited",
+    desc: "Careviews never edits review content. A review is either published as written, or returned to its author to revise and resubmit. Not one word is changed by us.",
   },
   {
     title: "Ratings calculated from approved reviews",

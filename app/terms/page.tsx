@@ -51,7 +51,7 @@ export default function TermsPage() {
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="font-playfair font-bold text-ink mb-3">3. Moderation</h2>
             <p className="text-ink/65 text-sm leading-relaxed">
-              All reviews are screened against these terms and our Review Guidelines before going live. We reserve the right to reject any review, or to redact it (remove specific portions such as personal information, abusive language, or unverifiable factual allegations) at our sole discretion, without prior notice. We do not rewrite, add to, or alter the meaning of review content — moderation is limited to compliance screening and redaction. Repeated violations may result in account suspension.
+              All reviews are screened against these terms and our Review Guidelines before going live. Moderation is limited to two outcomes: a review is either approved as written, or declined and returned to its author — who may revise and resubmit it. Careviews never edits, rewrites, redacts, or otherwise alters the content of any review. Repeated violations may result in account suspension.
             </p>
           </div>
 
