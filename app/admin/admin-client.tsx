@@ -390,7 +390,12 @@ export default function AdminClient() {
   const openAddFaculty = (prefill?: { faculty_name?: string; level?: string; subject?: string }) => {
     setAddFacultyMsg(null);
     if (prefill) {
-      const level = (prefill.level ?? "").trim();
+      // Requests store "CA Final" / "CA Intermediate" / "CA Foundation" — normalize
+      const rawLevel = (prefill.level ?? "").trim().toLowerCase();
+      const level = rawLevel.includes("final") ? "Final"
+        : rawLevel.includes("inter") ? "Inter"
+        : rawLevel.includes("foundation") ? "Foundation"
+        : "";
       const options = SUBJECTS_BY_LEVEL[level.toLowerCase()] ?? [];
       // only prefill subject if it matches a canonical option (case-insensitive)
       const subject = options.find((s) => s.toLowerCase() === (prefill.subject ?? "").trim().toLowerCase()) ?? "";

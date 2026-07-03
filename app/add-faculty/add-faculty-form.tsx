@@ -5,10 +5,11 @@ import { CheckCircle2 } from "lucide-react";
 import TurnstileWidget from "@/components/TurnstileWidget";
 
 const LEVELS   = ["CA Final", "CA Intermediate", "CA Foundation"];
+// Subject strings match existing faculties rows — same canon as the admin Add Faculty form
 const SUBJECTS: Record<string, string[]> = {
-  "CA Final":         ["FR", "AFM", "Advanced Auditing", "Corporate Laws", "IDT", "DT", "ISCA", "SBL", "EIS"],
-  "CA Intermediate":  ["Accounting", "Corporate Laws", "Cost Accounting", "Taxation", "Advanced Accounting", "Auditing", "EIS", "SM", "Financial Management"],
-  "CA Foundation":    ["Principles of Accounting", "Business Law", "Business Mathematics", "Business Economics"],
+  "CA Final":         ["FR", "AFM", "Auditing", "DT", "IDT", "IBS", "Law", "Cost"],
+  "CA Intermediate":  ["Accounts", "Auditing", "Costing", "DT", "IDT", "Taxation", "Law", "FM", "SM", "FM-SM"],
+  "CA Foundation":    ["Accounts", "Law", "Economics", "Maths"],
 };
 
 export default function AddFacultyForm() {
