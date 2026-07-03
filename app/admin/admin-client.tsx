@@ -911,6 +911,25 @@ export default function AdminClient() {
                       >
                         Add as Faculty ↑
                       </button>
+                      {req.requester_email && (
+                        <a
+                          href={`mailto:${req.requester_email}?subject=${encodeURIComponent(`${req.faculty_name} is now on Careviews`)}&body=${encodeURIComponent(
+`Hi!
+
+You asked us to add ${req.faculty_name}${req.subject ? ` (${req.subject})` : ""} to Careviews — they're live now:
+https://careviews.in/faculty/${facultySlug(req.faculty_name, req.subject ?? "")}
+
+Since you requested them, you clearly know their classes — an honest 5-minute review would make you their first reviewer and help the next student deciding:
+https://careviews.in/review/${facultySlug(req.faculty_name, req.subject ?? "")}
+
+Thanks for helping build this,
+Rohan — Careviews (careviews.in)`
+                          )}`}
+                          className="text-xs font-medium text-violet-700 bg-violet-50 border border-violet-200 px-3 py-1.5 rounded-lg hover:bg-violet-100 transition whitespace-nowrap text-center"
+                        >
+                          ✉ Notify Requester
+                        </a>
+                      )}
                       <button
                         onClick={() => markRequestDone(req.id)}
                         className="text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg hover:bg-green-100 transition whitespace-nowrap"
