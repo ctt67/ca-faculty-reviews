@@ -200,6 +200,14 @@ export default function AdminClient() {
   const [facultyRequests, setFacultyRequests]     = useState<any[]>([]);
   const [showRequests, setShowRequests]           = useState(false);
   const [loadingRequests, setLoadingRequests]     = useState(false);
+  const [showAddFaculty, setShowAddFaculty]       = useState(false);
+  const [addingFaculty, setAddingFaculty]         = useState(false);
+  const [addFacultyMsg, setAddFacultyMsg]         = useState<{ ok: boolean; text: string; slug?: string } | null>(null);
+  const [existingSubjects, setExistingSubjects]   = useState<string[]>([]);
+  const [existingLevels, setExistingLevels]       = useState<string[]>([]);
+  const [facultyDraft, setFacultyDraft]           = useState({
+    faculty_name: "", level: "", subject: "", website: "", language: "", mode: "",
+  });
 
   useEffect(() => {
     const load = async () => {
@@ -360,6 +368,63 @@ export default function AdminClient() {
       logAudit("hide_review", reviewId, { faculty_slug: review?.faculty_slug }),
     ]);
     setPublishedReviews((prev) => prev.filter((r) => r.id !== reviewId));
+  };
+
+  const facultySlug = (name: string, subject: string) =>
+    `${name} ${subject}`
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+  const openAddFaculty = async (prefill?: { faculty_name?: string; level?: string; subject?: string }) => {
+    setAddFacultyMsg(null);
+    if (prefill) {
+      setFacultyDraft((d) => ({
+        ...d,
+        faculty_name: prefill.faculty_name ?? "",
+        level: prefill.level ?? "",
+        subject: prefill.subject ?? "",
+      }));
+    }
+    setShowAddFaculty(true);
+    if (existingSubjects.length === 0) {
+      const { data } = await supabase.from("faculties").select("subject, level").eq("active", true);
+      setExistingSubjects([...new Set((data ?? []).map((f) => f.subject))].sort());
+      setExistingLevels([...new Set((data ?? []).map((f) => f.level))].sort());
+    }
+  };
+
+  const addFaculty = async () => {
+    const { faculty_name, level, subject, website, language, mode } = facultyDraft;
+    if (!faculty_name.trim() || !level.trim() || !subject.trim()) {
+      setAddFacultyMsg({ ok: false, text: "Name, level, and subject are required." });
+      return;
+    }
+    setAddingFaculty(true);
+    const slug = facultySlug(faculty_name, subject);
+    const { error } = await supabase.from("faculties").insert({
+      slug,
+      faculty_name: faculty_name.trim(),
+      level: level.trim(),
+      subject: subject.trim(),
+      website: website.trim() || null,
+      language: language.trim() || null,
+      mode: mode.trim() || null,
+      active: true,
+    });
+    if (error) {
+      setAddFacultyMsg({
+        ok: false,
+        text: error.code === "23505"
+          ? `A faculty with slug "${slug}" already exists.`
+          : `Failed: ${error.message}`,
+      });
+    } else {
+      await logAudit("faculty_added", 0, { slug, faculty_name, level, subject }, "faculty");
+      setAddFacultyMsg({ ok: true, text: `${faculty_name.trim()} added.`, slug });
+      setFacultyDraft({ faculty_name: "", level: "", subject: "", website: "", language: "", mode: "" });
+    }
+    setAddingFaculty(false);
   };
 
   const loadFacultyRequests = async () => {
@@ -697,6 +762,114 @@ export default function AdminClient() {
           )}
         </div>
 
+        {/* Add Faculty */}
+        <div className="mt-10">
+          <button
+            onClick={() => showAddFaculty ? setShowAddFaculty(false) : openAddFaculty()}
+            className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition"
+          >
+            {showAddFaculty ? "▲ Hide Add Faculty" : "▼ Add Faculty"}
+          </button>
+
+          {showAddFaculty && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 mt-5">
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-slate-500 block mb-1">Faculty name *</label>
+                  <input
+                    value={facultyDraft.faculty_name}
+                    onChange={(e) => setFacultyDraft((d) => ({ ...d, faculty_name: e.target.value }))}
+                    placeholder="e.g. Bhavik Chokshi"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-500 block mb-1">Level *</label>
+                  <input
+                    value={facultyDraft.level}
+                    onChange={(e) => setFacultyDraft((d) => ({ ...d, level: e.target.value }))}
+                    placeholder="e.g. Final"
+                    list="cv-levels"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  />
+                  <datalist id="cv-levels">
+                    {existingLevels.map((l) => <option key={l} value={l} />)}
+                  </datalist>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-500 block mb-1">Subject * <span className="text-slate-400">(match existing spelling)</span></label>
+                  <input
+                    value={facultyDraft.subject}
+                    onChange={(e) => setFacultyDraft((d) => ({ ...d, subject: e.target.value }))}
+                    placeholder="e.g. AFM"
+                    list="cv-subjects"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  />
+                  <datalist id="cv-subjects">
+                    {existingSubjects.map((s) => <option key={s} value={s} />)}
+                  </datalist>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-500 block mb-1">Website</label>
+                  <input
+                    value={facultyDraft.website}
+                    onChange={(e) => setFacultyDraft((d) => ({ ...d, website: e.target.value }))}
+                    placeholder="https://…"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-500 block mb-1">Language</label>
+                  <input
+                    value={facultyDraft.language}
+                    onChange={(e) => setFacultyDraft((d) => ({ ...d, language: e.target.value }))}
+                    placeholder="e.g. English, Hindi"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-500 block mb-1">Mode</label>
+                  <input
+                    value={facultyDraft.mode}
+                    onChange={(e) => setFacultyDraft((d) => ({ ...d, mode: e.target.value }))}
+                    placeholder="e.g. Google Drive, App"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  />
+                </div>
+              </div>
+
+              {facultyDraft.faculty_name && facultyDraft.subject && (
+                <p className="text-xs text-slate-400 mt-3">
+                  Slug: <code className="bg-slate-50 px-1.5 py-0.5 rounded">{facultySlug(facultyDraft.faculty_name, facultyDraft.subject)}</code>
+                  {" "}→ /faculty/{facultySlug(facultyDraft.faculty_name, facultyDraft.subject)}
+                </p>
+              )}
+
+              {addFacultyMsg && (
+                <p className={`text-sm mt-3 ${addFacultyMsg.ok ? "text-green-700" : "text-red-600"}`}>
+                  {addFacultyMsg.text}
+                  {addFacultyMsg.ok && addFacultyMsg.slug && (
+                    <>
+                      {" "}
+                      <a href={`/faculty/${addFacultyMsg.slug}`} target="_blank" className="underline font-medium">
+                        View page →
+                      </a>
+                    </>
+                  )}
+                </p>
+              )}
+
+              <button
+                onClick={addFaculty}
+                disabled={addingFaculty}
+                className="mt-4 text-sm font-semibold text-white bg-slate-900 px-5 py-2.5 rounded-lg hover:bg-slate-700 transition disabled:opacity-50"
+              >
+                {addingFaculty ? "Adding…" : "Add Faculty"}
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Faculty Requests */}
         <div className="mt-10">
           <button
@@ -732,6 +905,12 @@ export default function AdminClient() {
                       </div>
                     </div>
                     <div className="flex flex-col gap-2 shrink-0">
+                      <button
+                        onClick={() => openAddFaculty({ faculty_name: req.faculty_name, level: req.level, subject: req.subject })}
+                        className="text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition whitespace-nowrap"
+                      >
+                        Add as Faculty ↑
+                      </button>
                       <button
                         onClick={() => markRequestDone(req.id)}
                         className="text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg hover:bg-green-100 transition whitespace-nowrap"
