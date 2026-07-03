@@ -205,7 +205,11 @@ export default async function SubjectPage({
               const hasReviews = facultyReviews.length > 0;
               const bestFor = hasReviews ? facultyReviews[0]?.best_for?.[0] : null;
               const teachingStyle = hasReviews ? facultyReviews[0]?.teacher_style : null;
-              const reviewPreview = hasReviews ? facultyReviews[0]?.review_text : null;
+              // review_text is optional — fall back to any review's text, then pros
+              const previewSource =
+                facultyReviews.find((r) => r.review_text?.trim()) ??
+                facultyReviews.find((r) => r.pros?.trim());
+              const reviewPreview = previewSource?.review_text?.trim() || previewSource?.pros?.trim() || null;
 
               return (
                 <a
@@ -269,11 +273,11 @@ export default async function SubjectPage({
                           "{reviewPreview}"
                         </p>
                       </div>
-                    ) : (
+                    ) : !hasReviews ? (
                       <p className="mt-5 text-gold text-sm font-semibold">
                         Be the first to review →
                       </p>
-                    )}
+                    ) : null}
 
                     {/* Faculty metadata */}
                     {FACULTY_SUMMARY_FIELDS.length > 0 && (
