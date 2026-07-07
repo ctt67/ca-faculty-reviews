@@ -202,7 +202,8 @@ export default function AdminClient() {
   const [addingFaculty, setAddingFaculty]         = useState(false);
   const [addFacultyMsg, setAddFacultyMsg]         = useState<{ ok: boolean; text: string; slug?: string } | null>(null);
   const [facultyDraft, setFacultyDraft]           = useState({
-    faculty_name: "", level: "", subject: "", website: "", language: "", mode: "",
+    faculty_name: "", level: "", subject: "", website: "",
+    language: [] as string[], mode: [] as string[],
   });
   const [toMailRequests, setToMailRequests]       = useState<any[]>([]);
   const [showToMail, setShowToMail]               = useState(false);
@@ -409,6 +410,12 @@ Rohan — Careviews (careviews.in)`
     return `mailto:${req.requester_email}?subject=${subject}&body=${body}`;
   };
 
+  const toggleDraftArr = (key: "language" | "mode", value: string) =>
+    setFacultyDraft((d) => ({
+      ...d,
+      [key]: d[key].includes(value) ? d[key].filter((v) => v !== value) : [...d[key], value],
+    }));
+
   const addFaculty = async () => {
     const { faculty_name, level, subject, website, language, mode } = facultyDraft;
     if (!faculty_name.trim() || !level.trim() || !subject.trim()) {
@@ -416,15 +423,17 @@ Rohan — Careviews (careviews.in)`
       return;
     }
     setAddingFaculty(true);
-    const slug = facultySlug(faculty_name, subject);
+    // Inter slugs carry the level infix; Final does not (matches existing convention)
+    const slugSubject = level.toLowerCase() === "final" ? subject : `${level} ${subject}`;
+    const slug = facultySlug(faculty_name, slugSubject);
     const { error } = await supabase.from("faculties").insert({
       slug,
       faculty_name: faculty_name.trim(),
       level: level.trim(),
       subject: subject.trim(),
       website: website.trim() || null,
-      language: language.trim() || null,
-      mode: mode.trim() || null,
+      language: language.length ? language : null,
+      mode: mode.length ? mode : null,
       active: true,
     });
     if (error) {
@@ -437,7 +446,7 @@ Rohan — Careviews (careviews.in)`
     } else {
       await logAudit("faculty_added", 0, { slug, faculty_name, level, subject }, "faculty");
       setAddFacultyMsg({ ok: true, text: `${faculty_name.trim()} added.`, slug });
-      setFacultyDraft({ faculty_name: "", level: "", subject: "", website: "", language: "", mode: "" });
+      setFacultyDraft({ faculty_name: "", level: "", subject: "", website: "", language: [], mode: [] });
     }
     setAddingFaculty(false);
   };
@@ -794,29 +803,48 @@ Rohan — Careviews (careviews.in)`
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate-500 block mb-1">Language</label>
-                  <input
-                    value={facultyDraft.language}
-                    onChange={(e) => setFacultyDraft((d) => ({ ...d, language: e.target.value }))}
-                    placeholder="e.g. English, Hindi"
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
-                  />
+                  <label className="text-xs font-medium text-slate-500 block mb-1.5">Language</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["English", "Hindi"].map((l) => (
+                      <button
+                        key={l}
+                        type="button"
+                        onClick={() => toggleDraftArr("language", l)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                          facultyDraft.language.includes(l)
+                            ? "bg-slate-900 text-white border-slate-900"
+                            : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"
+                        }`}
+                      >
+                        {l}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate-500 block mb-1">Mode</label>
-                  <input
-                    value={facultyDraft.mode}
-                    onChange={(e) => setFacultyDraft((d) => ({ ...d, mode: e.target.value }))}
-                    placeholder="e.g. Google Drive, App"
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
-                  />
+                  <label className="text-xs font-medium text-slate-500 block mb-1.5">Mode</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["Live", "Google Drive", "App", "Pendrive"].map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => toggleDraftArr("mode", m)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                          facultyDraft.mode.includes(m)
+                            ? "bg-slate-900 text-white border-slate-900"
+                            : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"
+                        }`}
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {facultyDraft.faculty_name && facultyDraft.subject && (
+              {facultyDraft.faculty_name && facultyDraft.subject && facultyDraft.level && (
                 <p className="text-xs text-slate-400 mt-3">
-                  Slug: <code className="bg-slate-50 px-1.5 py-0.5 rounded">{facultySlug(facultyDraft.faculty_name, facultyDraft.subject)}</code>
-                  {" "}→ /faculty/{facultySlug(facultyDraft.faculty_name, facultyDraft.subject)}
+                  Slug: <code className="bg-slate-50 px-1.5 py-0.5 rounded">{facultySlug(facultyDraft.faculty_name, facultyDraft.level.toLowerCase() === "final" ? facultyDraft.subject : `${facultyDraft.level} ${facultyDraft.subject}`)}</code>
                 </p>
               )}
 
