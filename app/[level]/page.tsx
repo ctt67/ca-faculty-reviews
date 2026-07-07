@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import type { Metadata } from "next";
 import { generateLevelMetadata } from "@/lib/seo";
 import { LEVEL_LABELS } from "@/lib/config";
+import { formatSubjectName } from "@/lib/format";
 import { notFound } from "next/navigation";
 
 const RESERVED = new Set(["admin", "api", "account", "login", "compare", "review", "add-faculty", "about", "privacy", "terms", "guidelines", "community-guidelines"]);
@@ -39,7 +40,10 @@ export default async function LevelPage({
     );
   }
 
-  const subjects = [...new Set(faculties?.map((f) => f.subject) ?? [])];
+  // Dedupe case-insensitively — DB has mixed-case subject strings
+  const subjects = [
+    ...new Map((faculties ?? []).map((f) => [f.subject.toLowerCase(), f.subject])).values(),
+  ].sort((a, b) => a.localeCompare(b));
   const levelLabel = LEVEL_LABELS[level.toLowerCase()] ?? `CA ${level.toUpperCase()}`;
 
   return (
@@ -86,7 +90,7 @@ export default async function LevelPage({
               >
                 <div className="h-[3px] bg-navy" />
                 <div className="p-6 sm:p-7">
-                  <h3 className="font-playfair text-xl font-bold text-ink">{subject}</h3>
+                  <h3 className="font-playfair text-xl font-bold text-ink">{formatSubjectName(subject)}</h3>
                   <p className="mt-2 text-ink/60 text-sm">
                     Browse faculty reviews, ratings and comparisons.
                   </p>
