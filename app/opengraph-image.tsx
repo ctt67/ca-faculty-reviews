@@ -31,10 +31,10 @@ export default function Image() {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "0px" }}>
           <span style={{ color: "white", fontSize: "80px", fontWeight: "800", lineHeight: 1.05, letterSpacing: "-2px" }}>
-            Honest CA Faculty
+            CA Faculty Reviews
           </span>
           <span style={{ color: "white", fontSize: "80px", fontWeight: "800", lineHeight: 1.05, letterSpacing: "-2px" }}>
-            Reviews
+            by Students
           </span>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "2px", marginTop: "4px" }}>

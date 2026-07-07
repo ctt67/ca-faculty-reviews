@@ -67,7 +67,7 @@ export default function ComparePage() {
           </h1>
           <p className="mt-3 text-white/55 text-sm max-w-xl">
             Pick two faculties from the same subject and compare ratings, teaching styles,
-            and real student reviews side by side.
+            and student reviews side by side.
           </p>
           <p className="mt-3 inline-flex items-center gap-2 bg-white/8 border border-white/15 text-white/60 text-xs px-3 py-1.5 rounded-full">
             Only faculties with at least one approved review appear in the list below.

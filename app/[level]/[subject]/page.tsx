@@ -151,7 +151,7 @@ export default async function SubjectPage({
             Compare {enrichedFaculties.length} {levelLabel} {subjectLabel}{" "}
             {enrichedFaculties.length === 1 ? "faculty" : "faculties"}
             {totalSubjectReviews > 0 && (
-              <> ranked by {totalSubjectReviews} genuine student {totalSubjectReviews === 1 ? "review" : "reviews"}</>
+              <> ranked by {totalSubjectReviews} student {totalSubjectReviews === 1 ? "review" : "reviews"}</>
             )}
             {topRated && topRated.facultyReviews.length >= 3 && (
               <>

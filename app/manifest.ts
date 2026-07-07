@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Careviews",
     short_name: "Careviews",
-    description: "Honest CA faculty reviews by students, for students.",
+    description: "CA faculty reviews by students, for students.",
     start_url: "/",
     display: "standalone",
     background_color: "#1B3055",

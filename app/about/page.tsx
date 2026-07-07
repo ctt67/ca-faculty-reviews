@@ -39,7 +39,7 @@ const PRINCIPLES = [
   {
     icon: Users,
     title: "Community Driven",
-    desc: "The platform becomes more useful as more genuine students contribute. Every honest review helps a future student make a better decision.",
+    desc: "The platform becomes more useful as more students contribute. Every review helps a future student make a better decision.",
   },
 ];
 

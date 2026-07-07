@@ -12,12 +12,12 @@ export const revalidate = 300;
 export const metadata: Metadata = {
   title: `${SITE_NAME} — CA Faculty Reviews | Compare CA Final, Inter & Foundation Coaching`,
   description:
-    "Read genuine student reviews of CA coaching faculties. Compare teaching quality, exam focus, doubt resolution and more across CA Final, Intermediate and Foundation. Independent, no paid rankings.",
+    "Read student reviews of CA coaching faculties. Compare teaching quality, exam focus, doubt resolution and more across CA Final, Intermediate and Foundation. Independent, no paid rankings.",
   alternates: { canonical: BASE_URL },
   openGraph: {
-    title: `${SITE_NAME} — Honest CA Faculty Reviews`,
+    title: `${SITE_NAME} — CA Faculty Reviews by Students`,
     description:
-      "Genuine student reviews of CA coaching faculties. Compare faculties across 10 rating dimensions for CA Final, Intermediate and Foundation. Independent, no paid rankings.",
+      "Student reviews of CA coaching faculties. Compare faculties across 10 rating dimensions for CA Final, Intermediate and Foundation. Independent, no paid rankings.",
     url: BASE_URL,
     siteName: SITE_NAME,
     locale: "en_IN",
@@ -25,14 +25,14 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} — Honest CA Faculty Reviews`,
+    title: `${SITE_NAME} — CA Faculty Reviews by Students`,
     description:
-      "Genuine student reviews of CA coaching faculties. Compare faculties across 10 rating dimensions. Independent, no paid rankings.",
+      "Student reviews of CA coaching faculties. Compare faculties across 10 rating dimensions. Independent, no paid rankings.",
   },
 };
 
 const trustItems = [
-  { icon: PenLine, label: "Genuine Reviews", desc: "Real students, real experiences." },
+  { icon: PenLine, label: "Student Reviews", desc: "Written by CA students, screened for spam." },
   { icon: ShieldCheck, label: "Independent Platform", desc: "No affiliation with any coaching institute." },
   { icon: Ban, label: "No Paid Rankings", desc: "Ranked by students, not money." },
   { icon: Layers, label: "All CA Levels", desc: "Final, Intermediate and Foundation." },
@@ -41,8 +41,8 @@ const trustItems = [
 const whyItems = [
   {
     icon: FileText,
-    title: "Read honest reviews",
-    desc: "Unfiltered student experiences from real CA students. No editorial control. No institute influence.",
+    title: "Read student reviews",
+    desc: "Student-written experiences. No editorial control. No institute influence.",
   },
   {
     icon: BarChart2,
@@ -75,7 +75,7 @@ export default async function HomePage() {
           </p>
 
           <h1 className="font-playfair text-4xl md:text-5xl font-bold text-white leading-tight max-w-xl">
-            Honest CA Faculty Reviews
+            CA Faculty Reviews,<br />by Students
           </h1>
 
           <p className="font-playfair italic text-gold text-xl mt-4 max-w-lg leading-relaxed">
@@ -83,7 +83,7 @@ export default async function HomePage() {
           </p>
 
           <p className="text-white/70 text-sm mt-4 max-w-lg leading-relaxed">
-            Genuine reviews from CA students. Compare faculties across detailed student ratings and choose your coaching with confidence.
+            Reviews from CA students. Compare faculties across detailed student ratings and choose your coaching with confidence.
           </p>
 
           <div className="flex flex-wrap gap-3 mt-7">
@@ -235,7 +235,7 @@ export default async function HomePage() {
               Your coaching experience is worth sharing.
             </h2>
             <p className="text-ink/55 text-sm mt-1.5 max-w-md leading-relaxed">
-              CA coaching costs thousands of rupees. One honest review from you could save a future aspirant from a costly mistake.
+              CA coaching costs thousands of rupees. One detailed review from you could save a future aspirant from a costly mistake.
             </p>
           </div>
           <TrackedLink

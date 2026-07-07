@@ -105,7 +105,7 @@ export default async function Image({
 
       {/* Bottom */}
       <span style={{ color: "rgba(255,255,255,0.25)", fontSize: "17px", fontWeight: "500" }}>
-        careviews.in — Honest CA Faculty Reviews
+        careviews.in — CA Faculty Reviews by Students
       </span>
     </div>,
     { ...size },
