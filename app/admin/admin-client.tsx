@@ -7,6 +7,23 @@ import { track } from "@/lib/track";
 
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "";
 
+// ── Fuzzy faculty matching (dupe detection) ───────────────────────────────────
+type FacRow = { slug: string; faculty_name: string; subject: string; level: string };
+const normName = (x: string) =>
+  x.toLowerCase().replace(/^ca\s+/, "").replace(/[^a-z\s]/g, "").replace(/\s+/g, " ").trim();
+function similarFaculties(name: string, all: FacRow[], limit = 3): FacRow[] {
+  const t = normName(name || "");
+  if (t.length < 3) return [];
+  return all
+    .filter((f) => {
+      const b = normName(f.faculty_name);
+      if (b.includes(t) || t.includes(b)) return true;
+      const tf = t.split(" ")[0];
+      return tf.length >= 4 && b.split(" ")[0] === tf;
+    })
+    .slice(0, limit);
+}
+
 // ── Spam scoring ──────────────────────────────────────────────────────────────
 
 type VoteRow = { review_id: number; ip_hash: string | null; user_agent_hash: string | null };
@@ -205,6 +222,7 @@ export default function AdminClient() {
     faculty_name: "", level: "", subject: "", website: "",
     language: [] as string[], mode: [] as string[],
   });
+  const [allFaculties, setAllFaculties]           = useState<FacRow[]>([]);
   const [toMailRequests, setToMailRequests]       = useState<any[]>([]);
   const [showToMail, setShowToMail]               = useState(false);
   const [loadingToMail, setLoadingToMail]         = useState(false);
@@ -372,6 +390,7 @@ export default function AdminClient() {
 
   const openAddFaculty = (prefill?: { faculty_name?: string; level?: string; subject?: string }) => {
     setAddFacultyMsg(null);
+    loadAllFaculties();
     if (prefill) {
       // Requests store "CA Final" / "CA Intermediate" / "CA Foundation" — normalize
       const rawLevel = (prefill.level ?? "").trim().toLowerCase();
@@ -451,9 +470,19 @@ Rohan — Careviews (careviews.in)`
     setAddingFaculty(false);
   };
 
+  const loadAllFaculties = async () => {
+    if (allFaculties.length > 0) return;
+    const { data } = await supabase
+      .from("faculties")
+      .select("slug, faculty_name, subject, level")
+      .eq("active", true);
+    setAllFaculties((data ?? []) as FacRow[]);
+  };
+
   const loadFacultyRequests = async () => {
     if (facultyRequests.length > 0) { setShowRequests(true); return; }
     setLoadingRequests(true);
+    loadAllFaculties();
     const { data } = await supabase
       .from("faculty_requests")
       .select("id, faculty_name, level, subject, institution, notes, requester_email, created_at, status")
@@ -767,6 +796,13 @@ Rohan — Careviews (careviews.in)`
                     placeholder="e.g. Bhavik Chokshi"
                     className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
                   />
+                  {similarFaculties(facultyDraft.faculty_name, allFaculties).length > 0 && (
+                    <p className="text-[11px] text-amber-700 mt-1.5">
+                      ⚠ Similar: {similarFaculties(facultyDraft.faculty_name, allFaculties)
+                        .map((f) => `${f.faculty_name} (${f.subject} · ${f.level})`)
+                        .join(", ")}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="text-xs font-medium text-slate-500 block mb-1">Level *</label>
@@ -897,6 +933,17 @@ Rohan — Careviews (careviews.in)`
                         {req.subject && <span className="bg-slate-100 text-slate-600 rounded-full px-2.5 py-0.5 text-xs font-medium">{req.subject}</span>}
                         {req.institution && <span className="bg-slate-100 text-slate-600 rounded-full px-2.5 py-0.5 text-xs font-medium">{req.institution}</span>}
                       </div>
+                      {similarFaculties(req.faculty_name, allFaculties).length > 0 && (
+                        <div className="mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                          <p className="text-[11px] font-semibold text-amber-800 mb-1">⚠ Similar already listed:</p>
+                          {similarFaculties(req.faculty_name, allFaculties).map((f) => (
+                            <a key={f.slug} href={`/faculty/${f.slug}`} target="_blank"
+                               className="block text-xs text-amber-900 hover:underline">
+                              {f.faculty_name} — {f.subject} · {f.level}
+                            </a>
+                          ))}
+                        </div>
+                      )}
                       {req.notes && (
                         <p className="text-xs text-slate-500 mt-2 leading-relaxed">{req.notes}</p>
                       )}
