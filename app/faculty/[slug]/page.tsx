@@ -50,6 +50,7 @@ export async function generateMetadata({
     .from("faculties")
     .select("slug, faculty_name, subject, level")
     .eq("slug", slug)
+    .eq("active", true)
     .single();
 
   if (!faculty) {
@@ -85,6 +86,7 @@ export default async function FacultyPage({
     .from("faculties")
     .select("*")
     .eq("slug", slug)
+    .eq("active", true)
     .single();
 
   if (!faculty) notFound();

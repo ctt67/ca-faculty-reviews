@@ -14,7 +14,7 @@ export default async function Image({
   const { slug } = await params;
 
   const [{ data: faculty }, { data: rawReviews }] = await Promise.all([
-    supabase.from("faculties").select("faculty_name, subject, level").eq("slug", slug).single(),
+    supabase.from("faculties").select("faculty_name, subject, level").eq("slug", slug).eq("active", true).single(),
     supabase.from("reviews").select("*").eq("faculty_slug", slug).eq("approved", true),
   ]);
 

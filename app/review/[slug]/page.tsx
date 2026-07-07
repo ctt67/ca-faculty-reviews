@@ -13,6 +13,7 @@ export async function generateMetadata({
         .from("faculties")
         .select("faculty_name")
         .eq("slug", slug)
+        .eq("active", true)
         .single();
     return {
         title: faculty
@@ -33,6 +34,7 @@ export default async function ReviewPage({
         .from("faculties")
         .select("*")
         .eq("slug", slug)
+        .eq("active", true)
         .single();
 
     if (!faculty) notFound();

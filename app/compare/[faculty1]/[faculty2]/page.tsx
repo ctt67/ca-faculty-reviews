@@ -28,8 +28,8 @@ export async function generateMetadata({
   }
 
   const [{ data: faculty1 }, { data: faculty2 }] = await Promise.all([
-    supabase.from("faculties").select("faculty_name, subject, level").eq("slug", faculty1Slug).single(),
-    supabase.from("faculties").select("faculty_name, subject, level").eq("slug", faculty2Slug).single(),
+    supabase.from("faculties").select("faculty_name, subject, level").eq("slug", faculty1Slug).eq("active", true).single(),
+    supabase.from("faculties").select("faculty_name, subject, level").eq("slug", faculty2Slug).eq("active", true).single(),
   ]);
 
   if (!faculty1 || !faculty2) {
@@ -63,8 +63,8 @@ export default async function CompareResultPage({
   }
 
   const [{ data: faculty1 }, { data: faculty2 }] = await Promise.all([
-    supabase.from("faculties").select("*").eq("slug", faculty1Slug).single(),
-    supabase.from("faculties").select("*").eq("slug", faculty2Slug).single(),
+    supabase.from("faculties").select("*").eq("slug", faculty1Slug).eq("active", true).single(),
+    supabase.from("faculties").select("*").eq("slug", faculty2Slug).eq("active", true).single(),
   ]);
 
   if (!faculty1 || !faculty2) notFound();
