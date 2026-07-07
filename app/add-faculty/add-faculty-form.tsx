@@ -1,8 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle2 } from "lucide-react";
 import TurnstileWidget from "@/components/TurnstileWidget";
+import { supabase } from "@/lib/supabase";
+import { formatSubjectName } from "@/lib/format";
+
+type ExistingFaculty = { slug: string; faculty_name: string; subject: string; level: string };
+
+// normalize for fuzzy matching: lowercase, strip "CA " prefix, letters+spaces only
+const norm = (s: string) =>
+  s.toLowerCase().replace(/^ca\s+/, "").replace(/[^a-z\s]/g, "").replace(/\s+/g, " ").trim();
 
 const LEVELS   = ["CA Final", "CA Intermediate", "CA Foundation"];
 // Subject strings match existing faculties rows — same canon as the admin Add Faculty form
@@ -26,6 +34,40 @@ export default function AddFacultyForm() {
   const [done, setDone]               = useState(false);
   const [error, setError]             = useState("");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [existing, setExisting]       = useState<ExistingFaculty[]>([]);
+
+  // Load the faculty list once so we can flag "already listed" as the user types
+  useEffect(() => {
+    supabase
+      .from("faculties")
+      .select("slug, faculty_name, subject, level")
+      .eq("active", true)
+      .then(({ data }) => setExisting(data ?? []));
+  }, []);
+
+  // Fuzzy match typed name against existing faculties
+  const typed = norm(form.faculty_name);
+  const matches =
+    typed.length < 3
+      ? []
+      : existing
+          .filter((f) => {
+            const b = norm(f.faculty_name);
+            if (b.includes(typed) || typed.includes(b)) return true;
+            // first-name match (e.g. typed "bhavik" or "bhavik c")
+            const tFirst = typed.split(" ")[0];
+            return tFirst.length >= 4 && b.split(" ")[0] === tFirst;
+          })
+          .sort((a, b) => {
+            // same level+subject as selected floats to top
+            const lvl = form.level.toLowerCase();
+            const sub = form.subject.toLowerCase();
+            const score = (f: ExistingFaculty) =>
+              (lvl.includes(f.level.toLowerCase()) ? 2 : 0) +
+              (f.subject.toLowerCase() === sub ? 1 : 0);
+            return score(b) - score(a);
+          })
+          .slice(0, 4);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm((p) => ({ ...p, [k]: e.target.value, ...(k === "level" ? { subject: "" } : {}) }));
@@ -106,6 +148,35 @@ export default function AddFacultyForm() {
             placeholder="e.g. CA Bhanwar Borana"
             className={inputClass}
           />
+
+          {matches.length > 0 && (
+            <div className="mt-3 bg-gold/8 border border-gold/30 rounded-xl p-4">
+              <p className="text-xs font-semibold text-ink mb-2.5">
+                Already on Careviews — is this who you meant?
+              </p>
+              <div className="space-y-2">
+                {matches.map((f) => (
+                  <div key={f.slug} className="flex items-center justify-between gap-3 bg-white rounded-lg px-3 py-2.5 border border-slate-100">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-ink truncate">{f.faculty_name}</p>
+                      <p className="text-xs text-ink/45">{formatSubjectName(f.subject)} · {f.level}</p>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <a href={`/faculty/${f.slug}`} className="text-xs font-medium text-ink/60 hover:text-ink border border-slate-200 px-2.5 py-1.5 rounded-lg transition">
+                        View
+                      </a>
+                      <a href={`/review/${f.slug}`} className="text-xs font-semibold text-ink bg-gold px-2.5 py-1.5 rounded-lg hover:opacity-90 transition">
+                        Review →
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] text-ink/40 mt-2.5">
+                Different person, or same faculty for a different subject? Continue with the request below.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
