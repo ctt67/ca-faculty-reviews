@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { PenLine, ShieldCheck, Ban, Layers, FileText, BarChart2, CircleDollarSign, Check, BookOpen, SlidersHorizontal } from "lucide-react";
 import { BASE_URL, SITE_NAME } from "@/lib/config";
+import { formatSubjectName } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
 import TrackedLink from "@/components/TrackedLink";
 import CommunityLinks from "@/components/CommunityLinks";
@@ -57,12 +58,39 @@ const whyItems = [
 ];
 
 export default async function HomePage() {
-  const { count } = await supabase
-    .from("reviews")
-    .select("*", { count: "exact", head: true })
-    .eq("approved", true);
+  const [{ count }, { data: revRows }] = await Promise.all([
+    supabase.from("reviews").select("*", { count: "exact", head: true }).eq("approved", true),
+    supabase.from("reviews").select("faculty_slug, overall_rating").eq("approved", true).limit(10000),
+  ]);
 
   const reviewCount = count ?? 0;
+
+  // Most-reviewed shelf: recognition over recall for cold visitors.
+  // Sorted by review count (an activity fact), not by rating.
+  const agg = new Map<string, { n: number; sum: number }>();
+  for (const r of revRows ?? []) {
+    const cur = agg.get(r.faculty_slug) ?? { n: 0, sum: 0 };
+    cur.n += 1;
+    cur.sum += Number(r.overall_rating) || 0;
+    agg.set(r.faculty_slug, cur);
+  }
+  const topSlugs = [...agg.entries()]
+    .map(([slug, a]) => ({ slug, n: a.n, avg: a.n ? a.sum / a.n : 0 }))
+    .sort((a, b) => b.n - a.n)
+    .slice(0, 6);
+
+  const { data: shelfFacs } = topSlugs.length
+    ? await supabase
+        .from("faculties")
+        .select("slug, faculty_name, subject, level")
+        .in("slug", topSlugs.map((t) => t.slug))
+        .eq("active", true)
+    : { data: [] };
+
+  const shelf = topSlugs.flatMap((t) => {
+    const f = shelfFacs?.find((x) => x.slug === t.slug);
+    return f ? [{ ...t, name: f.faculty_name, subject: f.subject, level: f.level }] : [];
+  });
 
   return (
     <main className="min-h-screen">
@@ -126,6 +154,51 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Most-reviewed shelf — recognition over recall for cold visitors */}
+      {shelf.length >= 3 && (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-2">
+          <div className="flex items-end justify-between gap-4 mb-4">
+            <div>
+              <p className="text-xs font-semibold tracking-widest text-gold uppercase mb-1">Start here</p>
+              <h2 className="font-playfair text-2xl font-bold text-ink">Most Reviewed Faculties</h2>
+            </div>
+            <div className="hidden sm:flex gap-2">
+              {[["Final", "/final"], ["Inter", "/inter"], ["Foundation", "/foundation"]].map(([label, href]) => (
+                <Link key={href} href={href} className="text-xs font-semibold text-ink/60 border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-gold hover:text-ink transition">
+                  {label} →
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex sm:grid sm:grid-cols-3 lg:grid-cols-6 gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x">
+            {shelf.map((f) => (
+              <Link
+                key={f.slug}
+                href={`/faculty/${f.slug}`}
+                className="snap-start shrink-0 w-[160px] sm:w-auto bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition p-4 block"
+              >
+                <p className="font-semibold text-ink text-sm leading-snug line-clamp-2">{f.name}</p>
+                <p className="text-ink/45 text-[11px] mt-1">{formatSubjectName(f.subject)} · {f.level}</p>
+                <p className="mt-2.5 text-sm">
+                  <span className="text-gold">★</span>{" "}
+                  <span className="font-bold text-ink">{f.avg.toFixed(1)}</span>{" "}
+                  <span className="text-ink/40 text-xs">({f.n})</span>
+                </p>
+              </Link>
+            ))}
+          </div>
+
+          <div className="flex sm:hidden gap-2 mt-3">
+            {[["Final", "/final"], ["Inter", "/inter"], ["Foundation", "/foundation"]].map(([label, href]) => (
+              <Link key={href} href={href} className="flex-1 text-center text-xs font-semibold text-ink/60 border border-slate-200 bg-white px-3 py-2 rounded-full">
+                {label} →
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Trust strip */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center gap-x-4 gap-y-1 justify-between border-b border-ink/5">
