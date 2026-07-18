@@ -7,6 +7,7 @@ import Logo from "@/components/Logo";
 import CommunityLinks from "@/components/CommunityLinks";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import CommunityFloat from "@/components/CommunityFloat";
+import SessionTracker from "@/components/SessionTracker";
 import { Analytics } from "@vercel/analytics/next";
 import { CONTACT_EMAIL, BASE_URL, SITE_NAME, INSTAGRAM_URL, TELEGRAM_URL } from "@/lib/config";
 
@@ -161,6 +162,7 @@ export default function RootLayout({
         </footer>
 
         <CommunityFloat />
+        <SessionTracker />
 
         <Analytics />
       </body>

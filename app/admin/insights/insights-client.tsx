@@ -152,10 +152,13 @@ export default function InsightsClient() {
     const suspiciouslyFast = timed.filter((r) => (r.time_taken_seconds ?? 0) < 60);
     const suspiciousRate = pct(suspiciouslyFast.length, timed.length);
 
-    const publishedEvents = events.filter((e) => e.event_name === "review_published");
-    const rejectedEvents = events.filter((e) => e.event_name === "review_rejected");
-    const moderated = publishedEvents.length + rejectedEvents.length;
-    const approvalRate = pct(publishedEvents.length, moderated);
+    // Published/approval come from the reviews table — publishing happens in
+    // admin, so client-side events can never count it reliably.
+    const inWindow = (r: Review) => now - new Date(r.created_at).getTime() < LOOKBACK_DAYS * DAY;
+    const publishedInWindow = reviews.filter((r) => r.approved && inWindow(r)).length;
+    const rejectedInWindow  = reviews.filter((r) => (r as unknown as { rejected?: boolean }).rejected && inWindow(r)).length;
+    const moderated = publishedInWindow + rejectedInWindow;
+    const approvalRate = pct(publishedInWindow, moderated);
 
     const coveragePct = pct(facultiesWithReviews.size, facultyCount);
 
@@ -171,15 +174,33 @@ export default function InsightsClient() {
       { step: "Write review clicked", count: eventCounts("write_review_clicked") },
       { step: "Review started", count: eventCounts("review_started") },
       { step: "Review submitted", count: eventCounts("review_submitted") },
-      { step: "Review published", count: eventCounts("review_published") },
+      { step: "Review published", count: publishedInWindow },
     ];
 
+    const sessionStarts = events.filter((e) => e.event_name === "session_start");
     const utmCounts = new Map<string, number>();
-    for (const e of events) {
+    const utmPool = sessionStarts.length > 0 ? sessionStarts : events;
+    for (const e of utmPool) {
       const src = e.utm_source ?? "(direct / none)";
       utmCounts.set(src, (utmCounts.get(src) ?? 0) + 1);
     }
     const utmBreakdown = [...utmCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+    // Per-campaign depth (utm_campaign carried in event properties)
+    const campaignAgg = new Map<string, { sessions: Set<string>; fac: Set<string>; clicks: Set<string> }>();
+    for (const e of events) {
+      const c = (e.properties?.utm_campaign as string | undefined) ?? null;
+      if (!c) continue;
+      if (!campaignAgg.has(c)) campaignAgg.set(c, { sessions: new Set(), fac: new Set(), clicks: new Set() });
+      const g = campaignAgg.get(c)!;
+      const sid = e.session_id ?? String(e.id);
+      if (e.event_name === "session_start")        g.sessions.add(sid);
+      if (e.event_name === "faculty_page_viewed")  g.fac.add(sid);
+      if (e.event_name === "write_review_clicked") g.clicks.add(sid);
+    }
+    const campaignStats = [...campaignAgg.entries()]
+      .map(([name, g]) => ({ name, sessions: g.sessions.size, facultyViews: g.fac.size, reviewClicks: g.clicks.size }))
+      .sort((a, b) => b.sessions - a.sessions);
 
     const referrerCounts = new Map<string, number>();
     for (const e of events) {
@@ -277,11 +298,12 @@ export default function InsightsClient() {
       suspiciousFastCount: suspiciouslyFast.length,
       suspiciousRate,
       approvalRate,
-      publishedCount: publishedEvents.length,
-      rejectedCount: rejectedEvents.length,
+      publishedCount: publishedInWindow,
+      rejectedCount: rejectedInWindow,
       coveragePct,
       funnel,
       utmBreakdown,
+      campaignStats,
       referrerBreakdown,
       deviceCounts: [...deviceCounts.entries()],
       shareCounts: [...shareCounts.entries()],
@@ -402,7 +424,7 @@ export default function InsightsClient() {
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Acquisition */}
-          <Section title="Acquisition" sub="Top utm_source values across all tracked events">
+          <Section title="Acquisition" sub="Sessions by utm_source (session_start; all events until those accrue)">
             <div className="space-y-2.5">
               {stats.utmBreakdown.length === 0 ? (
                 <p className="text-sm text-slate-400">No data yet.</p>
@@ -412,6 +434,39 @@ export default function InsightsClient() {
                 ))
               )}
             </div>
+          </Section>
+
+          {/* Ad campaigns */}
+          <Section title="Ad Campaigns" sub="Per utm_campaign: sessions and how deep they went">
+            {stats.campaignStats.length === 0 ? (
+              <p className="text-sm text-slate-400">No campaign-tagged traffic yet. Sessions started after this deploy will appear here.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-[11px] uppercase tracking-wide text-slate-400 border-b border-slate-100">
+                      <th className="py-2 pr-4">Campaign</th>
+                      <th className="py-2 pr-4">Sessions</th>
+                      <th className="py-2 pr-4">Faculty views</th>
+                      <th className="py-2">Review clicks</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.campaignStats.map((c) => (
+                      <tr key={c.name} className="border-b border-slate-50 last:border-0">
+                        <td className="py-2.5 pr-4 font-semibold text-slate-800">{c.name}</td>
+                        <td className="py-2.5 pr-4 tabular-nums">{c.sessions}</td>
+                        <td className="py-2.5 pr-4 tabular-nums">
+                          {c.facultyViews}
+                          {c.sessions > 0 && <span className="text-slate-400 text-xs ml-1">({Math.round((100 * c.facultyViews) / c.sessions)}%)</span>}
+                        </td>
+                        <td className="py-2.5 tabular-nums">{c.reviewClicks}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </Section>
 
           {/* Referrers */}
