@@ -17,10 +17,15 @@ interface FacultySEO {
   level: string;
 }
 
-export function generateFacultyMetadata(faculty: FacultySEO): Metadata {
+export function generateFacultyMetadata(
+  faculty: FacultySEO,
+  stats?: { avgRating: number; reviewCount: number },
+): Metadata {
   const subjectLabel = formatSubjectName(faculty.subject);
   const title = `${faculty.faculty_name} — ${subjectLabel} Reviews (${YEAR}) | ${levelLabel(faculty.level)} | ${SITE_NAME}`;
-  const description = `Student reviews and ratings for ${faculty.faculty_name} (${subjectLabel}, ${levelLabel(faculty.level)}). See teaching style, detailed student ratings, and student experiences before you decide.`;
+  const description = stats && stats.reviewCount > 0
+    ? `Rated ${stats.avgRating}/5 by ${stats.reviewCount} CA ${stats.reviewCount === 1 ? "student" : "students"} on ${SITE_NAME}. Student reviews for ${faculty.faculty_name} (${subjectLabel}, ${levelLabel(faculty.level)}). See teaching style, detailed ratings, and student experiences before you decide.`
+    : `Student reviews and ratings for ${faculty.faculty_name} (${subjectLabel}, ${levelLabel(faculty.level)}). See teaching style, detailed student ratings, and student experiences before you decide.`;
   const url = `${BASE_URL}/faculty/${faculty.slug}`;
 
   return {

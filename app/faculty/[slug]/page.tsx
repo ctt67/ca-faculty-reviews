@@ -46,12 +46,19 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const { data: faculty } = await supabase
-    .from("faculties")
-    .select("slug, faculty_name, subject, level")
-    .eq("slug", slug)
-    .eq("active", true)
-    .single();
+  const [{ data: faculty }, { data: ratingRows }] = await Promise.all([
+    supabase
+      .from("faculties")
+      .select("slug, faculty_name, subject, level")
+      .eq("slug", slug)
+      .eq("active", true)
+      .single(),
+    supabase
+      .from("reviews")
+      .select("overall_rating")
+      .eq("faculty_slug", slug)
+      .eq("approved", true),
+  ]);
 
   if (!faculty) {
     return {
@@ -59,7 +66,16 @@ export async function generateMetadata({
       robots: { index: false, follow: false },
     };
   }
-  return generateFacultyMetadata(faculty);
+  const ratings = (ratingRows ?? [])
+    .map((r) => r.overall_rating)
+    .filter((n): n is number => typeof n === "number");
+  const stats = ratings.length > 0
+    ? {
+        avgRating: Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10,
+        reviewCount: ratings.length,
+      }
+    : undefined;
+  return generateFacultyMetadata(faculty, stats);
 }
 
 export default async function FacultyPage({
