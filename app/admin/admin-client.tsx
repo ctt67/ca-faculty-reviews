@@ -212,6 +212,9 @@ export default function AdminClient() {
   const [rejectedReviews, setRejectedReviews]     = useState<any[]>([]);
   const [showRejected, setShowRejected]           = useState(false);
   const [loadingRejected, setLoadingRejected]     = useState(false);
+  const [reportedGroups, setReportedGroups]       = useState<any[]>([]);
+  const [showReported, setShowReported]           = useState(false);
+  const [loadingReported, setLoadingReported]     = useState(false);
   const [facultyRequests, setFacultyRequests]     = useState<any[]>([]);
   const [showRequests, setShowRequests]           = useState(false);
   const [loadingRequests, setLoadingRequests]     = useState(false);
@@ -468,6 +471,76 @@ Rohan — Careviews (careviews.in)`
       setFacultyDraft({ faculty_name: "", level: "", subject: "", website: "", language: [], mode: [] });
     }
     setAddingFaculty(false);
+  };
+
+  const loadReported = async () => {
+    if (reportedGroups.length > 0) { setShowReported(true); return; }
+    setLoadingReported(true);
+    const { data: reports } = await supabase
+      .from("review_reports")
+      .select("id, review_id, reason, details, created_at")
+      .order("created_at", { ascending: false })
+      .limit(300);
+    const ids = [...new Set((reports ?? []).map((r) => r.review_id))];
+    if (ids.length === 0) {
+      setReportedGroups([]); setShowReported(true); setLoadingReported(false); return;
+    }
+    const [{ data: revs }, { data: votes }] = await Promise.all([
+      supabase.from("reviews").select("*").in("id", ids),
+      supabase.from("review_votes").select("review_id, vote_type").in("review_id", ids),
+    ]);
+    const groups = ids
+      .map((id) => {
+        const review = revs?.find((r) => r.id === id);
+        if (!review) return null;
+        const rep = (reports ?? []).filter((r) => r.review_id === id);
+        const v = (votes ?? []).filter((x) => x.review_id === id);
+        return {
+          review,
+          reports: rep,
+          up: v.filter((x) => x.vote_type === "up").length,
+          down: v.filter((x) => x.vote_type === "down").length,
+        };
+      })
+      .filter(Boolean);
+    setReportedGroups(groups as any[]);
+    setShowReported(true);
+    setLoadingReported(false);
+  };
+
+  // Fake/violating: unpublish and send back to author (consistent with the
+  // approve/reject moderation model - we never edit, author revises)
+  const unpublishReported = async (reviewId: number) => {
+    const g = reportedGroups.find((x) => x.review.id === reviewId);
+    await Promise.all([
+      supabase.from("reviews").update({ approved: false, rejected: true }).eq("id", reviewId),
+      logAudit("reported_review_unpublished", reviewId, {
+        faculty_slug: g?.review?.faculty_slug, report_count: g?.reports?.length ?? 0,
+      }),
+    ]);
+    setReportedGroups((prev) => prev.map((x) =>
+      x.review.id === reviewId
+        ? { ...x, review: { ...x.review, approved: false, rejected: true } }
+        : x
+    ));
+  };
+
+  const deleteReported = async (reviewId: number) => {
+    const g = reportedGroups.find((x) => x.review.id === reviewId);
+    await Promise.all([
+      supabase.from("reviews").delete().eq("id", reviewId),
+      supabase.from("review_reports").delete().eq("review_id", reviewId),
+      logAudit("reported_review_deleted", reviewId, { faculty_slug: g?.review?.faculty_slug }),
+    ]);
+    setReportedGroups((prev) => prev.filter((x) => x.review.id !== reviewId));
+  };
+
+  const dismissReports = async (reviewId: number) => {
+    await Promise.all([
+      supabase.from("review_reports").delete().eq("review_id", reviewId),
+      logAudit("reports_dismissed", reviewId, {}),
+    ]);
+    setReportedGroups((prev) => prev.filter((x) => x.review.id !== reviewId));
   };
 
   const loadAllFaculties = async () => {
@@ -772,6 +845,117 @@ Rohan — Careviews (careviews.in)`
                   </div>
                 );
               })}
+            </div>
+          )}
+        </div>
+
+        {/* Reported Reviews */}
+        <div className="mt-10">
+          <button
+            onClick={() => showReported ? setShowReported(false) : loadReported()}
+            className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition"
+          >
+            {loadingReported ? "Loading…" : showReported ? "▲ Hide Reported Reviews" : "▼ Show Reported Reviews"}
+          </button>
+
+          {showReported && (
+            <div className="space-y-5 mt-5">
+              {reportedGroups.length === 0 && (
+                <p className="text-slate-400 text-sm">No open reports. 🎉</p>
+              )}
+              {reportedGroups.map(({ review, reports, up, down }) => (
+                <div key={review.id} className="bg-white rounded-3xl border border-orange-200 shadow-sm p-7">
+
+                  {/* Header */}
+                  <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
+                    <div>
+                      <a href={`/faculty/${review.faculty_slug}`} target="_blank" className="text-lg font-bold text-blue-600 hover:underline">
+                        {review.faculty_slug}
+                      </a>
+                      <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
+                          review.approved
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : review.rejected
+                            ? "bg-red-50 text-red-600 border-red-200"
+                            : "bg-amber-50 text-amber-700 border-amber-200"
+                        }`}>
+                          {review.approved ? "Published" : review.rejected ? "Sent back" : "Pending"}
+                        </span>
+                        <span className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-full px-2.5 py-0.5">
+                          ▲ {up} · ▼ {down}
+                        </span>
+                        <span className="text-xs text-orange-700 bg-orange-50 border border-orange-200 rounded-full px-2.5 py-0.5 font-semibold">
+                          {reports.length} {reports.length === 1 ? "report" : "reports"}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-xs text-slate-400">{new Date(review.created_at).toLocaleDateString("en-IN")}</span>
+                  </div>
+
+                  {/* Review content */}
+                  {(review.pros || review.cons) && (
+                    <div className="grid md:grid-cols-2 gap-3 mb-3">
+                      {review.pros && (
+                        <div className="bg-green-50 border border-green-100 rounded-xl p-3">
+                          <p className="text-[10px] font-semibold text-green-700 mb-1">PROS</p>
+                          <p className="text-slate-700 text-sm">{review.pros}</p>
+                        </div>
+                      )}
+                      {review.cons && (
+                        <div className="bg-red-50 border border-red-100 rounded-xl p-3">
+                          <p className="text-[10px] font-semibold text-red-600 mb-1">CONS</p>
+                          <p className="text-slate-700 text-sm">{review.cons}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {review.review_text && (
+                    <div className="bg-slate-50 rounded-xl p-3 mb-4">
+                      <p className="text-slate-800 text-sm leading-relaxed">{review.review_text}</p>
+                    </div>
+                  )}
+
+                  {/* Reports */}
+                  <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 mb-4">
+                    <p className="text-[10px] font-semibold text-orange-700 uppercase tracking-wide mb-2">Reports</p>
+                    <div className="space-y-2">
+                      {reports.map((rep: any) => (
+                        <div key={rep.id} className="text-sm">
+                          <span className="font-semibold text-slate-800">{rep.reason}</span>
+                          {rep.details && <span className="text-slate-600"> — {rep.details}</span>}
+                          <span className="text-slate-400 text-xs ml-2">{new Date(rep.created_at).toLocaleDateString("en-IN")}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-wrap gap-3 pt-2 border-t border-slate-100">
+                    <button
+                      onClick={() => dismissReports(review.id)}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl font-medium text-sm transition"
+                    >
+                      Dismiss Reports (review is fine)
+                    </button>
+                    {review.approved && (
+                      <button
+                        onClick={() => unpublishReported(review.id)}
+                        className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-medium text-sm transition"
+                      >
+                        Unpublish → send back to author
+                      </button>
+                    )}
+                    <button
+                      onClick={() => { if (confirm("Permanently delete this review AND its reports? This cannot be undone.")) deleteReported(review.id); }}
+                      className="text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 px-4 py-2 rounded-xl text-sm transition"
+                    >
+                      Delete Permanently (fake)
+                    </button>
+                  </div>
+
+                </div>
+              ))}
             </div>
           )}
         </div>
