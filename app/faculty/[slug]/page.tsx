@@ -18,7 +18,7 @@ import ReviewsLoadMore from "@/components/ReviewsLoadMore";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { generateFacultyMetadata } from "@/lib/seo";
+import { computeRatingStats, generateFacultyMetadata } from "@/lib/seo";
 import { BASE_URL, LEVEL_LABELS } from "@/lib/config";
 import { getDimensionByKey } from "@/lib/rating-dimensions";
 
@@ -66,16 +66,7 @@ export async function generateMetadata({
       robots: { index: false, follow: false },
     };
   }
-  const ratings = (ratingRows ?? [])
-    .map((r) => r.overall_rating)
-    .filter((n): n is number => typeof n === "number");
-  const stats = ratings.length > 0
-    ? {
-        avgRating: Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10,
-        reviewCount: ratings.length,
-      }
-    : undefined;
-  return generateFacultyMetadata(faculty, stats);
+  return generateFacultyMetadata(faculty, computeRatingStats(ratingRows));
 }
 
 export default async function FacultyPage({

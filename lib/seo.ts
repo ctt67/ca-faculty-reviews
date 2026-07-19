@@ -17,9 +17,27 @@ interface FacultySEO {
   level: string;
 }
 
+export interface RatingStats {
+  avgRating: number;
+  reviewCount: number;
+}
+
+export function computeRatingStats(
+  rows: { overall_rating: unknown }[] | null,
+): RatingStats | undefined {
+  const ratings = (rows ?? [])
+    .map((r) => r.overall_rating)
+    .filter((n): n is number => typeof n === "number");
+  if (ratings.length === 0) return undefined;
+  return {
+    avgRating: Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10,
+    reviewCount: ratings.length,
+  };
+}
+
 export function generateFacultyMetadata(
   faculty: FacultySEO,
-  stats?: { avgRating: number; reviewCount: number },
+  stats?: RatingStats,
 ): Metadata {
   const subjectLabel = formatSubjectName(faculty.subject);
   const title = `${faculty.faculty_name} — ${subjectLabel} Reviews (${YEAR}) | ${levelLabel(faculty.level)} | ${SITE_NAME}`;
@@ -45,11 +63,16 @@ interface SubjectSEO {
   level: string;
 }
 
-export function generateSubjectMetadata(page: SubjectSEO): Metadata {
+export function generateSubjectMetadata(
+  page: SubjectSEO,
+  stats?: { facultyCount: number; reviewCount: number },
+): Metadata {
   const level = levelLabel(page.level);
   const subject = formatSubjectName(page.subject);
   const title = `Best ${level} ${subject} Faculty (${YEAR}) — Ranked by Student Reviews | ${SITE_NAME}`;
-  const description = `Compare ${level} ${subject} faculties with student reviews, detailed student ratings, teaching styles and student experiences.`;
+  const description = stats && stats.reviewCount > 0
+    ? `${stats.facultyCount} ${level} ${subject} ${stats.facultyCount === 1 ? "faculty" : "faculties"} ranked by ${stats.reviewCount} student ${stats.reviewCount === 1 ? "review" : "reviews"} on ${SITE_NAME}. Compare teaching styles, detailed student ratings and student experiences.`
+    : `Compare ${level} ${subject} faculties with student reviews, detailed student ratings, teaching styles and student experiences.`;
   const url = `${BASE_URL}/${page.level.toLowerCase()}/${page.subject.toLowerCase()}`;
 
   return {
@@ -87,9 +110,14 @@ interface CompareSEO {
   level: string;
 }
 
-export function generateCompareMetadata(page: CompareSEO): Metadata {
+export function generateCompareMetadata(
+  page: CompareSEO,
+  stats?: { faculty1: RatingStats; faculty2: RatingStats },
+): Metadata {
   const title = `${page.faculty1} vs ${page.faculty2} — ${formatSubjectName(page.subject)} Reviews (${YEAR}) | ${SITE_NAME}`;
-  const description = `Compare ${page.faculty1} and ${page.faculty2} side-by-side using student reviews, detailed student ratings and student experiences.`;
+  const description = stats
+    ? `${page.faculty1} rated ${stats.faculty1.avgRating}/5 by ${stats.faculty1.reviewCount} ${stats.faculty1.reviewCount === 1 ? "student" : "students"} vs ${page.faculty2} ${stats.faculty2.avgRating}/5 by ${stats.faculty2.reviewCount} on ${SITE_NAME}. Compare ${formatSubjectName(page.subject)} teaching styles, detailed ratings and student experiences side-by-side.`
+    : `Compare ${page.faculty1} and ${page.faculty2} side-by-side using student reviews, detailed student ratings and student experiences.`;
   const url = `${BASE_URL}/compare/${page.faculty1Slug}/${page.faculty2Slug}`;
 
   return {

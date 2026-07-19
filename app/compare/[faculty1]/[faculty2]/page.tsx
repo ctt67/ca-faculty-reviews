@@ -12,7 +12,7 @@ import {
 import CompareReviewCard from "@/components/compare/CompareReviewCard";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import { generateCompareMetadata } from "@/lib/seo";
+import { computeRatingStats, generateCompareMetadata } from "@/lib/seo";
 import { getDimensionByKey } from "@/lib/rating-dimensions";
 
 export async function generateMetadata({
@@ -27,9 +27,11 @@ export async function generateMetadata({
     return { robots: { index: false, follow: true } };
   }
 
-  const [{ data: faculty1 }, { data: faculty2 }] = await Promise.all([
+  const [{ data: faculty1 }, { data: faculty2 }, { data: ratings1 }, { data: ratings2 }] = await Promise.all([
     supabase.from("faculties").select("faculty_name, subject, level").eq("slug", faculty1Slug).eq("active", true).single(),
     supabase.from("faculties").select("faculty_name, subject, level").eq("slug", faculty2Slug).eq("active", true).single(),
+    supabase.from("reviews").select("overall_rating").eq("faculty_slug", faculty1Slug).eq("approved", true),
+    supabase.from("reviews").select("overall_rating").eq("faculty_slug", faculty2Slug).eq("approved", true),
   ]);
 
   if (!faculty1 || !faculty2) {
@@ -39,14 +41,20 @@ export async function generateMetadata({
     };
   }
 
-  return generateCompareMetadata({
-    faculty1: faculty1.faculty_name,
-    faculty2: faculty2.faculty_name,
-    faculty1Slug,
-    faculty2Slug,
-    subject: faculty1.subject,
-    level: faculty1.level,
-  });
+  const stats1 = computeRatingStats(ratings1);
+  const stats2 = computeRatingStats(ratings2);
+
+  return generateCompareMetadata(
+    {
+      faculty1: faculty1.faculty_name,
+      faculty2: faculty2.faculty_name,
+      faculty1Slug,
+      faculty2Slug,
+      subject: faculty1.subject,
+      level: faculty1.level,
+    },
+    stats1 && stats2 ? { faculty1: stats1, faculty2: stats2 } : undefined,
+  );
 }
 
 export default async function CompareResultPage({

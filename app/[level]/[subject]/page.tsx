@@ -19,7 +19,26 @@ export async function generateMetadata({
   params: Promise<{ level: string; subject: string }>;
 }): Promise<Metadata> {
   const { level, subject } = await params;
-  return generateSubjectMetadata({ level, subject });
+
+  const { data: facs } = await supabase
+    .from("faculties")
+    .select("slug")
+    .ilike("subject", subject)
+    .ilike("level", level)
+    .eq("active", true);
+  const slugs = (facs ?? []).map((f) => f.slug);
+
+  let stats: { facultyCount: number; reviewCount: number } | undefined;
+  if (slugs.length > 0) {
+    const { count } = await supabase
+      .from("reviews")
+      .select("id", { count: "exact", head: true })
+      .in("faculty_slug", slugs)
+      .eq("approved", true);
+    if (count) stats = { facultyCount: slugs.length, reviewCount: count };
+  }
+
+  return generateSubjectMetadata({ level, subject }, stats);
 }
 
 export default async function SubjectPage({
