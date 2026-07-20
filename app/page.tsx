@@ -96,6 +96,19 @@ export default async function HomePage() {
     <main className="min-h-screen">
       {/* Hero */}
       <section className="bg-navy text-white">
+        {/* Contributor appeal bar */}
+        <TrackedLink
+          href="/review"
+          event="write_review_clicked"
+          properties={{ source: "hero_banner" }}
+          className="block bg-gold/15 border-b border-gold/25 hover:bg-gold/25 transition"
+        >
+          <div className="max-w-4xl mx-auto px-6 py-2.5 text-center text-[13px] leading-snug text-gold font-medium">
+            Done with your classes? Help a junior spend their ₹10-15k wisely.{" "}
+            <span className="underline underline-offset-2 whitespace-nowrap">Write a review</span>, you might save someone's attempt.
+          </div>
+        </TrackedLink>
+
         <div className="max-w-4xl mx-auto px-6 py-12 md:py-16">
 
           <p className="text-xs font-semibold tracking-widest text-gold uppercase mb-5">
