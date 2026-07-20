@@ -6,7 +6,7 @@ import { ratingFields } from "@/lib/rating-config";
 import { formatSubjectName } from "@/lib/format";
 import { CheckCircle2, Share2, Copy, Check } from "lucide-react";
 import { BASE_URL, INSTAGRAM_URL, WHATSAPP_URL, TELEGRAM_URL } from "@/lib/config";
-import { track } from "@/lib/track";
+import { track, getFirstTouch, getSessionId } from "@/lib/track";
 import { REVIEW_VERSION, detectBrowser, hashUserAgent } from "@/lib/client-meta";
 import TurnstileWidget from "@/components/TurnstileWidget";
 
@@ -255,6 +255,7 @@ export default function ReviewForm({
         : null;
 
       const userAgentHash = await hashUserAgent(navigator.userAgent);
+      const firstTouch = getFirstTouch();
 
       const reviewData = {
         faculty_slug:          faculty.slug,
@@ -275,8 +276,11 @@ export default function ReviewForm({
         typing_started_at:  typingStartedAt?.toISOString() ?? null,
         submitted_at:       submittedAt.toISOString(),
         time_taken_seconds: timeTakenSeconds,
-        referrer:           document.referrer || null,
-        utm_source:         new URLSearchParams(window.location.search).get("utm_source"),
+        // First-touch: where this browser session actually entered from,
+        // not the internal page they were on when they hit submit.
+        referrer:           firstTouch.entry_referrer || document.referrer || null,
+        utm_source:         firstTouch.utm_source ?? new URLSearchParams(window.location.search).get("utm_source"),
+        session_id:         getSessionId() || null,
         device_type:        /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop",
         user_agent_hash:    userAgentHash,
         browser:            detectBrowser(navigator.userAgent),

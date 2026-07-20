@@ -2,7 +2,7 @@
 
 import { supabase } from "./supabase";
 
-function getSessionId(): string {
+export function getSessionId(): string {
   if (typeof window === "undefined") return "";
   let id = localStorage.getItem("cv_session_id");
   if (!id) {
@@ -10,6 +10,18 @@ function getSessionId(): string {
     localStorage.setItem("cv_session_id", id);
   }
   return id;
+}
+
+// First-touch entry capture: document.referrer and landing path are only
+// meaningful on the first document load of a browser session — client-side
+// navigation never updates them. Snapshot them once per session so every
+// later event (and the review row itself) can carry true acquisition source.
+function captureEntry() {
+  if (typeof window === "undefined") return;
+  if (sessionStorage.getItem("cv_entry_captured")) return;
+  sessionStorage.setItem("cv_entry_captured", "1");
+  sessionStorage.setItem("cv_entry_ref", document.referrer || "");
+  sessionStorage.setItem("cv_entry_path", window.location.pathname);
 }
 
 function getUtm(): { source: string | null; medium: string | null; campaign: string | null } {
@@ -26,15 +38,42 @@ function getUtm(): { source: string | null; medium: string | null; campaign: str
   };
 }
 
+// First-touch attribution for this browser session: session-persisted UTM
+// params plus the external referrer and path the visitor entered on.
+export function getFirstTouch(): {
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  entry_referrer: string | null;
+  entry_path: string | null;
+} {
+  if (typeof window === "undefined") {
+    return { utm_source: null, utm_medium: null, utm_campaign: null, entry_referrer: null, entry_path: null };
+  }
+  captureEntry();
+  const utm = getUtm();
+  return {
+    utm_source: utm.source,
+    utm_medium: utm.medium,
+    utm_campaign: utm.campaign,
+    entry_referrer: sessionStorage.getItem("cv_entry_ref") || null,
+    entry_path: sessionStorage.getItem("cv_entry_path") || null,
+  };
+}
+
 export function track(eventName: string, properties?: Record<string, unknown>) {
   if (typeof window === "undefined") return;
+
+  captureEntry();
 
   const deviceType = /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop";
 
   const utm = getUtm();
+  const entryRef = sessionStorage.getItem("cv_entry_ref");
   const mergedProps: Record<string, unknown> = { ...(properties ?? {}) };
   if (utm.medium)   mergedProps.utm_medium   = utm.medium;
   if (utm.campaign) mergedProps.utm_campaign = utm.campaign;
+  if (entryRef)     mergedProps.entry_referrer = entryRef;
 
   supabase.auth.getSession().then(({ data: { session } }) => {
     supabase.from("analytics_events").insert([{

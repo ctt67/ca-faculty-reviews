@@ -77,13 +77,22 @@ export async function POST(req: NextRequest) {
   }
 
   // 6. Insert — user_id and server metadata are set here, never from client
-  const { error } = await userClient.from("reviews").insert([{
+  const row = {
     ...reviewData,
     user_id: user.id,
     ip_hash:  ipHash,
     country,
     approved: false,
-  }]);
+  };
+  let { error } = await userClient.from("reviews").insert([row]);
+
+  // A review must never be lost to a missing attribution column
+  // (reviews.session_id requires a one-time DDL run).
+  if (error && error.code === "PGRST204" && "session_id" in row) {
+    const withoutSession = { ...row } as Record<string, unknown>;
+    delete withoutSession.session_id;
+    ({ error } = await userClient.from("reviews").insert([withoutSession]));
+  }
 
   if (error) {
     if (error.code === "23505" || error.message?.includes("unique_user_faculty_review")) {

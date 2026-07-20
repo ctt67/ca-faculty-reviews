@@ -54,6 +54,8 @@ export interface Review {
   browser: string | null;
   country: string | null;
   review_version: string | null;
+  session_id?: string | null;
+  rejected?: boolean | null;
 }
 
 export interface AnalyticsEvent {
