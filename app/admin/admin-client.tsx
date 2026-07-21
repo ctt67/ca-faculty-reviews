@@ -28,12 +28,38 @@ function similarFaculties(name: string, all: FacRow[], limit = 3): FacRow[] {
 
 type VoteRow = { review_id: number; ip_hash: string | null; user_agent_hash: string | null };
 
+// Fingerprint columns of every review (any status) for cross-review matching
+type CorpusRow = {
+  id: number;
+  faculty_slug: string;
+  user_id: string | null;
+  ip_hash: string | null;
+  user_agent_hash: string | null;
+  session_id?: string | null;
+  created_at: string;
+};
+
+// Cross-review correlation for one pending review against the whole corpus
+interface SiblingStats {
+  sameIpFaculty: number;          // other reviews of the SAME faculty from this IP
+  sameIpOther: number;            // other reviews site-wide from this IP
+  sameUaFaculty: number;          // other reviews of the same faculty from this UA hash
+  sharedSessionOtherUser: boolean; // same browser (session_id) used by a different account
+  authorReviews24h: number;       // reviews by this author within ±24h (incl. this one)
+}
+
+const NO_SIBLINGS: SiblingStats = {
+  sameIpFaculty: 0, sameIpOther: 0, sameUaFaculty: 0,
+  sharedSessionOtherUser: false, authorReviews24h: 1,
+};
+
 interface SpamSignals {
   score: number;
   level: "clean" | "watch" | "suspicious" | "flag";
   timeTaken: number | null;
   browser: string | null;
   device: string | null;
+  country: string | null;
   ipTag: string | null;     // last 8 chars of submission ip_hash
   reports: number;
   totalVotes: number;
@@ -41,12 +67,17 @@ interface SpamSignals {
   uniqueVoteUas: number;
   maxIpConc: number;        // fraction 0–1
   maxUaConc: number;
+  siblings: SiblingStats;
+  ratingPattern: "recital" | "all-max" | null; // all-5s (+ throwaway cons)
 }
+
+const TRIVIAL_CONS = /^(none|nothing|na|n\/a|nil|no cons?|-|\.+)$/i;
 
 function computeSpam(
   review: Record<string, unknown>,
   votes: VoteRow[],
   reports: number,
+  siblings: SiblingStats,
 ): SpamSignals {
   let score = 0;
 
@@ -58,6 +89,24 @@ function computeSpam(
   }
 
   score += Math.min(reports * 15, 45);
+
+  // Cross-review fingerprint matches — the coordinated-batch pattern
+  if (siblings.sameIpFaculty >= 2)      score += 40;
+  else if (siblings.sameIpFaculty === 1) score += 25;
+  if (siblings.sameIpOther >= 2)        score += 10;   // mild: hostels/campus NAT share IPs
+  if (siblings.sameUaFaculty >= 1)      score += 8;    // weak: identical phone models collide
+  if (siblings.sharedSessionOtherUser)  score += 40;   // same browser, different account
+  if (siblings.authorReviews24h >= 3)   score += 15;
+
+  // Rating recital: every dimension maxed, cons a throwaway — the known fake shape
+  const ratings = ratingFields.map((f) => review[f.key] as number | null);
+  const allMax = ratings.length > 0 && ratings.every((v) => v === 5);
+  const cons = ((review.cons as string | null) ?? "").trim();
+  const consTrivial = cons.length === 0 || cons.length <= 10 || TRIVIAL_CONS.test(cons);
+  const ratingPattern: SpamSignals["ratingPattern"] =
+    allMax && consTrivial ? "recital" : allMax ? "all-max" : null;
+  if (ratingPattern === "recital")      score += 15;
+  else if (ratingPattern === "all-max") score += 8;
 
   const ipCounts  = new Map<string, number>();
   const uaCounts  = new Map<string, number>();
@@ -87,6 +136,7 @@ function computeSpam(
     timeTaken,
     browser: (review.browser as string | null) ?? null,
     device:  (review.device_type as string | null) ?? null,
+    country: (review.country as string | null) ?? null,
     ipTag:   ipHash ? ipHash.slice(-8) : null,
     reports,
     totalVotes:    votes.length,
@@ -94,7 +144,37 @@ function computeSpam(
     uniqueVoteUas: uaCounts.size,
     maxIpConc,
     maxUaConc,
+    siblings,
+    ratingPattern,
   };
+}
+
+// Build sibling stats for a review against the fingerprint corpus
+function siblingsFor(r: CorpusRow, corpus: CorpusRow[]): SiblingStats {
+  if (corpus.length === 0) return NO_SIBLINGS;
+
+  let sameIpFaculty = 0, sameIpOther = 0, sameUaFaculty = 0, authorReviews24h = 0;
+  let sharedSessionOtherUser = false;
+  const t = new Date(r.created_at).getTime();
+
+  for (const c of corpus) {
+    if (c.id === r.id) { authorReviews24h++; continue; }
+    if (r.ip_hash && c.ip_hash === r.ip_hash) {
+      if (c.faculty_slug === r.faculty_slug) sameIpFaculty++;
+      else sameIpOther++;
+    }
+    if (r.user_agent_hash && c.user_agent_hash === r.user_agent_hash && c.faculty_slug === r.faculty_slug) {
+      sameUaFaculty++;
+    }
+    if (r.session_id && c.session_id === r.session_id && r.user_id && c.user_id && c.user_id !== r.user_id) {
+      sharedSessionOtherUser = true;
+    }
+    if (r.user_id && c.user_id === r.user_id && Math.abs(new Date(c.created_at).getTime() - t) < 86400000) {
+      authorReviews24h++;
+    }
+  }
+
+  return { sameIpFaculty, sameIpOther, sameUaFaculty, sharedSessionOtherUser, authorReviews24h };
 }
 
 function formatTime(s: number | null) {
@@ -151,7 +231,7 @@ function SpamPanel({ signals }: { signals: SpamSignals }) {
             note={timeFlag ? "suspiciously fast" : undefined}
           />
           <Cell label="Browser"  value={signals.browser ?? "—"} />
-          <Cell label="Device"   value={signals.device  ?? "—"} />
+          <Cell label="Device"   value={`${signals.device ?? "—"}${signals.country ? ` · ${signals.country}` : ""}`} />
           <Cell
             label="Submission IP"
             value={signals.ipTag ? `···${signals.ipTag}` : "—"}
@@ -161,6 +241,45 @@ function SpamPanel({ signals }: { signals: SpamSignals }) {
             label="Reports"
             value={String(signals.reports)}
             flag={signals.reports > 0}
+          />
+          <Cell
+            label="Same IP · this faculty"
+            value={String(signals.siblings.sameIpFaculty)}
+            flag={signals.siblings.sameIpFaculty > 0}
+            note={signals.siblings.sameIpFaculty > 0 ? "other reviews of this faculty from this IP" : undefined}
+          />
+          <Cell
+            label="Same IP · site-wide"
+            value={String(signals.siblings.sameIpOther)}
+            flag={signals.siblings.sameIpOther >= 2}
+            note={signals.siblings.sameIpOther >= 2 ? "could be campus/hostel NAT" : undefined}
+          />
+          <Cell
+            label="Same device · this faculty"
+            value={String(signals.siblings.sameUaFaculty)}
+            flag={signals.siblings.sameUaFaculty > 0}
+            note={signals.siblings.sameUaFaculty > 0 ? "UA match — weak signal on identical phones" : undefined}
+          />
+          <Cell
+            label="Shared browser"
+            value={signals.siblings.sharedSessionOtherUser ? "YES" : "no"}
+            flag={signals.siblings.sharedSessionOtherUser}
+            note={signals.siblings.sharedSessionOtherUser ? "same browser used by another account" : undefined}
+          />
+          <Cell
+            label="Author reviews · 24h"
+            value={String(signals.siblings.authorReviews24h)}
+            flag={signals.siblings.authorReviews24h >= 3}
+            note={signals.siblings.authorReviews24h >= 3 ? "burst posting" : undefined}
+          />
+          <Cell
+            label="Rating pattern"
+            value={
+              signals.ratingPattern === "recital" ? "all 5s + throwaway cons"
+              : signals.ratingPattern === "all-max" ? "all 5s"
+              : "normal"
+            }
+            flag={signals.ratingPattern !== null}
           />
 
           {signals.totalVotes > 0 ? (
@@ -256,6 +375,13 @@ export default function AdminClient() {
       if (loaded.length > 0) {
         const ids = loaded.map((r: any) => r.id);
 
+        // Fingerprint corpus: every review (any status) for cross-review matching.
+        // session_id is a recent column — retry without it if the DDL hasn't run.
+        const CORPUS_COLS = "id, faculty_slug, user_id, ip_hash, user_agent_hash, created_at";
+        let corpusRes = await supabase.from("reviews").select(`${CORPUS_COLS}, session_id`);
+        if (corpusRes.error) corpusRes = await supabase.from("reviews").select(CORPUS_COLS);
+        const corpus = (corpusRes.data ?? []) as unknown as CorpusRow[];
+
         const [{ data: voteRows }, { data: reportRows }] = await Promise.all([
           supabase.from("review_votes").select("review_id, ip_hash, user_agent_hash").in("review_id", ids),
           supabase.from("review_reports").select("review_id").in("review_id", ids),
@@ -268,7 +394,7 @@ export default function AdminClient() {
 
         const map = new Map<number, SpamSignals>();
         for (const r of loaded) {
-          map.set(r.id, computeSpam(r, votesBy.get(r.id) ?? [], reportsBy.get(r.id) ?? 0));
+          map.set(r.id, computeSpam(r, votesBy.get(r.id) ?? [], reportsBy.get(r.id) ?? 0, siblingsFor(r, corpus)));
         }
         setSpamMap(map);
       }

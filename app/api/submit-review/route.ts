@@ -61,6 +61,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing faculty_slug" }, { status: 400 });
   }
 
+  // 4b. Per-faculty IP throttle — max 2 reviews for the same faculty from one
+  // IP per 7 days. Blunts coordinated batches without punishing shared
+  // hostel/campus networks outright. Fail-open on infra errors.
+  const { data: facAllowed, error: facRpcError } = await anonClient.rpc("check_faculty_ip_limit", {
+    p_ip_hash: ipHash,
+    p_faculty_slug: reviewData.faculty_slug,
+    p_limit: 2,
+    p_days: 7,
+  });
+
+  if (facRpcError) {
+    console.error("faculty_ip_limit rpc error", facRpcError);
+  } else if (facAllowed === false) {
+    return NextResponse.json(
+      {
+        error: "rate_limited",
+        message: "Several reviews for this faculty have already come from your network recently. Please try again in a few days.",
+      },
+      { status: 429 }
+    );
+  }
+
   // 5. Sanitize + moderate text fields
   reviewData = sanitizeFields(reviewData, ["pros", "cons", "review_text"]);
 
