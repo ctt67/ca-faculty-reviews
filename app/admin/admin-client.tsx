@@ -513,7 +513,7 @@ export default function AdminClient() {
   const SUBJECTS_BY_LEVEL: Record<string, string[]> = {
     foundation: ["Accounts", "Law", "Economics", "Maths"],
     inter: ["Accounts", "Auditing", "Costing", "DT", "IDT", "Taxation", "Law", "FM", "SM", "FM-SM"],
-    final: ["FR", "AFM", "Auditing", "DT", "IDT", "IBS", "Law", "Cost"],
+    final: ["FR", "AFM", "Auditing", "DT", "IDT", "IBS", "Law", "Cost", "SPOM Set A", "SPOM Set B", "SPOM Set C", "SPOM Set D"],
   };
   const subjectOptions = SUBJECTS_BY_LEVEL[facultyDraft.level.toLowerCase()] ?? [];
 
