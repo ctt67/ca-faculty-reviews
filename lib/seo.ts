@@ -129,3 +129,91 @@ export function generateCompareMetadata(
     robots: { index: true, follow: true },
   };
 }
+
+interface CompareJsonLdInput {
+  faculty1: { name: string; slug: string };
+  faculty2: { name: string; slug: string };
+  subject: string;
+  level: string;
+  stats1?: RatingStats;
+  stats2?: RatingStats;
+  // Pre-computed verdict sentence from the page — already attributed/counted
+  // ("Across N approved student reviews on Careviews, students currently
+  // rate X higher..."). This function never invents its own comparative claim.
+  verdict: string | null;
+}
+
+// Every Q&A pair here is a restatement of a number already visible on the
+// page (star rating, review count, or the existing verdict sentence) —
+// never a first-party opinion about a named faculty. Keep it that way:
+// no new question should ever resolve to an unattributed yes/no claim.
+export function generateCompareFAQ(
+  input: CompareJsonLdInput,
+): { q: string; a: string }[] {
+  const subjectLabel = formatSubjectName(input.subject);
+  const faq: { q: string; a: string }[] = [];
+
+  if (input.verdict) {
+    faq.push({
+      q: `Who do students rate higher for ${subjectLabel}, ${input.faculty1.name} or ${input.faculty2.name}?`,
+      a: input.verdict,
+    });
+  }
+
+  for (const [f, stats] of [
+    [input.faculty1, input.stats1],
+    [input.faculty2, input.stats2],
+  ] as const) {
+    if (!stats || stats.reviewCount === 0) continue;
+    faq.push({
+      q: `What rating does ${f.name} have on Careviews?`,
+      a: `${f.name} is rated ${stats.avgRating}/5 by ${stats.reviewCount} CA ${stats.reviewCount === 1 ? "student" : "students"} on Careviews for ${subjectLabel}.`,
+    });
+  }
+
+  return faq;
+}
+
+export function generateCompareJsonLd(input: CompareJsonLdInput): Record<string, unknown>[] {
+  const subjectLabel = formatSubjectName(input.subject);
+  const jsonLd: Record<string, unknown>[] = [];
+
+  // AggregateRating, one Course block per faculty that has reviews — the
+  // identical shape already live (and legally cleared) on faculty pages,
+  // just reused here rather than a new claim being invented.
+  for (const [f, stats] of [
+    [input.faculty1, input.stats1],
+    [input.faculty2, input.stats2],
+  ] as const) {
+    if (!stats || stats.reviewCount === 0) continue;
+    jsonLd.push({
+      "@context": "https://schema.org",
+      "@type": "Course",
+      name: `${subjectLabel} by ${f.name} (${levelLabel(input.level)})`,
+      description: `${levelLabel(input.level)} ${subjectLabel} coaching by ${f.name}, rated by CA students on Careviews.`,
+      provider: { "@type": "Organization", name: f.name },
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: stats.avgRating.toFixed(1),
+        reviewCount: stats.reviewCount,
+        bestRating: "5",
+        worstRating: "1",
+      },
+    });
+  }
+
+  const faq = generateCompareFAQ(input);
+  if (faq.length > 0) {
+    jsonLd.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faq.map(({ q, a }) => ({
+        "@type": "Question",
+        name: q,
+        acceptedAnswer: { "@type": "Answer", text: a },
+      })),
+    });
+  }
+
+  return jsonLd;
+}

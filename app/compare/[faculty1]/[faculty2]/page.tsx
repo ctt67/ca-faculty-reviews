@@ -12,7 +12,7 @@ import {
 import CompareReviewCard from "@/components/compare/CompareReviewCard";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import { computeRatingStats, generateCompareMetadata } from "@/lib/seo";
+import { computeRatingStats, generateCompareMetadata, generateCompareFAQ, generateCompareJsonLd } from "@/lib/seo";
 import { getDimensionByKey } from "@/lib/rating-dimensions";
 
 export async function generateMetadata({
@@ -119,8 +119,30 @@ export default async function CompareResultPage({
       : `Across ${totalR} approved student reviews on Careviews, students currently rate these two faculties evenly across the ${ratingFields.length} rating dimensions.`;
   }
 
+  // AI/search structured data — every sentence restates a number already
+  // shown in the hero above (rating, review count) or the verdict computed
+  // just above. No new claim is introduced here.
+  const compareJsonLdInput = {
+    faculty1: { name: faculty1.faculty_name, slug: faculty1.slug },
+    faculty2: { name: faculty2.faculty_name, slug: faculty2.slug },
+    subject: faculty1.subject,
+    level: faculty1.level,
+    stats1: faculty1Reviews.length > 0 ? { avgRating: faculty1Rating, reviewCount: faculty1Reviews.length } : undefined,
+    stats2: faculty2Reviews.length > 0 ? { avgRating: faculty2Rating, reviewCount: faculty2Reviews.length } : undefined,
+    verdict,
+  };
+  const compareFaq = generateCompareFAQ(compareJsonLdInput);
+  const compareJsonLd = generateCompareJsonLd(compareJsonLdInput);
+
   return (
     <main className="min-h-screen">
+
+      {compareJsonLd.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(compareJsonLd) }}
+        />
+      )}
 
       {/* ── Hero ── */}
       <section className="bg-navy text-white">
@@ -214,6 +236,25 @@ export default async function CompareResultPage({
 
       {/* ── Body ── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-16 space-y-14">
+
+        {/* Quick Answers — same sentences as the FAQPage schema above, kept
+            visible so the markup never says anything the page doesn't. */}
+        {compareFaq.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="font-playfair text-lg font-bold text-ink mb-1">Quick Answers</h2>
+            <p className="text-ink/40 text-[10px] mb-4">
+              Computed from approved student reviews on Careviews
+            </p>
+            <div className="space-y-4">
+              {compareFaq.map(({ q, a }) => (
+                <div key={q}>
+                  <p className="text-sm font-semibold text-ink">{q}</p>
+                  <p className="text-sm text-ink/70 mt-0.5 leading-relaxed">{a}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Faculty Details */}
         {facultyFields.length > 0 && (
